@@ -24,6 +24,7 @@ void cbuffer_free(CircularBuffer* tokill) {
 Buffer* buffer_new(void* data, u16 size) {
   Buffer* output = malloc(sizeof(Buffer));
   output->data = malloc(size * sizeof(u8));
+  output->size = size;
   if (data) {
     memcpy(output->data, data, size);
   } else {

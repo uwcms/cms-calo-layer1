@@ -27,11 +27,34 @@ static char* test_cbuffer_new(void) {
   return 0;
 }
 
+static char* test_cbuffer_free(void) {
+  CircularBuffer* mybuf = cbuffer_new();
+  // doesn't crash
+  cbuffer_free(mybuf);
+  return 0;
+}
+
+static char* test_buffer_new(void) {
+  Buffer* mybuf = buffer_new("BuckyBadger", 5);
+  mu_assert_eq("size", mybuf->size, 5);
+  mu_assert_eq("content", memcmp(mybuf->data, "Bucky", 5), 0);
+  return 0;
+}
+
+static char* test_buffer_free(void) {
+  Buffer* mybuf = buffer_new(NULL, 20);
+  // doesn't crash
+  buffer_free(mybuf);
+  return 0;
+}
+
 int tests_run;
 
 char * all_tests(void) {
   printf("\n\n=== buffer tests ===\n");
   mu_run_test(test_cbuffer_new);
-  mu_run_test(test_cbuffer_new);
+  mu_run_test(test_cbuffer_free);
+  mu_run_test(test_buffer_new);
+  mu_run_test(test_buffer_free);
   return 0;
 }
