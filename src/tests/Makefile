@@ -5,7 +5,7 @@
 
 # build guts
 DEPOPTS = -MMD -MF .dep/`basename $@`.dep -MP
-CCOPTS = $(DEPOPTS) -std=gnu99 -I$(PWD)/inc -Wall -Werror 
+CCOPTS = $(DEPOPTS) -std=gnu99 -I$(PWD)/.. -Wall -Werror 
 SHAREDOPTS = -shared -fPIC
 
 # This is an ugly hack to make sure we put the output into a directory
@@ -21,10 +21,12 @@ test_%.exe: test_%.o minunit.c
 	cp $@ $(OUT_DIR)
 	chmod 755 $(OUT_DIR)/$@
 
-all: test_helloworld.exe test_helloworld.o
+all: \
+  test_circular_buffer.exe test_circular_buffer.o 
+  #test_helloworld.exe test_helloworld.o
 
 test: all
-	LD_LIBRARY_PATH=$(PWD) $(OUT_DIR)/test_helloworld.exe
+	LD_LIBRARY_PATH=$(PWD) $(OUT_DIR)/test_circular_buffer.exe
 
 distclean: clean
 	rm -f .dep/*.dep 
