@@ -12,7 +12,7 @@ SHAREDOPTS = -shared -fPIC
 # where we can chmod +x it. (i.e. not on a windows VM disk)
 OUT_DIR=/tmp/spi_test
 
-test_%.o: %.c
+test_%.o: %.c ../%.c
 	gcc $(DEPOPTS) $(CCOPTS) $(SHAREDOPTS) -o $@ $< ../$*.c
 
 test_%.exe: test_%.o minunit.c
