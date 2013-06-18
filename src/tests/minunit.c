@@ -13,8 +13,6 @@
 
 #include "minunit.h"
 
-//int tests_run;
-
 int main(int argc, char **argv) {
   tests_run = 0;
   char *result = all_tests();

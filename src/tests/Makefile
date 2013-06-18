@@ -13,7 +13,7 @@ SHAREDOPTS = -shared -fPIC
 OUT_DIR=/tmp/spi_test
 
 test_%.o: %.c
-	gcc $(DEPOPTS) $(CCOPTS) $(SHAREDOPTS) -o $@ $<
+	gcc $(DEPOPTS) $(CCOPTS) $(SHAREDOPTS) -o $@ $< ../$*.c
 
 test_%.exe: test_%.o minunit.c
 	gcc $(CCOPTS) -o $@ minunit.c $< 

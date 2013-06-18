@@ -17,7 +17,7 @@
 
 #define HEX_PRINT(x) printf(#x" = %02x\n", (x))
 
-int tests_run;
+extern int tests_run;
 char * all_tests(void);
 
 #endif /* end of include guard: MINUNIT_DZHNARJ8 */
