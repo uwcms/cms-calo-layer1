@@ -85,3 +85,9 @@ int cbuffer_deletefront(CircularBuffer* buffer, u16 nbytes) {
   buffer->pos %= IO_BUFFER_SIZE;
   return bytes_to_delete;
 }
+
+Buffer* cbuffer_pop(CircularBuffer* buffer, u16 nbytes) {
+  Buffer* output = cbuffer_read(buffer, nbytes);
+  cbuffer_deletefront(buffer, nbytes);
+  return output;
+}
