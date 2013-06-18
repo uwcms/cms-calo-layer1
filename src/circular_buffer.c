@@ -60,6 +60,7 @@ int cbuffer_append(CircularBuffer* buffer, void* data, u16 nbytes) {
   if (tail_length < nbytes) {
     memcpy(buffer->data, data + tail_length, nbytes - tail_length);
   }
+  buffer->size += nbytes;
   return 0;
 }
 

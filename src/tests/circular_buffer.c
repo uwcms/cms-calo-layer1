@@ -48,6 +48,20 @@ static char* test_buffer_free(void) {
   return 0;
 }
 
+static char* test_cbuffer_append(void) {
+  CircularBuffer* mybuf = cbuffer_new();
+  cbuffer_append(mybuf, "BuckyBadger", 11);
+  mu_assert_eq("pos", mybuf->pos, 0);
+  mu_assert_eq("size", mybuf->size, 11);
+  mu_assert_eq("content", memcmp(mybuf->data, "BuckyBadger", 11), 0);
+  cbuffer_append(mybuf, "Bucky", 5);
+  mu_assert_eq("pos", mybuf->pos, 0);
+  mu_assert_eq("size", mybuf->size, 16);
+  mu_assert_eq("content", memcmp(mybuf->data, "BuckyBadgerBucky", 16), 0);
+  return 0;
+}
+
+
 int tests_run;
 
 char * all_tests(void) {
@@ -56,5 +70,6 @@ char * all_tests(void) {
   mu_run_test(test_cbuffer_free);
   mu_run_test(test_buffer_new);
   mu_run_test(test_buffer_free);
+  mu_run_test(test_cbuffer_append);
   return 0;
 }
