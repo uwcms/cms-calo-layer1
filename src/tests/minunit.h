@@ -5,6 +5,9 @@
  *
  */
 
+#ifndef MINUNIT_DZHNARJ8
+#define MINUNIT_DZHNARJ8
+
 #include <stdio.h>
 
 #define mu_assert(message, test) do { if (!(test)) return message; } while (0)
@@ -15,19 +18,6 @@
 #define HEX_PRINT(x) printf(#x" = %02x\n", (x))
 
 int tests_run;
+char * all_tests(void);
 
-static char * all_tests(void);
-
-int main(int argc, char **argv) {
-  tests_run = 0;
-  char *result = all_tests();
-  if (result != 0) {
-    printf("%s\n", result);
-  }
-  else {
-    printf("ALL TESTS PASSED\n");
-  }
-  printf("Tests run: %d\n", tests_run);
-
-  return result != 0;
-}
+#endif /* end of include guard: MINUNIT_DZHNARJ8 */

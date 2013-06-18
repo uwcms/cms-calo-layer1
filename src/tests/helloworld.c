@@ -22,7 +22,7 @@ static char* test_helloworld_fail(void) {
   return "hello world";
 }
 
-static char * all_tests(void) {
+char * all_tests(void) {
   printf("\n\n=== hello world ===\n");
   mu_run_test(test_helloworld_pass);
   mu_run_test(test_helloworld_fail);
