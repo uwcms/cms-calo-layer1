@@ -13,7 +13,7 @@ SHAREDOPTS = -shared -fPIC
 OUT_DIR=/tmp/spi_test
 
 test_%.o: %.c
-	gcc $(CCOPTS) $(SHAREDOPTS) -o $@ $<
+	gcc $(DEPOPTS) $(CCOPTS) $(SHAREDOPTS) -o $@ $<
 
 test_%.exe: test_%.o minunit.c
 	gcc $(CCOPTS) -o $@ minunit.c $< 
@@ -21,10 +21,10 @@ test_%.exe: test_%.o minunit.c
 	cp $@ $(OUT_DIR)
 	chmod 755 $(OUT_DIR)/$@
 
-all: test_helloworld.exe
+all: test_helloworld.exe test_helloworld.o
 
 test: all
-	$(OUT_DIR)/test_helloworld.exe
+	LD_LIBRARY_PATH=$(PWD) $(OUT_DIR)/test_helloworld.exe
 
 distclean: clean
 	rm -f .dep/*.dep 
