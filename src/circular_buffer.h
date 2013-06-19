@@ -53,6 +53,11 @@ int cbuffer_freespace(CircularBuffer*);
 // no data is added to the buffer.
 int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords);
 
+// Append 1 word to the buffer.
+// Returns 0 on success, -1 if there is not enough room.  In this case,
+// no data is added to the buffer.
+int cbuffer_push_back(CircularBuffer* buffer, u32 data);
+
 // Read (up to) nwords from the buffer.
 Buffer* cbuffer_read(CircularBuffer* buffer, u16 nwords);
 

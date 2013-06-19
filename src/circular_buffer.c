@@ -71,6 +71,17 @@ int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords) {
   return 0;
 }
 
+int cbuffer_push_back(CircularBuffer* buffer, u32 data) {
+  int freespace = cbuffer_freespace(buffer);
+  if (freespace < 1) {
+    return -1;
+  }
+  int tail_pos = (buffer->pos + buffer->size) % IO_BUFFER_SIZE;
+  buffer->data[tail_pos] = data;
+  buffer->size += 1;
+  return 0;
+}
+
 Buffer* cbuffer_read(CircularBuffer* buffer, u16 nwords) {
   int words_to_read = min(nwords, buffer->size);
   Buffer* output = buffer_new(0, words_to_read);

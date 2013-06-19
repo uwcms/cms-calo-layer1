@@ -215,6 +215,24 @@ static char* test_cbuffer_pop(void) {
   return 0;
 }
 
+static char* test_cbuffer_push_back(void) {
+  CircularBuffer* mybuf = cbuffer_new();
+  // put us at the end of the buffer
+  mybuf->pos = IO_BUFFER_SIZE - 2;
+  cbuffer_push_back(mybuf, 0xDEADBEEF);
+  cbuffer_push_back(mybuf, 0xBEEFFACE);
+  cbuffer_push_back(mybuf, 0xDEADFACE);
+
+  mu_assert_eq("size", mybuf->size, 3);
+  mu_assert_eq("pos", mybuf->pos, IO_BUFFER_SIZE-2);
+
+  mu_assert_eq("item0", mybuf->data[mybuf->pos], 0xDEADBEEF);
+  mu_assert_eq("item1", mybuf->data[mybuf->pos + 1], 0xBEEFFACE);
+  mu_assert_eq("item2", mybuf->data[0], 0xDEADFACE);
+
+  return 0;
+}
+
 int tests_run;
 
 char * all_tests(void) {
@@ -230,5 +248,6 @@ char * all_tests(void) {
   mu_run_test(test_cbuffer_delete_front);
   mu_run_test(test_cbuffer_delete_front_wraps);
   mu_run_test(test_cbuffer_pop);
+  mu_run_test(test_cbuffer_push_back);
   return 0;
 }
