@@ -13,9 +13,9 @@ cd ~
 git clone https://github.com/uwcms/rct-upgrade-microblaze.git
 ```
 
-Now, open the SDK, and File → Switch Workspace → Other...  Create a workspace
+Now, open the SDK, and File → Switch Workspace → Other.  Create a workspace
 pointing at ``~/rct-upgrade-microblaze``.  Now you need to load all the projects
-into the workspace (just once).  Go to File → Import...  Select General →
+into the workspace (just once).  Go to File → Import.  Select General →
 Existing Projects into Workspace, then hit Next.  Select
 ``~/rct-upgrade-microblaze`` as the root directory.  Make sure to deselect the
 "Copy project sources" option provided in the import wizard, and hit Finish.
