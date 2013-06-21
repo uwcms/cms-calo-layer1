@@ -12,9 +12,15 @@
 CircularBuffer* cbuffer_new(void) {
   CircularBuffer* output = malloc(sizeof(CircularBuffer));
   output->data = malloc(IO_BUFFER_SIZE * sizeof(u32));
-  output->size = 0;
+  output->tail = 0;
   output->pos = 0;
   return output;
+}
+
+int cbuffer_size(const CircularBuffer* buffer) {
+  if (buffer->pos <= buffer->tail) 
+    return buffer->tail - buffer->pos;
+  return buffer->tail + IO_BUFFER_SIZE - buffer->pos;
 }
 
 void cbuffer_free(CircularBuffer* tokill) {
@@ -40,7 +46,7 @@ void buffer_free(Buffer* buf) {
 }
 
 int cbuffer_freespace(CircularBuffer* buf) {
-  return IO_BUFFER_SIZE - buf->size;
+  return IO_BUFFER_SIZE - cbuffer_size(buf);
 }
 
 int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords) {
@@ -48,15 +54,14 @@ int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords) {
   if (freespace < nwords) {
     return -1;
   }
-  int tail_pos = (buffer->pos + buffer->size) % IO_BUFFER_SIZE;
 
   // bytes available on "tail" until we hit the absolute end of the memory.
   // we know from the freespace check that we can't overwrite the head with
   // only <nwords>.
-  int tail_length = IO_BUFFER_SIZE - tail_pos;
+  int tail_length = IO_BUFFER_SIZE - buffer->tail;
 
   memcpy(
-      &(buffer->data[tail_pos]),
+      &(buffer->data[buffer->tail]),
       data, 
       sizeof(u32) * min(nwords, tail_length));
 
@@ -67,7 +72,7 @@ int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords) {
         data + sizeof(u32) * tail_length,
         sizeof(u32) * (nwords - tail_length));
   }
-  buffer->size += nwords;
+  buffer->tail = (buffer->tail + nwords) % IO_BUFFER_SIZE;
   return 0;
 }
 
@@ -76,14 +81,13 @@ int cbuffer_push_back(CircularBuffer* buffer, u32 data) {
   if (freespace < 1) {
     return -1;
   }
-  int tail_pos = (buffer->pos + buffer->size) % IO_BUFFER_SIZE;
-  buffer->data[tail_pos] = data;
-  buffer->size += 1;
+  buffer->data[buffer->tail] = data;
+  buffer->tail = (buffer->tail + 1) % IO_BUFFER_SIZE;
   return 0;
 }
 
 Buffer* cbuffer_read(CircularBuffer* buffer, u16 nwords) {
-  int words_to_read = min(nwords, buffer->size);
+  int words_to_read = min(nwords, cbuffer_size(buffer));
   Buffer* output = buffer_new(0, words_to_read);
   int tail_words_to_read = min(words_to_read, IO_BUFFER_SIZE - buffer->pos);
   memcpy(
@@ -102,8 +106,7 @@ Buffer* cbuffer_read(CircularBuffer* buffer, u16 nwords) {
 }
 
 int cbuffer_deletefront(CircularBuffer* buffer, u16 nwords) {
-  int words_to_delete = min(nwords, buffer->size);
-  buffer->size -= words_to_delete;
+  int words_to_delete = min(nwords, cbuffer_size(buffer));
   buffer->pos += words_to_delete;
   buffer->pos %= IO_BUFFER_SIZE;
   return words_to_delete;

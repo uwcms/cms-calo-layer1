@@ -22,7 +22,7 @@
 
 typedef struct {
   u32* data;
-  u32 size;
+  u32 tail;
   u32 pos; // position w.r.t. <data> pointer where data starts.
 } CircularBuffer;
 
@@ -34,6 +34,9 @@ typedef struct {
 
 // Build a new circular buffer, initialized to zero
 CircularBuffer* cbuffer_new(void);
+
+// Words in the buffer
+int cbuffer_size(const CircularBuffer* buffer);
 
 // Free memory associated to a circular buffer
 void cbuffer_free(CircularBuffer*);
