@@ -25,7 +25,7 @@
 
 // error flags
 #define SPI_STREAM_ERR_UNDERRUN (1 << 0)
-#define SPI_STREAM_ERR_OVERRRUN (1 << 1)
+#define SPI_STREAM_ERR_OVERRUN (1 << 1)
 
 // Transform a stream of words to TX, escaping any control characters.
 // This can then be transmitted over the SPI interface.  Returns number

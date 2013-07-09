@@ -57,7 +57,7 @@ Buffer* unescape_stream(CircularBuffer* src, int* error) {
           *error |= SPI_STREAM_ERR_UNDERRUN;
           break;
         case SPI_STREAM_OVERRUN:
-          *error |= SPI_STREAM_ERR_OVERRRUN;
+          *error |= SPI_STREAM_ERR_OVERRUN;
           break;
         case SPI_STREAM_ESCAPE:
           escape_active = 1;
