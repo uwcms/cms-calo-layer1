@@ -49,6 +49,16 @@ static char* test_buffer_free(void) {
   return 0;
 }
 
+static char* test_buffer_resize(void) {
+  u32 test_data[5] = {0, 1, 2, 3, 4};
+  Buffer* mybuf = buffer_new(test_data, 5);
+  buffer_resize(mybuf, 3);
+  mu_assert_eq("size", mybuf->size, 3);
+  mu_assert_eq("content", 
+      memcmp(mybuf->data, test_data, 3 * sizeof(u32)), 0);
+  return 0;
+}
+
 static char* test_cbuffer_append(void) {
   CircularBuffer* mybuf = cbuffer_new();
   u32 test_data[5] = {0, 1, 2, 3, 4};
@@ -246,6 +256,7 @@ char * all_tests(void) {
   mu_run_test(test_cbuffer_free);
   mu_run_test(test_buffer_new);
   mu_run_test(test_buffer_free);
+  mu_run_test(test_buffer_resize);
   mu_run_test(test_cbuffer_append);
   mu_run_test(test_cbuffer_append_wraps);
   mu_run_test(test_cbuffer_read);

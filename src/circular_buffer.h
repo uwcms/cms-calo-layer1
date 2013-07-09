@@ -48,6 +48,9 @@ Buffer* buffer_new(void* data, u16 size);
 // Free memory associated to a buffer
 void buffer_free(Buffer*);
 
+// Resize a buffer.
+void buffer_resize(Buffer*, u16 size);
+
 // Check remaining space in the buffer
 int cbuffer_freespace(CircularBuffer*);
 

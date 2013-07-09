@@ -45,6 +45,11 @@ void buffer_free(Buffer* buf) {
   free(buf);
 }
 
+void buffer_resize(Buffer* buf, u16 size) {
+  buf->data = realloc(buf->data, size * sizeof(u32));
+  buf->size = size;
+}
+
 int cbuffer_freespace(CircularBuffer* buf) {
   return IO_BUFFER_SIZE - cbuffer_size(buf);
 }
