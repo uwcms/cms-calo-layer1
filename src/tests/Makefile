@@ -13,20 +13,22 @@ SHAREDOPTS = -shared -fPIC
 OUT_DIR=/tmp/spi_test
 
 test_%.o: %.c ../%.c
-	gcc $(DEPOPTS) $(CCOPTS) $(SHAREDOPTS) -o $@ $< ../$*.c
+	gcc $(DEPOPTS) $(CCOPTS) $(SHAREDOPTS) -o $@ $< ../$*.c ../circular_buffer.c
 
 test_%.exe: test_%.o minunit.c
-	gcc $(CCOPTS) -o $@ minunit.c $< 
+	gcc $(CCOPTS) -o $@ minunit.c $<  
 	mkdir -p $(OUT_DIR)
 	cp $@ $(OUT_DIR)
 	chmod 755 $(OUT_DIR)/$@
 
 all: \
-  test_circular_buffer.exe test_circular_buffer.o 
+  test_circular_buffer.exe test_circular_buffer.o \
+  test_spi_stream_protocol.exe test_spi_stream_protocol.o 
   #test_helloworld.exe test_helloworld.o
 
 test: all
 	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_circular_buffer.exe
+	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_spi_stream_protocol.exe
 
 distclean: clean
 	rm -f .dep/*.dep 
