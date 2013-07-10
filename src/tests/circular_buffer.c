@@ -135,6 +135,19 @@ static char* test_cbuffer_read_wraps(void) {
   return 0;
 }
 
+static char* test_cbuffer_value_at_wraps(void) {
+  CircularBuffer* mybuf = cbuffer_new();
+  // put us at the end of the buffer
+  mybuf->pos = IO_BUFFER_SIZE - 5;
+  mybuf->tail = IO_BUFFER_SIZE - 5;
+  u32 test_data[11] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  cbuffer_append(mybuf, test_data, 11);
+  for (int i = 0; i < 11; ++i) {
+    mu_assert_eq("read at", cbuffer_value_at(mybuf, i), test_data[i]);
+  }
+  return 0;
+}
+
 static char* test_cbuffer_delete_front(void) {
   CircularBuffer* mybuf = cbuffer_new();
   u32 test_data[11] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -261,6 +274,7 @@ char * all_tests(void) {
   mu_run_test(test_cbuffer_append_wraps);
   mu_run_test(test_cbuffer_read);
   mu_run_test(test_cbuffer_read_wraps);
+  mu_run_test(test_cbuffer_value_at_wraps);
   mu_run_test(test_cbuffer_delete_front);
   mu_run_test(test_cbuffer_delete_front_wraps);
   mu_run_test(test_cbuffer_pop);

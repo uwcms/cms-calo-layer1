@@ -50,7 +50,12 @@ void buffer_resize(Buffer* buf, u16 size) {
   buf->size = size;
 }
 
-int cbuffer_freespace(CircularBuffer* buf) {
+u32 cbuffer_value_at(const CircularBuffer* buf, u16 idx) {
+  u16 actual_idx = (buf->pos + idx) % IO_BUFFER_SIZE;
+  return buf->data[actual_idx];
+}
+
+int cbuffer_freespace(const CircularBuffer* buf) {
   return IO_BUFFER_SIZE - cbuffer_size(buf);
 }
 
@@ -91,7 +96,7 @@ int cbuffer_push_back(CircularBuffer* buffer, u32 data) {
   return 0;
 }
 
-Buffer* cbuffer_read(CircularBuffer* buffer, u16 nwords) {
+Buffer* cbuffer_read(const CircularBuffer* buffer, u16 nwords) {
   int words_to_read = min(nwords, cbuffer_size(buffer));
   Buffer* output = buffer_new(0, words_to_read);
   int tail_words_to_read = min(words_to_read, IO_BUFFER_SIZE - buffer->pos);

@@ -51,8 +51,11 @@ void buffer_free(Buffer*);
 // Resize a buffer.
 void buffer_resize(Buffer*, u16 size);
 
+// Get the word at a given index
+u32 cbuffer_value_at(const CircularBuffer* buf, u16 idx);
+
 // Check remaining space in the buffer
-int cbuffer_freespace(CircularBuffer*);
+int cbuffer_freespace(const CircularBuffer*);
 
 // Append <nwords> from <data> to the buffer.
 // Returns 0 on success, -1 if there is not enough room.  In this case,
@@ -65,7 +68,7 @@ int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords);
 int cbuffer_push_back(CircularBuffer* buffer, u32 data);
 
 // Read (up to) nwords from the buffer.
-Buffer* cbuffer_read(CircularBuffer* buffer, u16 nwords);
+Buffer* cbuffer_read(const CircularBuffer* buffer, u16 nwords);
 
 // Read (up to) nwords from the buffer.  Returns number of bytes deleted.
 int cbuffer_deletefront(CircularBuffer* buffer, u16 nwords);
