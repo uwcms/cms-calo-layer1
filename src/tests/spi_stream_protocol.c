@@ -30,11 +30,12 @@ static char* test_escape_stream_into(void) {
     SPI_STREAM_OVERRUN,
     9
   };
-  Buffer* input_buffer = buffer_new(input_stream, 8);
-  CircularBuffer* output = cbuffer_new();
-  escape_stream_into(output, input_buffer);
+  CircularBuffer* input_buffer = cbuffer_new();
+  cbuffer_append(input_buffer, input_stream, 8);
+  u32 output[16];
+  escape_stream_into(output, 16, input_buffer);
  
-  u32 expected_output[12] = {
+  u32 expected_output[16] = {
     SPI_STREAM_ESCAPE,
     SPI_STREAM_IDLE,
     SPI_STREAM_ESCAPE,
@@ -46,18 +47,21 @@ static char* test_escape_stream_into(void) {
     SPI_STREAM_UNDERRUN,
     SPI_STREAM_ESCAPE,
     SPI_STREAM_OVERRUN,
-    9
+    9,
+    // end padding
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
   };
-  mu_assert_eq("escaped size", cbuffer_size(output), 12);
   mu_assert_eq("escaped content", 
-      memcmp(output->data, expected_output, 12 * sizeof(u32)), 0);
+      memcmp(output, expected_output, 16 * sizeof(u32)), 0);
   return 0;
 }
 
 static char* test_unescape(void) {
-  CircularBuffer* src = cbuffer_new();
  
-  u32 escaped_data[12] = {
+  u32 escaped_data[16] = {
     SPI_STREAM_ESCAPE,
     SPI_STREAM_IDLE,
     SPI_STREAM_ESCAPE,
@@ -69,13 +73,16 @@ static char* test_unescape(void) {
     SPI_STREAM_UNDERRUN,
     SPI_STREAM_ESCAPE,
     SPI_STREAM_OVERRUN,
-    9
+    9,
+    // end padding
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
   };
-  cbuffer_append(src, escaped_data, 12);
 
-  int error = -1;
-
-  Buffer* output = unescape_stream(src, &error);
+  CircularBuffer* dest = cbuffer_new();
+  int error = unescape_stream_into(dest, escaped_data, 16);
 
   u32 expected_data[8] = {
     SPI_STREAM_IDLE,
@@ -87,37 +94,39 @@ static char* test_unescape(void) {
     SPI_STREAM_OVERRUN,
     9
   };
-  Buffer* expected_buffer = buffer_new(expected_data, 8);
 
   mu_assert_eq("error", error, 0);
-  mu_assert_eq("consumed size", cbuffer_size(src), 0);
-  mu_assert_eq("escaped size", output->size, 8);
+  mu_assert_eq("escaped size", cbuffer_size(dest), 8);
   mu_assert_eq("escaped content", 
-      memcmp(expected_buffer->data, output->data, 8 * sizeof(u32)), 0);
+      memcmp(dest->data, expected_data, 8 * sizeof(u32)), 0);
   return 0;
 }
 
 static char* test_closure(char * msg, u32* data, u16 size, int experror) {
-  Buffer* src = buffer_new(data, size);
-  CircularBuffer* escaped = cbuffer_new();
-  escape_stream_into(escaped, src);
+  CircularBuffer* input = cbuffer_new();
+  cbuffer_append(input, data, size);
+
+  u32 escaped_buffer[2 * size];
+  escape_stream_into(escaped_buffer, 2 * size, input);
+
   if (experror == SPI_STREAM_ERR_UNDERRUN)
-    cbuffer_push_back(escaped, SPI_STREAM_UNDERRUN);
+    escaped_buffer[2 * size - 1] = SPI_STREAM_UNDERRUN;
   if (experror == SPI_STREAM_ERR_OVERRUN)
-    cbuffer_push_back(escaped, SPI_STREAM_OVERRUN);
-  int error = -1;
-  Buffer* unescaped = unescape_stream(escaped, &error);
+    escaped_buffer[2 * size - 1] = SPI_STREAM_OVERRUN;
+
+  CircularBuffer* output = cbuffer_new();
+  int error = unescape_stream_into(output, escaped_buffer, 2 * size);
+
   if (!experror) 
-    mu_assert_eq(msg, memcmp(unescaped->data, src->data, size * sizeof(u32)), 0);
+    mu_assert_eq(msg, memcmp(output->data, input->data, size * sizeof(u32)), 0);
   mu_assert_eq(msg, error, experror);
-  buffer_free(src);
-  cbuffer_free(escaped);
-  buffer_free(unescaped);
+
+  cbuffer_free(input);
+  cbuffer_free(output);
   return 0;
 }
 
 static char* test_idle_unescape(void) {
-  CircularBuffer* input_raw_stream = cbuffer_new();
 
   u32 raw_data[8] = {
     SPI_STREAM_IDLE,
@@ -130,8 +139,6 @@ static char* test_idle_unescape(void) {
     9
   };
 
-  cbuffer_append(input_raw_stream, raw_data, 8);
-
   u32 exp_data[4] = {
     5,
     6,
@@ -139,9 +146,10 @@ static char* test_idle_unescape(void) {
     9
   };
 
-  int error = -1;
-  Buffer* unescaped = unescape_stream(input_raw_stream, &error);
-  mu_assert_eq("idle", memcmp(unescaped->data, exp_data, 4 * sizeof(u32)), 0);
+  CircularBuffer* output = cbuffer_new();
+
+  int error = unescape_stream_into(output, raw_data, 8);
+  mu_assert_eq("idle", memcmp(output->data, exp_data, 4 * sizeof(u32)), 0);
   mu_assert_eq("error", error, 0);
   return 0;
 }
