@@ -102,30 +102,6 @@ static char* test_unescape(void) {
   return 0;
 }
 
-static char* test_closure(char * msg, u32* data, u16 size, int experror) {
-  CircularBuffer* input = cbuffer_new();
-  cbuffer_append(input, data, size);
-
-  u32 escaped_buffer[2 * size];
-  escape_stream_into(escaped_buffer, 2 * size, input);
-
-  if (experror == SPI_STREAM_ERR_UNDERRUN)
-    escaped_buffer[2 * size - 1] = SPI_STREAM_UNDERRUN;
-  if (experror == SPI_STREAM_ERR_OVERRUN)
-    escaped_buffer[2 * size - 1] = SPI_STREAM_OVERRUN;
-
-  CircularBuffer* output = cbuffer_new();
-  int error = unescape_stream_into(output, escaped_buffer, 2 * size);
-
-  if (!experror) 
-    mu_assert_eq(msg, memcmp(output->data, input->data, size * sizeof(u32)), 0);
-  mu_assert_eq(msg, error, experror);
-
-  cbuffer_free(input);
-  cbuffer_free(output);
-  return 0;
-}
-
 static char* test_idle_unescape(void) {
 
   u32 raw_data[8] = {
@@ -154,6 +130,30 @@ static char* test_idle_unescape(void) {
   return 0;
 }
 
+static char* test_closure(char * msg, u32* data, u16 size, int experror) {
+  CircularBuffer* input = cbuffer_new();
+  cbuffer_append(input, data, size);
+
+  u32 escaped_buffer[2 * size];
+  escape_stream_into(escaped_buffer, 2 * size, input);
+
+  if (experror & SPI_STREAM_ERR_REMOTE_UNDERRUN)
+    escaped_buffer[2 * size - 1] = SPI_STREAM_UNDERRUN;
+  if (experror & SPI_STREAM_ERR_REMOTE_OVERRUN)
+    escaped_buffer[2 * size - 2] = SPI_STREAM_OVERRUN;
+
+  CircularBuffer* output = cbuffer_new();
+  int error = unescape_stream_into(output, escaped_buffer, 2 * size);
+
+  if (!experror) 
+    mu_assert_eq(msg, memcmp(output->data, input->data, size * sizeof(u32)), 0);
+  mu_assert_eq(msg, error, experror);
+
+  cbuffer_free(input);
+  cbuffer_free(output);
+  return 0;
+}
+
 static char* test_all_normal(void) {
   u32 data[10] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10
@@ -175,14 +175,14 @@ static char* test_underrun(void) {
   u32 data[10] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10
   };
-  return test_closure("underrun", data, 10, SPI_STREAM_ERR_UNDERRUN);
+  return test_closure("underrun", data, 10, SPI_STREAM_ERR_REMOTE_UNDERRUN);
 }
 
 static char* test_overrun(void) {
   u32 data[10] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10
   };
-  return test_closure("overrun", data, 10, SPI_STREAM_ERR_OVERRUN);
+  return test_closure("overrun", data, 10, SPI_STREAM_ERR_REMOTE_OVERRUN);
 }
 
 static char* test_both_errors(void) {
@@ -190,7 +190,7 @@ static char* test_both_errors(void) {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10
   };
   return test_closure("both", data, 10, 
-      SPI_STREAM_ERR_OVERRUN | SPI_STREAM_ERR_OVERRUN);
+      SPI_STREAM_ERR_REMOTE_OVERRUN | SPI_STREAM_ERR_REMOTE_UNDERRUN);
 }
 
 

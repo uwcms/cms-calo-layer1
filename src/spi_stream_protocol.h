@@ -17,16 +17,23 @@
 
 #include "circular_buffer.h"
 
-// control words
+// Control words
 #define SPI_STREAM_IDLE         0xBBBBBBBB
 #define SPI_STREAM_ESCAPE       0xBEEFCAFE
+// Control words used to indicate a local problem to the remote side.
+// Device driver SPI buffer over/underrun errors
 #define SPI_STREAM_UNDERRUN     0xBEEFFACE
 #define SPI_STREAM_OVERRUN      0xDEADBEEF
+// Local RX overflow
+#define SPI_STREAM_RX_OVERFLOW  0xDEADFACE
 
 // error flags
-#define SPI_STREAM_ERR_UNDERRUN (1 << 0)
-#define SPI_STREAM_ERR_OVERRUN (1 << 1)
+#define SPI_STREAM_ERR_LOCAL_UNDERRUN (1 << 0)
+#define SPI_STREAM_ERR_LOCAL_OVERRUN (1 << 1)
 #define SPI_STREAM_ERR_LOCAL_RX_OVERFLOW (1 << 2)
+#define SPI_STREAM_ERR_REMOTE_UNDERRUN (1 << 3)
+#define SPI_STREAM_ERR_REMOTE_OVERRUN (1 << 4)
+#define SPI_STREAM_ERR_REMOTE_RX_OVERFLOW (1 << 5)
 
 // Transform a stream of words to TX, escaping any control characters, into a
 // fixed size word buffer at <dest> of <dest_size>.  If the <src> buffer cannot

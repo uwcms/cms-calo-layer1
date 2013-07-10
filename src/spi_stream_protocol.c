@@ -25,6 +25,7 @@ int escape_stream_into(u32* dest, u16 dest_size, CircularBuffer* src) {
     if (data == SPI_STREAM_IDLE ||
         data == SPI_STREAM_UNDERRUN ||
         data == SPI_STREAM_OVERRUN ||
+        data == SPI_STREAM_RX_OVERFLOW || 
         data == SPI_STREAM_ESCAPE) {
       // the payload data is the same as a control word, we need to escape it.
       dest[words_written] = SPI_STREAM_ESCAPE;
@@ -62,10 +63,13 @@ int unescape_stream_into(CircularBuffer* dest, u32* src, u16 src_size) {
           // nothing to report
           break;
         case SPI_STREAM_UNDERRUN:
-          error |= SPI_STREAM_ERR_UNDERRUN;
+          error |= SPI_STREAM_ERR_REMOTE_UNDERRUN;
           break;
         case SPI_STREAM_OVERRUN:
-          error |= SPI_STREAM_ERR_OVERRUN;
+          error |= SPI_STREAM_ERR_REMOTE_OVERRUN;
+          break;
+        case SPI_STREAM_RX_OVERFLOW:
+          error |= SPI_STREAM_ERR_REMOTE_RX_OVERFLOW;
           break;
         case SPI_STREAM_ESCAPE:
           escape_active = 1;
