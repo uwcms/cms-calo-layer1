@@ -26,7 +26,7 @@ int escape_stream_into(u32* dest, u16 dest_size, CircularBuffer* src) {
         data == SPI_STREAM_UNDERRUN ||
         data == SPI_STREAM_OVERRUN ||
         data == SPI_STREAM_ESCAPE) {
-      // this is the same as a control word, need to escape the data.
+      // the payload data is the same as a control word, we need to escape it.
       dest[words_written] = SPI_STREAM_ESCAPE;
       words_written++;
     }
