@@ -42,6 +42,14 @@
 // of words successfully consumed from src, which is modified.
 int escape_stream_into(u32* dest, u16 dest_size, CircularBuffer* src);
 
+// Same as above, but local errors are first inserted into the data stream.
+// <local_errors> are the OR-ed local error flags from the previous exchange.
+int escape_stream_into_werrors(u32* dest, u16 dest_size, CircularBuffer* src, int local_errors);
+
+// Demux error codes in <local_errors> to error flag words in to <dest>.
+// Returns number of words inserted.
+int write_spi_stream_errors(u32* dest, int local_errors);
+
 // Transform a stream of RXed words, removing any control characters,
 // and unescaping any control characters in the real data.
 // The returned error will be set to zero if no errors are detected,

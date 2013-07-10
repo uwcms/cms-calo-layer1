@@ -14,6 +14,7 @@
 #include "spi_stream_protocol.h"
 
 int escape_stream_into(u32* dest, u16 dest_size, CircularBuffer* src) {
+
   int words_written = 0;
   int words_read = 0;
   int input_size = cbuffer_size(src);
@@ -40,6 +41,28 @@ int escape_stream_into(u32* dest, u16 dest_size, CircularBuffer* src) {
   }
   cbuffer_deletefront(src, words_read);
   return words_read;
+}
+
+int escape_stream_into_werrors(u32* dest, u16 dest_size, CircularBuffer* src, 
+    int local_errors) {
+  int nerrorflags = write_spi_stream_errors(dest, local_errors);
+  dest += nerrorflags;
+  dest_size -= nerrorflags;
+  return escape_stream_into(dest, dest_size, src);
+}
+
+int write_spi_stream_errors(u32* dest, int local_errors) {
+  int nerrors = 0;
+  if (local_errors & SPI_STREAM_ERR_LOCAL_UNDERRUN) {
+    dest[nerrors++] = SPI_STREAM_UNDERRUN;
+  }
+  if (local_errors & SPI_STREAM_ERR_LOCAL_OVERRUN) {
+    dest[nerrors++] = SPI_STREAM_OVERRUN;
+  }
+  if (local_errors & SPI_STREAM_ERR_LOCAL_RX_OVERFLOW) {
+    dest[nerrors++] = SPI_STREAM_RX_OVERFLOW;
+  }
+  return nerrors;
 }
 
 

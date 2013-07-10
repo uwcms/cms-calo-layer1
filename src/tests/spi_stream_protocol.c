@@ -193,6 +193,81 @@ static char* test_both_errors(void) {
       SPI_STREAM_ERR_REMOTE_OVERRUN | SPI_STREAM_ERR_REMOTE_UNDERRUN);
 }
 
+static char* test_write_spi_stream_errors(void) {
+  u32 data[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  int nerrors = write_spi_stream_errors(data, 
+      SPI_STREAM_ERR_LOCAL_UNDERRUN);
+  mu_assert_eq("1err", nerrors, 1);
+  mu_assert_eq("1err content", data[0], SPI_STREAM_UNDERRUN);
+
+  nerrors = write_spi_stream_errors(data, 
+      SPI_STREAM_ERR_LOCAL_UNDERRUN |
+      SPI_STREAM_ERR_LOCAL_RX_OVERFLOW
+      );
+  mu_assert_eq("2err", nerrors, 2);
+  mu_assert_eq("2err content", data[0], SPI_STREAM_UNDERRUN);
+  mu_assert_eq("2err content", data[1], SPI_STREAM_RX_OVERFLOW);
+
+  nerrors = write_spi_stream_errors(data, 
+      SPI_STREAM_ERR_LOCAL_UNDERRUN |
+      SPI_STREAM_ERR_LOCAL_RX_OVERFLOW |
+      SPI_STREAM_ERR_LOCAL_OVERRUN 
+      );
+  mu_assert_eq("3err", nerrors, 3);
+  mu_assert_eq("3err content", data[0], SPI_STREAM_UNDERRUN);
+  mu_assert_eq("3err content", data[1], SPI_STREAM_OVERRUN);
+  mu_assert_eq("3err content", data[2], SPI_STREAM_RX_OVERFLOW);
+
+  mu_assert_eq("remaining", data[3], 4);
+
+  return 0;
+}
+
+static char* test_escape_stream_into_werrors(void) {
+  u32 input_stream[8] = {
+    SPI_STREAM_IDLE,
+    SPI_STREAM_ESCAPE,
+    5,
+    6,
+    7,
+    SPI_STREAM_UNDERRUN,
+    SPI_STREAM_OVERRUN,
+    9
+  };
+  CircularBuffer* input_buffer = cbuffer_new();
+  cbuffer_append(input_buffer, input_stream, 8);
+  u32 output[18];
+  escape_stream_into_werrors(output, 18, input_buffer,
+      SPI_STREAM_ERR_LOCAL_UNDERRUN |
+      SPI_STREAM_ERR_LOCAL_RX_OVERFLOW |
+      SPI_STREAM_ERR_LOCAL_OVERRUN 
+      );
+ 
+  u32 expected_output[18] = {
+    SPI_STREAM_UNDERRUN,
+    SPI_STREAM_OVERRUN,
+    SPI_STREAM_RX_OVERFLOW,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_IDLE,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_ESCAPE,
+    5,
+    6,
+    7,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_UNDERRUN,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_OVERRUN,
+    9,
+    // end padding
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
+  };
+  mu_assert_eq("escaped content", 
+      memcmp(output, expected_output, 18 * sizeof(u32)), 0);
+  return 0;
+}
 
 
 int tests_run;
@@ -207,5 +282,7 @@ char * all_tests(void) {
   mu_run_test(test_underrun);
   mu_run_test(test_overrun);
   mu_run_test(test_both_errors);
+  mu_run_test(test_write_spi_stream_errors);
+  mu_run_test(test_escape_stream_into_werrors);
   return 0;
 }
