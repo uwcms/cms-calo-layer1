@@ -324,6 +324,55 @@ static char* test_unescape_overflow(void) {
   return 0;
 }
 
+static char* test_corruption_detection(void) {
+  u32 stream[15] = {
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_IDLE,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_ESCAPE,
+    5,
+    6,
+    7,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_UNDERRUN,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_OVERRUN,
+    9,
+    // end padding
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
+    5 // checksum goes here
+  };
+  add_checksum(stream, 15);
+  CircularBuffer* dest = cbuffer_new();
+
+  int error = unescape_stream(dest, stream, 15);
+
+  u32 expected_data[8] = {
+    SPI_STREAM_IDLE,
+    SPI_STREAM_ESCAPE,
+    5,
+    6,
+    7,
+    SPI_STREAM_UNDERRUN,
+    SPI_STREAM_OVERRUN,
+    9
+  };
+
+  mu_assert_eq("error", error, 0);
+  mu_assert_eq("escaped size", cbuffer_size(dest), 8);
+  mu_assert_eq("escaped content", 
+      memcmp(dest->data, expected_data, 8 * sizeof(u32)), 0);
+
+  // now simulate data corruption
+  stream[4] = 0;
+  error = unescape_stream(dest, stream, 15);
+  mu_assert_eq("error", error, SPI_STREAM_ERR_LOCAL_CKSUM);
+  // the destination buffer is unchanged
+  mu_assert_eq("escaped size", cbuffer_size(dest), 8);
+  return 0;
+}
+
 int tests_run;
 
 char * all_tests(void) {
@@ -339,5 +388,6 @@ char * all_tests(void) {
   mu_run_test(test_write_spi_stream_errors);
   mu_run_test(test_unescape_overflow);
   mu_run_test(test_escape_stream);
+  mu_run_test(test_corruption_detection);
   return 0;
 }

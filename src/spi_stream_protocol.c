@@ -121,5 +121,5 @@ int unescape_stream(CircularBuffer* dest, u32* src, u16 src_size) {
   if (!verify_checksum(src, src_size)) {
     return SPI_STREAM_ERR_LOCAL_CKSUM;
   }
-  return unescape_data(dest, src, src_size);
+  return unescape_data(dest, src, src_size - 1);
 }
