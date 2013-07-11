@@ -12,8 +12,10 @@ SHAREDOPTS = -shared -fPIC
 # where we can chmod +x it. (i.e. not on a windows VM disk)
 OUT_DIR=/tmp/spi_test
 
+SRCS=../circular_buffer.c ../spi_stream_protocol.c
+
 test_%.o: %.c ../%.c
-	gcc $(DEPOPTS) $(CCOPTS) $(SHAREDOPTS) -o $@ $< ../$*.c ../circular_buffer.c
+	gcc $(DEPOPTS) $(CCOPTS) $(SHAREDOPTS) -o $@ $< $(SRCS)
 
 test_%.exe: test_%.o minunit.c
 	gcc $(CCOPTS) -o $@ minunit.c $<  
