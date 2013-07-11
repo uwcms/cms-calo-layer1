@@ -20,6 +20,33 @@
 #include "spi_stream_protocol.h"
 
 
+static char* test_error_flag_masks(void) {
+  u32 all_local = 
+    SPI_STREAM_ERR_LOCAL_UNDERRUN | 
+    SPI_STREAM_ERR_LOCAL_OVERRUN | 
+    SPI_STREAM_ERR_LOCAL_RX_OVERFLOW | 
+    SPI_STREAM_ERR_LOCAL_CKSUM;
+  mu_assert_eq("local masking local", SPI_STREAM_ERR_LOCAL_MASK & all_local,
+      all_local);
+  mu_assert_eq("remote masking local", SPI_STREAM_ERR_REMOTE_MASK & all_local,
+      0);
+
+  u32 all_remote = 
+    SPI_STREAM_ERR_REMOTE_UNDERRUN | 
+    SPI_STREAM_ERR_REMOTE_OVERRUN | 
+    SPI_STREAM_ERR_REMOTE_RX_OVERFLOW | 
+    SPI_STREAM_ERR_REMOTE_CKSUM;
+  mu_assert_eq("local masking remote", SPI_STREAM_ERR_LOCAL_MASK & all_remote,
+      0);
+  mu_assert_eq("remote masking remote", SPI_STREAM_ERR_REMOTE_MASK & all_remote,
+      all_remote);
+
+  mu_assert_eq("orthogonal", SPI_STREAM_ERR_REMOTE_MASK & SPI_STREAM_ERR_LOCAL_MASK,
+      0);
+
+  return 0;
+}
+
 static char* test_escape_stream_data(void) {
   u32 input_stream[8] = {
     SPI_STREAM_IDLE,
@@ -412,6 +439,7 @@ int tests_run;
 
 char * all_tests(void) {
   printf("\n\n=== spi_stream_protocol tests ===\n");
+  mu_run_test(test_error_flag_masks);
   mu_run_test(test_escape_stream_data);
   mu_run_test(test_unescape);
   mu_run_test(test_idle_unescape);

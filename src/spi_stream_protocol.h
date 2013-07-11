@@ -29,15 +29,18 @@
 // Receive buffer checksum error
 #define SPI_STREAM_RX_CKSUM     0xFACEBEEF
 
-// error flags
+// 32 bit error flags.  Local errors are bottom two bytes, remote in top two.
 #define SPI_STREAM_ERR_LOCAL_UNDERRUN (1 << 0)
 #define SPI_STREAM_ERR_LOCAL_OVERRUN (1 << 1)
 #define SPI_STREAM_ERR_LOCAL_RX_OVERFLOW (1 << 2)
 #define SPI_STREAM_ERR_LOCAL_CKSUM (1 << 3)
-#define SPI_STREAM_ERR_REMOTE_UNDERRUN (1 << 4)
-#define SPI_STREAM_ERR_REMOTE_OVERRUN (1 << 5)
-#define SPI_STREAM_ERR_REMOTE_RX_OVERFLOW (1 << 6)
-#define SPI_STREAM_ERR_REMOTE_CKSUM (1 << 7)
+#define SPI_STREAM_ERR_LOCAL_MASK 0x0000FFFF
+
+#define SPI_STREAM_ERR_REMOTE_UNDERRUN (1 << 16)
+#define SPI_STREAM_ERR_REMOTE_OVERRUN (1 << 17)
+#define SPI_STREAM_ERR_REMOTE_RX_OVERFLOW (1 << 18)
+#define SPI_STREAM_ERR_REMOTE_CKSUM (1 << 19)
+#define SPI_STREAM_ERR_REMOTE_MASK 0xFFFF0000
 
 // Transform a stream of words to TX format, escaping any control characters,
 // into a fixed size word buffer at <dest> of <dest_size>.  If the <src> buffer
