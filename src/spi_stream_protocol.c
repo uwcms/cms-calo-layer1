@@ -73,8 +73,8 @@ int write_spi_stream_errors(u32* dest, int local_errors) {
   return nerrors;
 }
 
-int unescape_data(CircularBuffer* dest, u32* src, u16 src_size) {
-  int error = 0;
+u32 unescape_data(CircularBuffer* dest, u32* src, u16 src_size) {
+  u32 error = 0;
   int words_written = 0;
   int escape_active = 0;
   // if we overflow the local RX buffer, we roll back to the previous unmodified 
@@ -123,7 +123,7 @@ int unescape_data(CircularBuffer* dest, u32* src, u16 src_size) {
   return error;
 }
 
-int unescape_stream(CircularBuffer* dest, u32* src, u16 src_size) {
+u32 unescape_stream(CircularBuffer* dest, u32* src, u16 src_size) {
   // first check for transmission errors
   if (!verify_checksum(src, src_size)) {
     return SPI_STREAM_ERR_LOCAL_CKSUM;

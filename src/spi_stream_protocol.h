@@ -66,10 +66,10 @@ int write_spi_stream_errors(u32* dest, int local_errors);
 // cannot handle all of the data, a SPI_STREAM_ERR_LOCAL_RX_OVERFLOW will be
 // immediately returned.  In this case, <dest> is rolled back to its previous
 // state.
-int unescape_data(CircularBuffer* dest, u32* src, u16 src_size);
+u32 unescape_data(CircularBuffer* dest, u32* src, u16 src_size);
 
 // As above, but first checks the checksum in the last word of src. (then passes
 // all but the last word to the unescape_data function).
-int unescape_stream(CircularBuffer* dest, u32* src, u16 src_size);
+u32 unescape_stream(CircularBuffer* dest, u32* src, u16 src_size);
 
 #endif /* end of include guard: SPI_STREAM_PROTOCOL_W8O7975 */
