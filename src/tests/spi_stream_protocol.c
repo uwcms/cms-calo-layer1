@@ -26,24 +26,25 @@ static char* test_escape_stream_data(void) {
     SPI_STREAM_ESCAPE,
     5,
     6,
-    7,
+    SPI_STREAM_RX_CKSUM,
     SPI_STREAM_UNDERRUN,
     SPI_STREAM_OVERRUN,
     9
   };
   CircularBuffer* input_buffer = cbuffer_new();
   cbuffer_append(input_buffer, input_stream, 8);
-  u32 output[16];
-  escape_stream_data(output, 16, input_buffer);
+  u32 output[17];
+  escape_stream_data(output, 17, input_buffer);
  
-  u32 expected_output[16] = {
+  u32 expected_output[17] = {
     SPI_STREAM_ESCAPE,
     SPI_STREAM_IDLE,
     SPI_STREAM_ESCAPE,
     SPI_STREAM_ESCAPE,
     5,
     6,
-    7,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_RX_CKSUM,
     SPI_STREAM_ESCAPE,
     SPI_STREAM_UNDERRUN,
     SPI_STREAM_ESCAPE,
@@ -56,20 +57,21 @@ static char* test_escape_stream_data(void) {
     SPI_STREAM_IDLE,
   };
   mu_assert_eq("escaped content", 
-      memcmp(output, expected_output, 16 * sizeof(u32)), 0);
+      memcmp(output, expected_output, 17 * sizeof(u32)), 0);
   return 0;
 }
 
 static char* test_unescape(void) {
  
-  u32 escaped_data[16] = {
+  u32 escaped_data[17] = {
     SPI_STREAM_ESCAPE,
     SPI_STREAM_IDLE,
     SPI_STREAM_ESCAPE,
     SPI_STREAM_ESCAPE,
     5,
     6,
-    7,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_RX_CKSUM,
     SPI_STREAM_ESCAPE,
     SPI_STREAM_UNDERRUN,
     SPI_STREAM_ESCAPE,
@@ -83,14 +85,14 @@ static char* test_unescape(void) {
   };
 
   CircularBuffer* dest = cbuffer_new();
-  int error = unescape_data(dest, escaped_data, 16);
+  int error = unescape_data(dest, escaped_data, 17);
 
   u32 expected_data[8] = {
     SPI_STREAM_IDLE,
     SPI_STREAM_ESCAPE,
     5,
     6,
-    7,
+    SPI_STREAM_RX_CKSUM,
     SPI_STREAM_UNDERRUN,
     SPI_STREAM_OVERRUN,
     9
@@ -142,6 +144,10 @@ static char* test_closure(char * msg, u32* data, u16 size, int experror) {
     escaped_buffer[2 * size - 1] = SPI_STREAM_UNDERRUN;
   if (experror & SPI_STREAM_ERR_REMOTE_OVERRUN)
     escaped_buffer[2 * size - 2] = SPI_STREAM_OVERRUN;
+  if (experror & SPI_STREAM_ERR_REMOTE_RX_OVERFLOW)
+    escaped_buffer[2 * size - 3] = SPI_STREAM_RX_OVERFLOW;
+  if (experror & SPI_STREAM_ERR_REMOTE_CKSUM)
+    escaped_buffer[2 * size - 4] = SPI_STREAM_RX_CKSUM;
 
   CircularBuffer* output = cbuffer_new();
   int error = unescape_data(output, escaped_buffer, 2 * size);
@@ -163,13 +169,15 @@ static char* test_all_normal(void) {
 }
 
 static char* test_all_escaped(void) {
-  u32 data[4] = {
+  u32 data[6] = {
     SPI_STREAM_ESCAPE,
     SPI_STREAM_IDLE,
     SPI_STREAM_UNDERRUN,
-    SPI_STREAM_OVERRUN
+    SPI_STREAM_OVERRUN,
+    SPI_STREAM_RX_CKSUM,
+    SPI_STREAM_RX_OVERFLOW
   };
-  return test_closure("all_escaped", data, 4, 0);
+  return test_closure("all_escaped", data, 6, 0);
 }
 
 static char* test_underrun(void) {
@@ -184,6 +192,20 @@ static char* test_overrun(void) {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10
   };
   return test_closure("overrun", data, 10, SPI_STREAM_ERR_REMOTE_OVERRUN);
+}
+
+static char* test_rx_overflow(void) {
+  u32 data[10] = {
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  };
+  return test_closure("overrun", data, 10, SPI_STREAM_ERR_REMOTE_RX_OVERFLOW);
+}
+
+static char* test_rx_cksum(void) {
+  u32 data[10] = {
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  };
+  return test_closure("overrun", data, 10, SPI_STREAM_ERR_REMOTE_CKSUM);
 }
 
 static char* test_both_errors(void) {
@@ -219,7 +241,20 @@ static char* test_write_spi_stream_errors(void) {
   mu_assert_eq("3err content", data[1], SPI_STREAM_OVERRUN);
   mu_assert_eq("3err content", data[2], SPI_STREAM_RX_OVERFLOW);
 
-  mu_assert_eq("remaining", data[3], 4);
+  mu_assert_eq("remaining untouched", data[3], 4);
+
+  nerrors = write_spi_stream_errors(data, 
+      SPI_STREAM_ERR_LOCAL_CKSUM |
+      SPI_STREAM_ERR_LOCAL_UNDERRUN |
+      SPI_STREAM_ERR_LOCAL_RX_OVERFLOW |
+      SPI_STREAM_ERR_LOCAL_OVERRUN 
+      );
+
+  mu_assert_eq("4err", nerrors, 4);
+  mu_assert_eq("4err content", data[0], SPI_STREAM_UNDERRUN);
+  mu_assert_eq("4err content", data[1], SPI_STREAM_OVERRUN);
+  mu_assert_eq("4err content", data[2], SPI_STREAM_RX_OVERFLOW);
+  mu_assert_eq("4err content", data[3], SPI_STREAM_RX_CKSUM);
 
   return 0;
 }
@@ -384,6 +419,8 @@ char * all_tests(void) {
   mu_run_test(test_all_escaped);
   mu_run_test(test_underrun);
   mu_run_test(test_overrun);
+  mu_run_test(test_rx_overflow);
+  mu_run_test(test_rx_cksum);
   mu_run_test(test_both_errors);
   mu_run_test(test_write_spi_stream_errors);
   mu_run_test(test_unescape_overflow);
