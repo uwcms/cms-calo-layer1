@@ -56,7 +56,7 @@ u32 cbuffer_value_at(const CircularBuffer* buf, u16 idx) {
 }
 
 int cbuffer_freespace(const CircularBuffer* buf) {
-  return IO_BUFFER_SIZE - cbuffer_size(buf);
+  return IO_BUFFER_SIZE - cbuffer_size(buf) - 1;
 }
 
 int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords) {

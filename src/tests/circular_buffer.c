@@ -22,8 +22,32 @@ static char* test_cbuffer_new(void) {
   CircularBuffer* mybuf = cbuffer_new();
   mu_assert_eq("size", cbuffer_size(mybuf), 0);
   mu_assert_eq("pos", mybuf->pos, 0);
-  mu_assert_eq("freespace", cbuffer_freespace(mybuf), IO_BUFFER_SIZE);
+  mu_assert_eq("freespace", cbuffer_freespace(mybuf), IO_BUFFER_SIZE - 1);
   mu_assert_eq("init is zero", (mybuf->data[0]), 0);
+  return 0;
+}
+
+static char* test_cbuffer_size(void) {
+  CircularBuffer* mybuf = cbuffer_new();
+  mybuf->pos = IO_BUFFER_SIZE - 5;
+  mybuf->tail = IO_BUFFER_SIZE - 5;
+  mu_assert_eq("size0", cbuffer_size(mybuf), 0);
+  for (int i = 0; i < 15; ++i) {
+    cbuffer_push_back(mybuf, i);
+    mu_assert_eq("size", cbuffer_size(mybuf), i + 1);
+  }
+  return 0;
+}
+
+static char* test_cbuffer_freespace(void) {
+  CircularBuffer* mybuf = cbuffer_new();
+  mybuf->tail = IO_BUFFER_SIZE - 5;
+  mu_assert_eq("freespace", cbuffer_freespace(mybuf), 4);
+  mu_assert_eq("size", cbuffer_size(mybuf), IO_BUFFER_SIZE - 5);
+  for (int i = 1; i < 5; ++i) {
+    cbuffer_push_back(mybuf, i);
+    mu_assert_eq("freespace", cbuffer_freespace(mybuf), 4 - i);
+  }
   return 0;
 }
 
@@ -266,6 +290,8 @@ int tests_run;
 char * all_tests(void) {
   printf("\n\n=== buffer tests ===\n");
   mu_run_test(test_cbuffer_new);
+  mu_run_test(test_cbuffer_size);
+  mu_run_test(test_cbuffer_freespace);
   mu_run_test(test_cbuffer_free);
   mu_run_test(test_buffer_new);
   mu_run_test(test_buffer_free);
