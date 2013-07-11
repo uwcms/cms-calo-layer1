@@ -25,14 +25,14 @@ test_%.exe: test_%.o minunit.c
 
 all: \
   test_circular_buffer.exe test_circular_buffer.o \
-  test_spi_stream_protocol.exe test_spi_stream_protocol.o \
-  test_adler32.exe test_adler32.o 
+  test_adler32.exe test_adler32.o \
+  test_spi_stream_protocol.exe test_spi_stream_protocol.o
   #test_helloworld.exe test_helloworld.o
 
 test: all
 	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_circular_buffer.exe
-	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_spi_stream_protocol.exe
 	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_adler32.exe
+	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_spi_stream_protocol.exe
 
 distclean: clean
 	rm -f .dep/*.dep 
