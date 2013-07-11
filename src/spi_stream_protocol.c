@@ -13,9 +13,9 @@
 #include <stdio.h>
 
 #include "spi_stream_protocol.h"
+#include "adler32.h"
 
-int escape_stream_into(u32* dest, u16 dest_size, CircularBuffer* src) {
-
+int escape_stream_data(u32* dest, u16 dest_size, CircularBuffer* src) {
   int words_written = 0;
   int words_read = 0;
   int input_size = cbuffer_size(src);
@@ -44,12 +44,15 @@ int escape_stream_into(u32* dest, u16 dest_size, CircularBuffer* src) {
   return words_read;
 }
 
-int escape_stream_into_werrors(u32* dest, u16 dest_size, CircularBuffer* src, 
+int escape_stream(u32* dest, u16 dest_size, CircularBuffer* src, 
     int local_errors) {
+  // number of words added to the front of dest
   int nerrorflags = write_spi_stream_errors(dest, local_errors);
-  dest += nerrorflags;
-  dest_size -= nerrorflags;
-  return escape_stream_into(dest, dest_size, src);
+  // dest_size - 1 since the last word is the checksum.
+  int words_read = escape_stream_data(
+      dest + nerrorflags, dest_size - nerrorflags - 1, src);
+  add_checksum(dest, dest_size);
+  return words_read;
 }
 
 int write_spi_stream_errors(u32* dest, int local_errors) {
@@ -66,8 +69,7 @@ int write_spi_stream_errors(u32* dest, int local_errors) {
   return nerrors;
 }
 
-
-int unescape_stream_into(CircularBuffer* dest, u32* src, u16 src_size) {
+int unescape_data(CircularBuffer* dest, u32* src, u16 src_size) {
   int error = 0;
   int words_written = 0;
   int escape_active = 0;
@@ -112,4 +114,12 @@ int unescape_stream_into(CircularBuffer* dest, u32* src, u16 src_size) {
     }
   }
   return error;
+}
+
+int unescape_stream(CircularBuffer* dest, u32* src, u16 src_size) {
+  // first check for transmission errors
+  if (!verify_checksum(src, src_size)) {
+    return SPI_STREAM_ERR_LOCAL_CKSUM;
+  }
+  return unescape_data(dest, src, src_size);
 }

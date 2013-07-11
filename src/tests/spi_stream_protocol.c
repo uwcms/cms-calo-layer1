@@ -16,6 +16,7 @@
 #include <string.h>
 
 #include "minunit.h"
+#include "adler32.h"
 #include "spi_stream_protocol.h"
 
 
@@ -82,7 +83,7 @@ static char* test_unescape(void) {
   };
 
   CircularBuffer* dest = cbuffer_new();
-  int error = unescape_stream(dest, escaped_data, 16);
+  int error = unescape_data(dest, escaped_data, 16);
 
   u32 expected_data[8] = {
     SPI_STREAM_IDLE,
@@ -124,7 +125,7 @@ static char* test_idle_unescape(void) {
 
   CircularBuffer* output = cbuffer_new();
 
-  int error = unescape_stream(output, raw_data, 8);
+  int error = unescape_data(output, raw_data, 8);
   mu_assert_eq("idle", memcmp(output->data, exp_data, 4 * sizeof(u32)), 0);
   mu_assert_eq("error", error, 0);
   return 0;
@@ -143,7 +144,7 @@ static char* test_closure(char * msg, u32* data, u16 size, int experror) {
     escaped_buffer[2 * size - 2] = SPI_STREAM_OVERRUN;
 
   CircularBuffer* output = cbuffer_new();
-  int error = unescape_stream(output, escaped_buffer, 2 * size);
+  int error = unescape_data(output, escaped_buffer, 2 * size);
 
   if (!experror) 
     mu_assert_eq(msg, memcmp(output->data, input->data, size * sizeof(u32)), 0);
@@ -262,8 +263,9 @@ static char* test_escape_stream(void) {
     // end padding
     SPI_STREAM_IDLE,
     SPI_STREAM_IDLE,
-    SPI_STREAM_IDLE,
+    5 // checksum goes here
   };
+  add_checksum(expected_output, 18);
   mu_assert_eq("escaped content", 
       memcmp(output, expected_output, 18 * sizeof(u32)), 0);
   return 0;
@@ -292,7 +294,7 @@ static char* test_unescape_overflow(void) {
   };
 
   CircularBuffer* dest = cbuffer_new();
-  int error = unescape_stream(dest, escaped_data, 16);
+  int error = unescape_data(dest, escaped_data, 16);
 
   u32 expected_data[8] = {
     SPI_STREAM_IDLE,
@@ -314,7 +316,7 @@ static char* test_unescape_overflow(void) {
   dest->pos = 0;
   dest->tail = IO_BUFFER_SIZE - 5;
   mu_assert_eq("freespace", cbuffer_freespace(dest), 4);
-  error = unescape_stream(dest, escaped_data, 16);
+  error = unescape_data(dest, escaped_data, 16);
   mu_assert_eq("ovrflw error", error, SPI_STREAM_ERR_LOCAL_RX_OVERFLOW);
   // the output destination should be restored unmodified.
   mu_assert_eq("freespace after", cbuffer_freespace(dest), 4);
@@ -335,7 +337,7 @@ char * all_tests(void) {
   mu_run_test(test_overrun);
   mu_run_test(test_both_errors);
   mu_run_test(test_write_spi_stream_errors);
-  mu_run_test(test_escape_stream);
   mu_run_test(test_unescape_overflow);
+  mu_run_test(test_escape_stream);
   return 0;
 }
