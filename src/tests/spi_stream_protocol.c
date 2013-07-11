@@ -269,6 +269,58 @@ static char* test_escape_stream_into_werrors(void) {
   return 0;
 }
 
+static char* test_unescape_overflow(void) {
+ 
+  u32 escaped_data[16] = {
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_IDLE,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_ESCAPE,
+    5,
+    6,
+    7,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_UNDERRUN,
+    SPI_STREAM_ESCAPE,
+    SPI_STREAM_OVERRUN,
+    9,
+    // end padding
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
+    SPI_STREAM_IDLE,
+  };
+
+  CircularBuffer* dest = cbuffer_new();
+  int error = unescape_stream_into(dest, escaped_data, 16);
+
+  u32 expected_data[8] = {
+    SPI_STREAM_IDLE,
+    SPI_STREAM_ESCAPE,
+    5,
+    6,
+    7,
+    SPI_STREAM_UNDERRUN,
+    SPI_STREAM_OVERRUN,
+    9
+  };
+
+  mu_assert_eq("error", error, 0);
+  mu_assert_eq("escaped size", cbuffer_size(dest), 8);
+  mu_assert_eq("escaped content", 
+      memcmp(dest->data, expected_data, 8 * sizeof(u32)), 0);
+
+  // lets see what happens if we don't have enough room in the cbuffer
+  dest->pos = 0;
+  dest->tail = IO_BUFFER_SIZE - 5;
+  mu_assert_eq("freespace", cbuffer_freespace(dest), 4);
+  error = unescape_stream_into(dest, escaped_data, 16);
+  mu_assert_eq("ovrflw error", error, SPI_STREAM_ERR_LOCAL_RX_OVERFLOW);
+  // the output destination should be restored unmodified.
+  mu_assert_eq("freespace after", cbuffer_freespace(dest), 4);
+  
+  return 0;
+}
 
 int tests_run;
 
@@ -284,5 +336,6 @@ char * all_tests(void) {
   mu_run_test(test_both_errors);
   mu_run_test(test_write_spi_stream_errors);
   mu_run_test(test_escape_stream_into_werrors);
+  mu_run_test(test_unescape_overflow);
   return 0;
 }

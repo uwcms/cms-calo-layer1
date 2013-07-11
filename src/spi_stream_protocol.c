@@ -10,6 +10,7 @@
  */
 
 #include <string.h>
+#include <stdio.h>
 
 #include "spi_stream_protocol.h"
 
@@ -68,13 +69,16 @@ int write_spi_stream_errors(u32* dest, int local_errors) {
 
 int unescape_stream_into(CircularBuffer* dest, u32* src, u16 src_size) {
   int error = 0;
-
   int words_written = 0;
   int escape_active = 0;
+  // if we overflow the local RX buffer, we roll back to the previous unmodified 
+  // state
+  int original_tail = dest->tail;
   for (int i = 0; i < src_size; ++i) {
     u32 data = src[i];
     if (escape_active) {
       if (cbuffer_freespace(dest) < 1) {
+        dest->tail = original_tail;
         return error |= SPI_STREAM_ERR_LOCAL_RX_OVERFLOW;
       }
       cbuffer_push_back(dest, data);
@@ -99,6 +103,7 @@ int unescape_stream_into(CircularBuffer* dest, u32* src, u16 src_size) {
           break;
         default:
           if (cbuffer_freespace(dest) < 1) {
+            dest->tail = original_tail;
             return error |= SPI_STREAM_ERR_LOCAL_RX_OVERFLOW;
           }
           cbuffer_push_back(dest, data);
