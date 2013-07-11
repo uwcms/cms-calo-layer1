@@ -19,7 +19,7 @@
 #include "spi_stream_protocol.h"
 
 
-static char* test_escape_stream_into(void) {
+static char* test_escape_stream_data(void) {
   u32 input_stream[8] = {
     SPI_STREAM_IDLE,
     SPI_STREAM_ESCAPE,
@@ -33,7 +33,7 @@ static char* test_escape_stream_into(void) {
   CircularBuffer* input_buffer = cbuffer_new();
   cbuffer_append(input_buffer, input_stream, 8);
   u32 output[16];
-  escape_stream_into(output, 16, input_buffer);
+  escape_stream_data(output, 16, input_buffer);
  
   u32 expected_output[16] = {
     SPI_STREAM_ESCAPE,
@@ -82,7 +82,7 @@ static char* test_unescape(void) {
   };
 
   CircularBuffer* dest = cbuffer_new();
-  int error = unescape_stream_into(dest, escaped_data, 16);
+  int error = unescape_stream(dest, escaped_data, 16);
 
   u32 expected_data[8] = {
     SPI_STREAM_IDLE,
@@ -124,7 +124,7 @@ static char* test_idle_unescape(void) {
 
   CircularBuffer* output = cbuffer_new();
 
-  int error = unescape_stream_into(output, raw_data, 8);
+  int error = unescape_stream(output, raw_data, 8);
   mu_assert_eq("idle", memcmp(output->data, exp_data, 4 * sizeof(u32)), 0);
   mu_assert_eq("error", error, 0);
   return 0;
@@ -135,7 +135,7 @@ static char* test_closure(char * msg, u32* data, u16 size, int experror) {
   cbuffer_append(input, data, size);
 
   u32 escaped_buffer[2 * size];
-  escape_stream_into(escaped_buffer, 2 * size, input);
+  escape_stream_data(escaped_buffer, 2 * size, input);
 
   if (experror & SPI_STREAM_ERR_REMOTE_UNDERRUN)
     escaped_buffer[2 * size - 1] = SPI_STREAM_UNDERRUN;
@@ -143,7 +143,7 @@ static char* test_closure(char * msg, u32* data, u16 size, int experror) {
     escaped_buffer[2 * size - 2] = SPI_STREAM_OVERRUN;
 
   CircularBuffer* output = cbuffer_new();
-  int error = unescape_stream_into(output, escaped_buffer, 2 * size);
+  int error = unescape_stream(output, escaped_buffer, 2 * size);
 
   if (!experror) 
     mu_assert_eq(msg, memcmp(output->data, input->data, size * sizeof(u32)), 0);
@@ -223,7 +223,7 @@ static char* test_write_spi_stream_errors(void) {
   return 0;
 }
 
-static char* test_escape_stream_into_werrors(void) {
+static char* test_escape_stream(void) {
   u32 input_stream[8] = {
     SPI_STREAM_IDLE,
     SPI_STREAM_ESCAPE,
@@ -237,7 +237,7 @@ static char* test_escape_stream_into_werrors(void) {
   CircularBuffer* input_buffer = cbuffer_new();
   cbuffer_append(input_buffer, input_stream, 8);
   u32 output[18];
-  escape_stream_into_werrors(output, 18, input_buffer,
+  escape_stream(output, 18, input_buffer,
       SPI_STREAM_ERR_LOCAL_UNDERRUN |
       SPI_STREAM_ERR_LOCAL_RX_OVERFLOW |
       SPI_STREAM_ERR_LOCAL_OVERRUN 
@@ -292,7 +292,7 @@ static char* test_unescape_overflow(void) {
   };
 
   CircularBuffer* dest = cbuffer_new();
-  int error = unescape_stream_into(dest, escaped_data, 16);
+  int error = unescape_stream(dest, escaped_data, 16);
 
   u32 expected_data[8] = {
     SPI_STREAM_IDLE,
@@ -314,7 +314,7 @@ static char* test_unescape_overflow(void) {
   dest->pos = 0;
   dest->tail = IO_BUFFER_SIZE - 5;
   mu_assert_eq("freespace", cbuffer_freespace(dest), 4);
-  error = unescape_stream_into(dest, escaped_data, 16);
+  error = unescape_stream(dest, escaped_data, 16);
   mu_assert_eq("ovrflw error", error, SPI_STREAM_ERR_LOCAL_RX_OVERFLOW);
   // the output destination should be restored unmodified.
   mu_assert_eq("freespace after", cbuffer_freespace(dest), 4);
@@ -326,7 +326,7 @@ int tests_run;
 
 char * all_tests(void) {
   printf("\n\n=== spi_stream_protocol tests ===\n");
-  mu_run_test(test_escape_stream_into);
+  mu_run_test(test_escape_stream_data);
   mu_run_test(test_unescape);
   mu_run_test(test_idle_unescape);
   mu_run_test(test_all_normal);
@@ -335,7 +335,7 @@ char * all_tests(void) {
   mu_run_test(test_overrun);
   mu_run_test(test_both_errors);
   mu_run_test(test_write_spi_stream_errors);
-  mu_run_test(test_escape_stream_into_werrors);
+  mu_run_test(test_escape_stream);
   mu_run_test(test_unescape_overflow);
   return 0;
 }
