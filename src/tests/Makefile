@@ -12,7 +12,7 @@ SHAREDOPTS = -shared -fPIC
 # where we can chmod +x it. (i.e. not on a windows VM disk)
 OUT_DIR=/tmp/spi_test
 
-SRCS=../circular_buffer.c ../spi_stream_protocol.c ../adler32.c
+SRCS=../circular_buffer.c ../spi_stream_protocol.c ../adler32.c ../protocol.c
 
 test_%.o: %.c ../%.c
 	gcc $(DEPOPTS) $(CCOPTS) $(SHAREDOPTS) -o $@ $< $(SRCS)
@@ -26,6 +26,7 @@ test_%.exe: test_%.o minunit.c
 all: \
   test_circular_buffer.exe test_circular_buffer.o \
   test_adler32.exe test_adler32.o \
+  test_protocol.exe test_protocol.o \
   test_spi_stream_protocol.exe test_spi_stream_protocol.o
   #test_helloworld.exe test_helloworld.o
 
@@ -33,6 +34,7 @@ test: all
 	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_circular_buffer.exe
 	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_adler32.exe
 	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_spi_stream_protocol.exe
+	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_protocol.exe
 
 distclean: clean
 	rm -f .dep/*.dep 
