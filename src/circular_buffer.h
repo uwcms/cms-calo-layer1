@@ -67,8 +67,8 @@ int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords);
 // no data is added to the buffer.
 int cbuffer_push_back(CircularBuffer* buffer, u32 data);
 
-// Read (up to) nwords from the buffer.
-Buffer* cbuffer_read(const CircularBuffer* buffer, u16 nwords);
+// Read (up to) nwords from the buffer.  Returns words read.
+int cbuffer_read(const CircularBuffer* buffer, u32* dest, u16 nwords);
 
 // Read (up to) nwords from the buffer.  Returns number of bytes deleted.
 int cbuffer_deletefront(CircularBuffer* buffer, u16 nwords);

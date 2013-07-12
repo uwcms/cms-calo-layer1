@@ -96,23 +96,22 @@ int cbuffer_push_back(CircularBuffer* buffer, u32 data) {
   return 0;
 }
 
-Buffer* cbuffer_read(const CircularBuffer* buffer, u16 nwords) {
+int cbuffer_read(const CircularBuffer* buffer, u32* output, u16 nwords) {
   int words_to_read = min(nwords, cbuffer_size(buffer));
-  Buffer* output = buffer_new(0, words_to_read);
   int tail_words_to_read = min(words_to_read, IO_BUFFER_SIZE - buffer->pos);
   memcpy(
-      output->data, 
+      output,
       &(buffer->data[buffer->pos]),
       sizeof(u32) * tail_words_to_read);
   // check if we need to wrap around.
   int remaining_words_at_head = words_to_read - tail_words_to_read;
   if (remaining_words_at_head) {
     memcpy(
-        &(output->data[tail_words_to_read]), 
+        &(output[tail_words_to_read]), 
         buffer->data, 
         sizeof(u32) * remaining_words_at_head);
   }
-  return output;
+  return words_to_read;
 }
 
 int cbuffer_deletefront(CircularBuffer* buffer, u16 nwords) {
@@ -123,7 +122,9 @@ int cbuffer_deletefront(CircularBuffer* buffer, u16 nwords) {
 }
 
 Buffer* cbuffer_pop(CircularBuffer* buffer, u16 nwords) {
-  Buffer* output = cbuffer_read(buffer, nwords);
+  Buffer* output = buffer_new(NULL, nwords);
+  int actually_read = cbuffer_read(buffer, output->data, nwords);
+  buffer_resize(output, actually_read);
   cbuffer_deletefront(buffer, nwords);
   return output;
 }

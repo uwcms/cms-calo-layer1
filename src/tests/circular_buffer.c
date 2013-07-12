@@ -134,14 +134,16 @@ static char* test_cbuffer_append_wraps(void) {
 
 static char* test_cbuffer_read(void) {
   CircularBuffer* mybuf = cbuffer_new();
+  Buffer* readout = buffer_new(NULL, 11);
   u32 test_data[11] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   cbuffer_append(mybuf, test_data, 11);
-  Buffer* readout = cbuffer_read(mybuf, 11);
+  cbuffer_read(mybuf, readout->data, 11);
   mu_assert_eq("size", readout->size, 11);
   mu_assert_eq("content", memcmp(readout->data, test_data, 11 * sizeof(u32)), 0);
   // if we ask for too much it cbuffer gives us what it has.
-  Buffer* readout2 = cbuffer_read(mybuf, 30);
-  mu_assert_eq("size2", readout2->size, 11);
+  Buffer* readout2 = buffer_new(NULL, 30);
+  int actually_read = cbuffer_read(mybuf, readout2->data, 30);
+  mu_assert_eq("size2", actually_read, 11);
   mu_assert_eq("content2", memcmp(readout2->data, test_data, 11 * sizeof(u32)), 0);
   return 0;
 }
@@ -153,7 +155,8 @@ static char* test_cbuffer_read_wraps(void) {
   mybuf->tail = IO_BUFFER_SIZE - 5;
   u32 test_data[11] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   cbuffer_append(mybuf, test_data, 11);
-  Buffer* readout = cbuffer_read(mybuf, 11);
+  Buffer* readout = buffer_new(NULL, 11);
+  cbuffer_read(mybuf, readout->data, 11);
   mu_assert_eq("size", readout->size, 11);
   mu_assert_eq("content", memcmp(readout->data, test_data, 11 * sizeof(u32)), 0);
   return 0;
@@ -190,7 +193,8 @@ static char* test_cbuffer_delete_front(void) {
         &(mybuf->data[5]), 
         test_data + 5, 6 * sizeof(u32)), 0);
 
-  Buffer* readout = cbuffer_read(mybuf, 6);
+  Buffer* readout = buffer_new(NULL, 6);
+  cbuffer_read(mybuf, readout->data, 6);
   mu_assert_eq("remaining content", memcmp(
         readout->data, 
         (test_data + 5), 
@@ -226,7 +230,8 @@ static char* test_cbuffer_delete_front_wraps(void) {
         &(mybuf->data[0]), 
         test_data + 5, 6 * sizeof(u32)), 0);
 
-  Buffer* readout = cbuffer_read(mybuf, 6);
+  Buffer* readout = buffer_new(NULL, 6);
+  cbuffer_read(mybuf, readout->data, 6);
   mu_assert_eq("remaining content", memcmp(
         readout->data, 
         (test_data + 5), 
