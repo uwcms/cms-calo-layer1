@@ -16,8 +16,7 @@
 #define SPI_STREAM_C98GET05
 
 #include "xil_types.h"
-
-struct CircularBuffer;
+#include "circular_buffer.h"
 
 // Size of the buffer we pass back and forth to the SPI device
 #define SPI_BUFFER_SIZE 512 // words
@@ -34,7 +33,9 @@ typedef struct {
 } SPIStream;
 
 // Initialize pointers to local I/O stream buffers
-SPIStream* spi_stream_init(CircularBuffer* tx, CircularBuffer* rx);
+SPIStream* spi_stream_init(
+    CircularBuffer* tx, CircularBuffer* rx,
+    void (*transmit_callback)(u8*, u8*, u16));
 
 // Load data into the output buffer, corresponding to pkt_id
 void spi_stream_load_tx(SPIStream* stream, u32 pkt_id);

@@ -1,13 +1,17 @@
 #include "spi_stream.h"
 
-#include "circular_buffer.h"
-#include "spi_stream_protocol.h"
+#include <stdlib.h>
 
-SPIStream* spi_stream_init(CircularBuffer* tx, CircularBuffer* rx) {
+#include "circular_buffer.h"
+#include "protocol.h"
+
+SPIStream* spi_stream_init(CircularBuffer* tx, CircularBuffer* rx,
+    void (*transmit_callback)(u8*, u8*, u16)) {
   SPIStream* stream = malloc(sizeof(SPIStream));
   stream->tx_buffer = tx;
   stream->rx_buffer = rx;
   stream->waiting_for_packet_id = 0;
+  stream->transmit_callback = transmit_callback;
   spi_stream_load_tx(stream, 0);
   return stream;
 }
@@ -23,7 +27,7 @@ void spi_stream_load_tx(SPIStream* stream, u32 pkt_id) {
 void spi_stream_transfer_data(SPIStream* stream, int error) {
   // verify the incoming data.
   int cksum_error = 0;
-  u32 received_packet_id = spi_stream_verify_data(
+  u32 received_packet_id = spi_stream_verify_packet(
       stream->spi_rx_buffer, SPI_BUFFER_SIZE, &cksum_error);
 
   // if the data is corrupt: resend the previous packet
@@ -47,7 +51,7 @@ void spi_stream_transfer_data(SPIStream* stream, int error) {
       pkt_to_send = received_packet_id;
     }
   }
-  transmit_callback(NULL, 
+  stream->transmit_callback(
       (void*)(stream->spi_tx_buffer[pkt_to_send % SPI_BUFFER_SIZE]),
       (void*)stream->spi_rx_buffer,
       SPI_BUFFER_SIZE * sizeof(u32));
