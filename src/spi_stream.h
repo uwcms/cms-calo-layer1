@@ -30,7 +30,7 @@ typedef struct {
   u32 waiting_for_packet_id;
   CircularBuffer* tx_buffer;
   CircularBuffer* rx_buffer;
-  (void*) transmit_callback(u32* tx, u32* rx, u16 nwords);
+  void (*transmit_callback)(u8* tx, u8* rx, u16 nbytes);
 } SPIStream;
 
 // Initialize pointers to local I/O stream buffers

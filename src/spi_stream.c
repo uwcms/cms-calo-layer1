@@ -47,6 +47,8 @@ void spi_stream_transfer_data(SPIStream* stream, int error) {
       pkt_to_send = received_packet_id;
     }
   }
-  transmit_callback(NULL, stream->spi_tx_buffer[pkt_to_send % SPI_BUFFER_SIZE],
-      stream->spi_rx_buffer);
+  transmit_callback(NULL, 
+      (void*)(stream->spi_tx_buffer[pkt_to_send % SPI_BUFFER_SIZE]),
+      (void*)stream->spi_rx_buffer,
+      SPI_BUFFER_SIZE * sizeof(u32));
 }
