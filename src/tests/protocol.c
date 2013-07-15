@@ -45,6 +45,9 @@ static char* test_spi_stream_construct_tx_packet(void) {
 
   u32 my_pkt_expected[10] = {0xBEEF, 5, 1, 2, 3, 4, 5, 0xDEADBEEF, 0xDEADBEEF, -1};
   add_checksum(my_pkt_expected, 10);
+  int checksum_err = -1;
+  spi_stream_verify_packet(my_pkt_expected, 10, &checksum_err);
+  mu_assert_eq("no cksum err", checksum_err, 0);
 
   u32 my_pkt[10];
   spi_stream_construct_tx_packet(0xBEEF, my_pkt, 10, mybuf);
@@ -63,11 +66,46 @@ static char* test_spi_stream_construct_tx_packet(void) {
 
   u32 my_pkt_expected_2[10] = {0xBEEF, 7, 1, 2, 3, 4, 5, 1, 2, -1};
   add_checksum(my_pkt_expected_2, 10);
+  spi_stream_verify_packet(my_pkt_expected_2, 10, &checksum_err);
+  mu_assert_eq("no cksum err 2", checksum_err, 0);
 
   spi_stream_construct_tx_packet(0xBEEF, my_pkt, 10, mybuf);
   mu_assert_eq("packet", memcmp(my_pkt_expected_2, my_pkt, 10 * sizeof(u32)), 0);
   mu_assert_eq("consumed", cbuffer_size(mybuf), 8);
 
+  spi_stream_verify_packet(my_pkt, 10, &checksum_err);
+  mu_assert_eq("no cksum actual", checksum_err, 0);
+  return 0;
+}
+
+static char* test_spi_stream_construct_empty_tx_packet(void) {
+  
+  CircularBuffer* mybuf = cbuffer_new();
+
+  u32 my_pkt_expected[10] = {0xBEEF, 0, 
+    0xDEADBEEF, 
+    0xDEADBEEF, 
+    0xDEADBEEF, 
+    0xDEADBEEF, 
+    0xDEADBEEF, 
+    0xDEADBEEF, 
+    0xDEADBEEF, 
+    -1};
+  add_checksum(my_pkt_expected, 10);
+  int checksum_err = -1;
+  spi_stream_verify_packet(my_pkt_expected, 10, &checksum_err);
+  mu_assert_eq("no cksum err", checksum_err, 0);
+
+  u32 my_pkt[10];
+  spi_stream_construct_tx_packet(0xBEEF, my_pkt, 10, mybuf);
+
+//  for (int i = 0; i < 10; ++i) {
+//    printf("%i %lx %lx\n", i, my_pkt_expected[i], my_pkt[i]);
+//  }
+
+  mu_assert_eq("packet", memcmp(my_pkt_expected, my_pkt, 10 * sizeof(u32)), 0);
+  spi_stream_verify_packet(my_pkt, 10, &checksum_err);
+  mu_assert_eq("no cksum actual", checksum_err, 0);
   return 0;
 }
 
@@ -109,6 +147,7 @@ char * all_tests(void) {
   printf("\n\n=== protocol tests ===\n");
   mu_run_test(test_verify_packet);
   mu_run_test(test_spi_stream_construct_tx_packet);
+  mu_run_test(test_spi_stream_construct_empty_tx_packet);
   mu_run_test(test_spi_stream_read_rx_packet);
   return 0;
 }
