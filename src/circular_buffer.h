@@ -35,6 +35,9 @@ typedef struct {
 // Build a new circular buffer, initialized to zero
 CircularBuffer* cbuffer_new(void);
 
+// Make a copy of a circular buffer
+CircularBuffer* cbuffer_copy(CircularBuffer* from);
+
 // Words in the buffer
 int cbuffer_size(const CircularBuffer* buffer);
 

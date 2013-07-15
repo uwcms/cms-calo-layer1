@@ -17,6 +17,15 @@ CircularBuffer* cbuffer_new(void) {
   return output;
 }
 
+CircularBuffer* cbuffer_copy(CircularBuffer* from) {
+  CircularBuffer* output = malloc(sizeof(CircularBuffer));
+  output->data = malloc(IO_BUFFER_SIZE * sizeof(u32));
+  memcpy(output->data, from->data, IO_BUFFER_SIZE * sizeof(u32));
+  output->tail = from->tail;
+  output->pos = from->pos;
+  return output;
+}
+
 int cbuffer_size(const CircularBuffer* buffer) {
   if (buffer->pos <= buffer->tail) 
     return buffer->tail - buffer->pos;

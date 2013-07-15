@@ -27,6 +27,22 @@ static char* test_cbuffer_new(void) {
   return 0;
 }
 
+static char* test_cbuffer_copy(void) {
+  CircularBuffer* mybuf = cbuffer_new();
+  mu_assert_eq("size", cbuffer_size(mybuf), 0);
+  mu_assert_eq("pos", mybuf->pos, 0);
+  for (int i = 0; i < IO_BUFFER_SIZE - 2; ++i) {
+    cbuffer_push_back(mybuf, i);
+  }
+  mu_assert_eq("tail", mybuf->tail, IO_BUFFER_SIZE - 2);
+  CircularBuffer* copy = cbuffer_copy(mybuf);
+  mu_assert_eq("content", memcmp(mybuf->data, copy->data, 
+        IO_BUFFER_SIZE * sizeof(u32)), 0);
+  mu_assert_eq("pos copy", mybuf->pos, copy->pos);
+  mu_assert_eq("tail copy", mybuf->tail, copy->tail);
+  return 0;
+}
+
 static char* test_cbuffer_size(void) {
   CircularBuffer* mybuf = cbuffer_new();
   mybuf->pos = IO_BUFFER_SIZE - 5;
@@ -295,6 +311,7 @@ int tests_run;
 char * all_tests(void) {
   printf("\n\n=== buffer tests ===\n");
   mu_run_test(test_cbuffer_new);
+  mu_run_test(test_cbuffer_copy);
   mu_run_test(test_cbuffer_size);
   mu_run_test(test_cbuffer_freespace);
   mu_run_test(test_cbuffer_free);
