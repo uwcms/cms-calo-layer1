@@ -20,13 +20,14 @@
 
 // Size of the buffer we pass back and forth to the SPI device
 #define SPI_BUFFER_SIZE 512 // words
-#define SPI_BUFFER_TX_HISTORY 4
+#define SPI_BUFFER_TX_HISTORY 2
 
 typedef struct {
   u32 spi_rx_buffer[SPI_BUFFER_SIZE];
   // we maintain a history of the transmitted data.
   u32 spi_tx_buffer[SPI_BUFFER_TX_HISTORY][SPI_BUFFER_SIZE];
   u32 waiting_for_packet_id;
+  u32 on_packet_id;
   CircularBuffer* tx_buffer;
   CircularBuffer* rx_buffer;
   void (*transmit_callback)(u8* tx, u8* rx, u16 nbytes);

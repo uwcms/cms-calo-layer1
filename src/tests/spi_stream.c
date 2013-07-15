@@ -49,7 +49,7 @@ static char * simulate_interaction(
     // simulate slave->master data packet errors
     u16* slave_errors,
     u16 n_slave_errors,
-    int *n_transactions) {
+    int n_transactions) {
 
   // clobberable copy of the test data we send
   CircularBuffer* master_tx = cbuffer_copy(master_data);
@@ -66,42 +66,27 @@ static char * simulate_interaction(
   SPIStream* slave_spi = spi_stream_init(
       slave_tx, slave_rx, slave_transmit_callback);
 
-  *n_transactions = 0;
   //printf("init:  %li %li\n", cbuffer_size(master_tx), cbuffer_size(slave_tx));
 
-  // Use these to detect changes in receive buffer size
-  u32 master_rx_size = 0;
-  u32 slave_rx_size = 0;
 
-  while (
-      // more data to send
-      cbuffer_size(master_tx) || cbuffer_size(slave_tx) 
-      // We received on the last exchange.  We need to try at least one more
-      // to make sure we don't orphan the last frame.  In the normal case,
-      // we never stop transferring so this doesn't matter.
-      || cbuffer_size(master_rx) > master_rx_size
-      || cbuffer_size(slave_rx) > slave_rx_size) {
+  for (int i = 0; i < n_transactions; ++i) {
 
-    master_rx_size = cbuffer_size(master_rx);
-    slave_rx_size = cbuffer_size(slave_rx);
-    
-    if (*n_transactions < 30) {
-      //printf("\niter %i: %li %li\n", *n_transactions, cbuffer_size(master_tx), cbuffer_size(slave_tx));
-    } else {
-    }
+    if (0 && i < 30) {
+      printf("\niter %i: %li %li\n", i, cbuffer_size(master_tx), cbuffer_size(slave_tx));
+    } 
 
     // check if we want to simulate mangling this data
     int master_error = 0;
-    for (int i = 0; i < n_master_errors; ++i) {
-      if (master_errors[i] == *n_transactions) {
-        printf("master error @ %i\n", i);
+    for (int j = 0; j < n_master_errors; ++j) {
+      if (master_errors[j] == i) {
+        //printf("master error @ %i\n", i);
         master_error = 1;
       }
     }
     int slave_error = 0;
-    for (int i = 0; i < n_slave_errors; ++i) {
-      if (slave_errors[i] == *n_transactions) {
-        printf("slave error @ %i\n", i);
+    for (int j = 0; j < n_slave_errors; ++j) {
+      if (slave_errors[j] == i) {
+        //printf("slave error @ %i\n", i);
         slave_error = 1;
       }
     }
@@ -118,8 +103,6 @@ static char * simulate_interaction(
       master_rx_fifo[10]++;
     if (slave_error) 
       slave_rx_fifo[20]++;
-
-    (*n_transactions)++;
   }
 //  for (int i = 0; i < cbuffer_size(slave_data); ++i) {
 //    printf("%i %i %i\n", i, (int)cbuffer_value_at(slave_data, i), (int)cbuffer_value_at(master_rx, i));
@@ -153,14 +136,89 @@ CircularBuffer* make_some_data(u16 size, u16 multiplier) {
 static char* test_no_errors(void) {
   CircularBuffer* master_data = make_some_data(1000, 2);
   CircularBuffer* slave_data = make_some_data(5000, 3);
-  int transactions; 
-  char* res = simulate_interaction(master_data, slave_data, NULL, 0, NULL, 0, &transactions);
-  if (res)
-    return res;
   // we should need 5000/(512 - 3) = 9.823182711 -> 10 interactions
   // we get one extra at the end, plus the initial 1 = 12
-  mu_assert_eq("expected transactions", transactions, 12);
-  return 0;
+  return simulate_interaction(master_data, slave_data, NULL, 0, NULL, 0, 12);
+}
+
+static char* test_single_frame(void) {
+  CircularBuffer* master_data = make_some_data(200, 2);
+  CircularBuffer* slave_data = make_some_data(300, 3);
+  // we need 1, get one extra at the end, plus the initial 1 = 3
+  return simulate_interaction(master_data, slave_data, NULL, 0, NULL, 0, 3);
+}
+
+static char* test_single_error(void) {
+  CircularBuffer* master_data = make_some_data(1000, 2);
+  CircularBuffer* slave_data = make_some_data(5000, 3);
+  // simulate error on the master in 5th 
+  u16 master_errors[1] = {5};
+  // we should need 5000/(512 - 3) = 9.823182711 -> 10 interactions
+  // we get one extra at the end, plus the initial 1 = 12
+  // extra to recover from the error = 13
+  return simulate_interaction(master_data, slave_data, master_errors, 1, NULL, 0, 13);
+}
+
+static char* test_multi_error(void) {
+  CircularBuffer* master_data = make_some_data(1000, 2);
+  CircularBuffer* slave_data = make_some_data(5000, 3);
+  // simulate error on the master in 5th 
+  u16 master_errors[2] = {5, 7};
+  // we should need 5000/(512 - 3) = 9.823182711 -> 10 interactions
+  // we get one extra at the end, plus the initial 1 = 12
+  // extra 3 to recover from each error = 14
+  return simulate_interaction(master_data, slave_data, master_errors, 2, NULL, 0, 15);
+}
+
+static char* test_sequential_error(void) {
+  CircularBuffer* master_data = make_some_data(1000, 2);
+  CircularBuffer* slave_data = make_some_data(5000, 3);
+  // simulate error on the master in 5th 
+  u16 master_errors[2] = {5, 6};
+  // we should need 5000/(512 - 3) = 9.823182711 -> 10 interactions
+  // we get one extra at the end, plus the initial 1 = 12
+  // extra 6 to recover from each error = 14
+  return simulate_interaction(master_data, slave_data, master_errors, 2, NULL, 0, 13);
+}
+
+static char* test_simultaneous_error(void) {
+  CircularBuffer* master_data = make_some_data(5000, 2);
+  CircularBuffer* slave_data = make_some_data(5000, 3);
+  // simulate error on both in 5th 
+  u16 master_errors[1] = {5};
+  u16 slave_errors[1] = {5};
+  return simulate_interaction(master_data, slave_data, 
+      master_errors, 1, slave_errors, 1, 13);
+}
+
+static char* test_simultaneous_multiple_error(void) {
+  CircularBuffer* master_data = make_some_data(5000, 2);
+  CircularBuffer* slave_data = make_some_data(5000, 3);
+  // simulate error on both in 5th 
+  u16 master_errors[1] = {5};
+  u16 slave_errors[3] = {5, 6, 7};
+  return simulate_interaction(master_data, slave_data, 
+      master_errors, 1, slave_errors, 3, 18);
+}
+
+static char* test_simultaneous_staggered_multiple_error(void) {
+  CircularBuffer* master_data = make_some_data(5000, 2);
+  CircularBuffer* slave_data = make_some_data(5000, 3);
+  // simulate error on both in 5th 
+  u16 master_errors[2] = {4, 5};
+  u16 slave_errors[3] = {5, 6, 7};
+  return simulate_interaction(master_data, slave_data, 
+      master_errors, 2, slave_errors, 3, 18);
+}
+
+static char* test_simultaneous_a_lot_of_errors(void) {
+  CircularBuffer* master_data = make_some_data(5000, 2);
+  CircularBuffer* slave_data = make_some_data(5000, 3);
+  // simulate error on both in 5th 
+  u16 master_errors[2] = {4, 5};
+  u16 slave_errors[8] = {5, 6, 7, 8, 9, 10, 11, 12};
+  return simulate_interaction(master_data, slave_data, 
+      master_errors, 2, slave_errors, 8, 25);
 }
 
 int tests_run;
@@ -168,5 +226,13 @@ int tests_run;
 char * all_tests(void) {
   printf("\n\n=== spi_stream tests ===\n");
   mu_run_test(test_no_errors);
+  mu_run_test(test_single_frame);
+  mu_run_test(test_single_error);
+  mu_run_test(test_multi_error);
+  mu_run_test(test_sequential_error);
+  mu_run_test(test_simultaneous_error);
+  mu_run_test(test_simultaneous_multiple_error);
+  mu_run_test(test_simultaneous_staggered_multiple_error);
+  mu_run_test(test_simultaneous_a_lot_of_errors);
   return 0;
 }
