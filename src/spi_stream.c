@@ -3,36 +3,98 @@
 #include "circular_buffer.h"
 #include "spi_stream_protocol.h"
 
-// Size of the buffer we pass back and forth to the SPI device
-#define SPI_BUFFER_SIZE 512 // words
-
-static u32 spi_rx_buffer[SPI_BUFFER_SIZE];
-static u32 spi_tx_buffer[SPI_BUFFER_SIZE];
-
-static CircularBuffer* tx_buffer;
-static CircularBuffer* rx_buffer;
-
-void spi_stream_init(CircularBuffer* tx, CircularBuffer* rx) {
-  tx_buffer = tx;
-  rx_buffer = rx;
+static void swap_tx_buffers(SPIStream* stream) {
+  u32* temp = stream->spi_tx_buffer_prev;
+  stream->spi_tx_buffer_prev = stream->spi_tx_buffer_current;
+  stream->spi_tx_buffer_current = temp;
 }
 
-int spi_stream_transfer_data(int error) {
-  // As long as the SPI device didn't screw up on receive, try to read the data
-  // into the input buffer.   If we did have a local over run, some data was
-  // lost, and we can't trust what is in the SPI buffer.
-  if (!(error & SPI_STREAM_ERR_LOCAL_OVERRUN)) {
-    error |= unescape_stream(rx_buffer, spi_rx_buffer, SPI_BUFFER_SIZE);
-  }
-  // If the remote side does not have any problem, send it new data, along 
-  // with any errors we are experiencing locally.  If it does have a problem,
-  // do nothing so we resend the last frame from what's already in spi_tx_buffer
-  if (!(error & SPI_STREAM_ERR_REMOTE_MASK)) {
-    escape_stream(spi_tx_buffer, SPI_BUFFER_SIZE, tx_buffer, 
-        error & SPI_STREAM_ERR_LOCAL_MASK);
-  }
-  return error;
+void spi_stream_init(SPIStream* stream, CircularBuffer* tx, CircularBuffer* rx) {
+  stream->tx_buffer = tx;
+  stream->rx_buffer = rx;
+  stream->waiting_for_packet_id = 0;
+  stream->stream_state = SPI_STREAM_STATE_NORMAL;
 }
+
+int spi_stream_transfer_data(SPIStream* stream, int error) {
+  // verify the incoming data.
+  int cksum_error = 0;
+  u32 received_packet_id = spi_stream_verify_data(
+      stream->spi_rx_buffer, SPI_BUFFER_SIZE, &cksum_error);
+
+  switch (stream->spi_stream_state) {
+
+
+    case SPI_STREAM_STATE_NORMAL:
+      if (cksum_error) {
+        // continue to resend the current TX buffer with same packet ID
+        // ignore the RX buffer.
+        stream->spi_stream_state = SPI_STREAM_STATE_WAITING;
+      } else {
+        switch (received_packet_id) {
+          case stream->waiting_for_packet_id:
+            // Got what we wanted, read the data.
+            int rx_buffer_ok = spi_stream_read_rx_packet(
+                stream->spi_rx_buffer, stream->rx_buffer);
+            //
+            if (rx_buffer_ok) {
+              // Now send next packet in the sequence
+              stream->waiting_for_packet_id++;
+              // keep track of previously sent buffer
+              swap_tx_buffers(stream);
+              // build the next TX buffer
+              spi_stream_construct_tx_packet(
+                  stream->waiting_for_packet_id, 
+                  stream->spi_tx_buffer_current, 
+                  SPI_BUFFER_SIZE,
+                  stream->tx_buffer);
+              break;
+            } else {
+              // we overflowed the RX buffer, move to WAIT mode.
+              stream-spi_stream_state = SPI_STREAM_STATE_WAITING;
+            }
+          case stream->waiting_for_packet_id - 1:
+            // Move to resend mode.  Send previous packet (i.e. do nothing).
+            stream->spi_stream_state = SPI_STREAM_STATE_RESEND;
+            break;
+        }
+      }
+      break;
+
+    case SPI_STREAM_STATE_WAITING:
+      // we are waiting for the remote to resend a packet we missed.
+      if (cksum_error || 
+          received_packet_id == stream->waiting_for_packet_id + 1) {
+        // keep sending until we get the one we want.
+      } else if (!cksum_error && 
+          received_packet_id == stream->waiting_for_packet_id) {
+        // we got the one we want
+      }
+
+  }
+
+}
+
+/*  States
+ 
+
+    Each time we exchange a packet, we see what packet ID the other side thought
+    on the previous exchange.
+ 
+
+    OK - everything is OK
+        * local error = none
+        * remote error = none
+        Action: transmit 
+
+    Local overrun - local SPI device buffer was overflowed, data was lost.
+        * local error = SPI_STREAM_ERR_LOCAL_OVERRUN
+        * remote error = unknown
+        Action: 
+
+    Local error - program buffer overflowed, 
+
+ *  */
 
 /*  
  *

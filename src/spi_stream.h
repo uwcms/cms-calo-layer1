@@ -19,8 +19,27 @@
 
 struct CircularBuffer;
 
+// Size of the buffer we pass back and forth to the SPI device
+#define SPI_BUFFER_SIZE 512 // words
+#define SPI_STREAM_STATE_NORMAL 0x1
+#define SPI_STREAM_STATE_WAITING 0x2
+#define SPI_STREAM_STATE_RESEND 0x3
+#define SPI_STREAM_STATE_RESEND_WAIT_ACK 0x4
+
+typedef struct {
+  u32 spi_rx_buffer[SPI_BUFFER_SIZE];
+  u32 spi_tx_buffer_a[SPI_BUFFER_SIZE];
+  u32 spi_tx_buffer_b[SPI_BUFFER_SIZE];
+  u32* spi_tx_buffer_prev;
+  u32* spi_tx_buffer_current;
+  CircularBuffer* tx_buffer;
+  CircularBuffer* rx_buffer;
+  u32 waiting_for_packet_id;
+  u32 stream_state;
+} SPIStream;
+
 // Initialize pointers to local I/O stream buffers
-void spi_stream_init(CircularBuffer* tx, CircularBuffer* rx);
+void spi_stream_init(SPIStream* stream, CircularBuffer* tx, CircularBuffer* rx) {
 
 // Call back function which moves things from data buffer to IO buffers.
 // This should be installed in the SPI interrupt routine.
