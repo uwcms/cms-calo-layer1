@@ -26,7 +26,7 @@ CircularBuffer* cbuffer_copy(CircularBuffer* from) {
   return output;
 }
 
-int cbuffer_size(const CircularBuffer* buffer) {
+u32 cbuffer_size(const CircularBuffer* buffer) {
   if (buffer->pos <= buffer->tail) 
     return buffer->tail - buffer->pos;
   return buffer->tail + IO_BUFFER_SIZE - buffer->pos;
@@ -37,7 +37,7 @@ void cbuffer_free(CircularBuffer* tokill) {
   free(tokill);
 }
 
-Buffer* buffer_new(void* data, u16 size) {
+Buffer* buffer_new(void* data, u32 size) {
   Buffer* output = malloc(sizeof(Buffer));
   output->data = malloc(size * sizeof(u32));
   output->size = size;
@@ -54,22 +54,22 @@ void buffer_free(Buffer* buf) {
   free(buf);
 }
 
-void buffer_resize(Buffer* buf, u16 size) {
+void buffer_resize(Buffer* buf, u32 size) {
   buf->data = realloc(buf->data, size * sizeof(u32));
   buf->size = size;
 }
 
-u32 cbuffer_value_at(const CircularBuffer* buf, u16 idx) {
-  u16 actual_idx = (buf->pos + idx) % IO_BUFFER_SIZE;
+u32 cbuffer_value_at(const CircularBuffer* buf, u32 idx) {
+  u32 actual_idx = (buf->pos + idx) % IO_BUFFER_SIZE;
   return buf->data[actual_idx];
 }
 
-int cbuffer_freespace(const CircularBuffer* buf) {
+u32 cbuffer_freespace(const CircularBuffer* buf) {
   return IO_BUFFER_SIZE - cbuffer_size(buf) - 1;
 }
 
-int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords) {
-  int freespace = cbuffer_freespace(buffer);
+int cbuffer_append(CircularBuffer* buffer, void* data, u32 nwords) {
+  u32 freespace = cbuffer_freespace(buffer);
   if (freespace < nwords) {
     return -1;
   }
@@ -77,7 +77,7 @@ int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords) {
   // bytes available on "tail" until we hit the absolute end of the memory.
   // we know from the freespace check that we can't overwrite the head with
   // only <nwords>.
-  int tail_length = IO_BUFFER_SIZE - buffer->tail;
+  u32 tail_length = IO_BUFFER_SIZE - buffer->tail;
 
   memcpy(
       &(buffer->data[buffer->tail]),
@@ -96,24 +96,24 @@ int cbuffer_append(CircularBuffer* buffer, void* data, u16 nwords) {
 }
 
 int cbuffer_push_back(CircularBuffer* buffer, u32 data) {
-  int freespace = cbuffer_freespace(buffer);
+  u32 freespace = cbuffer_freespace(buffer);
   if (freespace < 1) {
     return -1;
   }
   buffer->data[buffer->tail] = data;
-  buffer->tail = (buffer->tail + 1) % IO_BUFFER_SIZE;
+  buffer->tail = ((u32)(buffer->tail + 1)) % IO_BUFFER_SIZE;
   return 0;
 }
 
-int cbuffer_read(const CircularBuffer* buffer, u32* output, u16 nwords) {
-  int words_to_read = min(nwords, cbuffer_size(buffer));
-  int tail_words_to_read = min(words_to_read, IO_BUFFER_SIZE - buffer->pos);
+u32 cbuffer_read(const CircularBuffer* buffer, u32* output, u32 nwords) {
+  u32 words_to_read = min(nwords, cbuffer_size(buffer));
+  u32 tail_words_to_read = min(words_to_read, IO_BUFFER_SIZE - buffer->pos);
   memcpy(
       output,
       &(buffer->data[buffer->pos]),
       sizeof(u32) * tail_words_to_read);
   // check if we need to wrap around.
-  int remaining_words_at_head = words_to_read - tail_words_to_read;
+  u32 remaining_words_at_head = words_to_read - tail_words_to_read;
   if (remaining_words_at_head) {
     memcpy(
         &(output[tail_words_to_read]), 
@@ -123,16 +123,16 @@ int cbuffer_read(const CircularBuffer* buffer, u32* output, u16 nwords) {
   return words_to_read;
 }
 
-int cbuffer_deletefront(CircularBuffer* buffer, u16 nwords) {
-  int words_to_delete = min(nwords, cbuffer_size(buffer));
+u32 cbuffer_deletefront(CircularBuffer* buffer, u32 nwords) {
+  u32 words_to_delete = min(nwords, cbuffer_size(buffer));
   buffer->pos += words_to_delete;
   buffer->pos %= IO_BUFFER_SIZE;
   return words_to_delete;
 }
 
-Buffer* cbuffer_pop(CircularBuffer* buffer, u16 nwords) {
+Buffer* cbuffer_pop(CircularBuffer* buffer, u32 nwords) {
   Buffer* output = buffer_new(NULL, nwords);
-  int actually_read = cbuffer_read(buffer, output->data, nwords);
+  u32 actually_read = cbuffer_read(buffer, output->data, nwords);
   buffer_resize(output, actually_read);
   cbuffer_deletefront(buffer, nwords);
   return output;

@@ -31,7 +31,8 @@ static char* test_cbuffer_copy(void) {
   CircularBuffer* mybuf = cbuffer_new();
   mu_assert_eq("size", cbuffer_size(mybuf), 0);
   mu_assert_eq("pos", mybuf->pos, 0);
-  for (int i = 0; i < IO_BUFFER_SIZE - 2; ++i) {
+  mu_assert_eq("tail", mybuf->tail, 0);
+  for (u32 i = 0; i < IO_BUFFER_SIZE - 2; ++i) {
     cbuffer_push_back(mybuf, i);
   }
   mu_assert_eq("tail", mybuf->tail, IO_BUFFER_SIZE - 2);
