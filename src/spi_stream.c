@@ -1,6 +1,7 @@
 #include "spi_stream.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "circular_buffer.h"
 #include "protocol.h"
@@ -30,6 +31,9 @@ void spi_stream_transfer_data(SPIStream* stream, int error) {
   u32 received_packet_id = spi_stream_verify_packet(
       stream->spi_rx_buffer, SPI_BUFFER_SIZE, &cksum_error);
 
+//  printf("transfer start: (ck)%li (rec)%li (want)%li\n", 
+//      (u32)cksum_error, received_packet_id, stream->waiting_for_packet_id);
+
   // if the data is corrupt: resend the previous packet
   u32 pkt_to_send = stream->waiting_for_packet_id;
 
@@ -51,8 +55,12 @@ void spi_stream_transfer_data(SPIStream* stream, int error) {
       pkt_to_send = received_packet_id;
     }
   }
+
+//  printf("transfer end: (send)%li (want)%li\n", 
+//      pkt_to_send, stream->waiting_for_packet_id);
+
   stream->transmit_callback(
-      (void*)(stream->spi_tx_buffer[pkt_to_send % SPI_BUFFER_SIZE]),
+      (void*)(stream->spi_tx_buffer[pkt_to_send % SPI_BUFFER_TX_HISTORY]),
       (void*)stream->spi_rx_buffer,
       SPI_BUFFER_SIZE * sizeof(u32));
 }
