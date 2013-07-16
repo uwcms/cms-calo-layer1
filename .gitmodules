@@ -1,3 +1,0 @@
-[submodule "spi_stream"]
-	path = spi_stream
-	url = https://github.com/ekfriis/spi_stream.git
