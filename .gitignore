@@ -15,3 +15,7 @@
 *.exe
 *.out
 *.app
+libgen.log
+microblaze_0
+Debug/
+.metadata/
