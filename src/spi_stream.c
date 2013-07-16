@@ -1,20 +1,22 @@
 #include "spi_stream.h"
 
 #include <stdlib.h>
+
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "circular_buffer.h"
 #include "protocol.h"
 
 SPIStream* spi_stream_init(CircularBuffer* tx, CircularBuffer* rx,
-    void (*transmit_callback)(u8*, u8*, u16)) {
+    void (*transmit_callback)(u8*, u8*, u16), u32 initial_packet_id) {
   SPIStream* stream = malloc(sizeof(SPIStream));
   stream->tx_buffer = tx;
   stream->rx_buffer = rx;
-  stream->waiting_for_packet_id = 0;
-  stream->on_packet_id = 0;
+  stream->waiting_for_packet_id = initial_packet_id;
+  stream->on_packet_id = initial_packet_id;
   stream->transmit_callback = transmit_callback;
-  spi_stream_load_tx(stream, 0);
+  spi_stream_load_tx(stream, initial_packet_id);
   return stream;
 }
 

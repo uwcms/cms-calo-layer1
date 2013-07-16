@@ -33,10 +33,16 @@ typedef struct {
   void (*transmit_callback)(u8* tx, u8* rx, u16 nbytes);
 } SPIStream;
 
-// Initialize pointers to local I/O stream buffers
+// Initialize pointers to local I/O stream buffers, and provide a callback
+// which should tell the device driver to begin the transfer.  The initial
+// packet ID must match between the master and the slave (advise using zero).
 SPIStream* spi_stream_init(
     CircularBuffer* tx, CircularBuffer* rx,
-    void (*transmit_callback)(u8*, u8*, u16));
+    void (*transmit_callback)(u8*, u8*, u16),
+    u32 initial_packet_id);
+
+// Return the value of a - b, wrapping at the edges.
+int delta_packet_id(u32 a, u32 b);
 
 // Load data into the output buffer, corresponding to pkt_id
 void spi_stream_load_tx(SPIStream* stream, u32 pkt_id);

@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "minunit.h"
 #include "spi_stream.h"
@@ -50,7 +51,7 @@ static char * simulate_interaction(
     u16* slave_errors,
     u16 n_slave_errors,
     int n_transactions, 
-    int start_pkt_id) {
+    u32 start_pkt_id) {
 
   // clobberable copy of the test data we send
   CircularBuffer* master_tx = cbuffer_copy(master_data);
@@ -63,15 +64,11 @@ static char * simulate_interaction(
   CircularBuffer* slave_rx = cbuffer_new();
 
   SPIStream* master_spi = spi_stream_init(
-      master_tx, master_rx, master_transmit_callback);
+      master_tx, master_rx, master_transmit_callback, start_pkt_id);
   SPIStream* slave_spi = spi_stream_init(
-      slave_tx, slave_rx, slave_transmit_callback);
+      slave_tx, slave_rx, slave_transmit_callback, start_pkt_id);
 
   // if desired, advance the initial packet ID so we can test wrapping around.
-  master_spi->waiting_for_packet_id = start_pkt_id;
-  master_spi->on_packet_id = start_pkt_id;
-  slave_spi->waiting_for_packet_id = start_pkt_id;
-  slave_spi->on_packet_id = start_pkt_id;
 
   //printf("init:  %li %li\n", cbuffer_size(master_tx), cbuffer_size(slave_tx));
 
@@ -79,7 +76,7 @@ static char * simulate_interaction(
   for (int i = 0; i < n_transactions; ++i) {
 
     if (0 && i < 30) {
-      printf("\niter %i: %li %li\n", i, cbuffer_size(master_tx), cbuffer_size(slave_tx));
+      printf("\niter %i: %"PRIx32" %"PRIx32"\n", i, cbuffer_size(master_tx), cbuffer_size(slave_tx));
     } 
 
     // check if we want to simulate mangling this data
