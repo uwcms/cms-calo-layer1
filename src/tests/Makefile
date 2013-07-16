@@ -5,7 +5,7 @@
 
 # build guts
 DEPOPTS = -MMD -MF .dep/`basename $@`.dep -MP
-CCOPTS = $(DEPOPTS) -std=gnu99 -I"$(PWD)/.." -Wall -Werror 
+CCOPTS = $(DEPOPTS) -std=gnu99 -I"$(PWD)/.." -Wall -Werror  -DUSE_INTTYPES
 SHAREDOPTS = -shared -fPIC
 
 # This is an ugly hack to make sure we put the output into a directory

@@ -82,6 +82,7 @@
  * New simple types.
  * @{
  */
+#ifndef USE_INTTYPES
 #ifndef __KERNEL__
 #ifndef XBASIC_TYPES_H
 /**
@@ -102,6 +103,18 @@ typedef long s32;
 typedef long long s64;
 #else
 #include <linux/types.h>
+#endif
+#else
+#include <stdint.h>
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+
+typedef int8_t s8;
+typedef int16_t s16;
+typedef int32_t s32;
+typedef int64_t s64;
 #endif
 
 
