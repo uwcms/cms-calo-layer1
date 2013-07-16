@@ -49,7 +49,8 @@ static char * simulate_interaction(
     // simulate slave->master data packet errors
     u16* slave_errors,
     u16 n_slave_errors,
-    int n_transactions) {
+    int n_transactions, 
+    int start_pkt_id) {
 
   // clobberable copy of the test data we send
   CircularBuffer* master_tx = cbuffer_copy(master_data);
@@ -65,6 +66,12 @@ static char * simulate_interaction(
       master_tx, master_rx, master_transmit_callback);
   SPIStream* slave_spi = spi_stream_init(
       slave_tx, slave_rx, slave_transmit_callback);
+
+  // if desired, advance the initial packet ID so we can test wrapping around.
+  master_spi->waiting_for_packet_id = start_pkt_id;
+  master_spi->on_packet_id = start_pkt_id;
+  slave_spi->waiting_for_packet_id = start_pkt_id;
+  slave_spi->on_packet_id = start_pkt_id;
 
   //printf("init:  %li %li\n", cbuffer_size(master_tx), cbuffer_size(slave_tx));
 
@@ -138,14 +145,16 @@ static char* test_no_errors(void) {
   CircularBuffer* slave_data = make_some_data(5000, 3);
   // we should need 5000/(512 - 3) = 9.823182711 -> 10 interactions
   // we get one extra at the end, plus the initial 1 = 12
-  return simulate_interaction(master_data, slave_data, NULL, 0, NULL, 0, 12);
+  return simulate_interaction(master_data, slave_data, 
+      NULL, 0, NULL, 0, 12, 0);
 }
 
 static char* test_single_frame(void) {
   CircularBuffer* master_data = make_some_data(200, 2);
   CircularBuffer* slave_data = make_some_data(300, 3);
   // we need 1, get one extra at the end, plus the initial 1 = 3
-  return simulate_interaction(master_data, slave_data, NULL, 0, NULL, 0, 3);
+  return simulate_interaction(master_data, slave_data, 
+      NULL, 0, NULL, 0, 3, 0);
 }
 
 static char* test_single_error(void) {
@@ -156,7 +165,8 @@ static char* test_single_error(void) {
   // we should need 5000/(512 - 3) = 9.823182711 -> 10 interactions
   // we get one extra at the end, plus the initial 1 = 12
   // extra to recover from the error = 13
-  return simulate_interaction(master_data, slave_data, master_errors, 1, NULL, 0, 13);
+  return simulate_interaction(master_data, slave_data, 
+      master_errors, 1, NULL, 0, 13, 0);
 }
 
 static char* test_multi_error(void) {
@@ -167,7 +177,8 @@ static char* test_multi_error(void) {
   // we should need 5000/(512 - 3) = 9.823182711 -> 10 interactions
   // we get one extra at the end, plus the initial 1 = 12
   // extra 3 to recover from each error = 14
-  return simulate_interaction(master_data, slave_data, master_errors, 2, NULL, 0, 15);
+  return simulate_interaction(master_data, slave_data, 
+      master_errors, 2, NULL, 0, 15, 0);
 }
 
 static char* test_sequential_error(void) {
@@ -178,7 +189,8 @@ static char* test_sequential_error(void) {
   // we should need 5000/(512 - 3) = 9.823182711 -> 10 interactions
   // we get one extra at the end, plus the initial 1 = 12
   // extra 6 to recover from each error = 14
-  return simulate_interaction(master_data, slave_data, master_errors, 2, NULL, 0, 13);
+  return simulate_interaction(master_data, slave_data, 
+      master_errors, 2, NULL, 0, 13, 0);
 }
 
 static char* test_simultaneous_error(void) {
@@ -188,7 +200,7 @@ static char* test_simultaneous_error(void) {
   u16 master_errors[1] = {5};
   u16 slave_errors[1] = {5};
   return simulate_interaction(master_data, slave_data, 
-      master_errors, 1, slave_errors, 1, 13);
+      master_errors, 1, slave_errors, 1, 13, 0);
 }
 
 static char* test_simultaneous_multiple_error(void) {
@@ -198,7 +210,7 @@ static char* test_simultaneous_multiple_error(void) {
   u16 master_errors[1] = {5};
   u16 slave_errors[3] = {5, 6, 7};
   return simulate_interaction(master_data, slave_data, 
-      master_errors, 1, slave_errors, 3, 18);
+      master_errors, 1, slave_errors, 3, 18, 0);
 }
 
 static char* test_simultaneous_staggered_multiple_error(void) {
@@ -208,7 +220,7 @@ static char* test_simultaneous_staggered_multiple_error(void) {
   u16 master_errors[2] = {4, 5};
   u16 slave_errors[3] = {5, 6, 7};
   return simulate_interaction(master_data, slave_data, 
-      master_errors, 2, slave_errors, 3, 18);
+      master_errors, 2, slave_errors, 3, 18, 0);
 }
 
 static char* test_simultaneous_a_lot_of_errors(void) {
@@ -218,7 +230,7 @@ static char* test_simultaneous_a_lot_of_errors(void) {
   u16 master_errors[2] = {4, 5};
   u16 slave_errors[8] = {5, 6, 7, 8, 9, 10, 11, 12};
   return simulate_interaction(master_data, slave_data, 
-      master_errors, 2, slave_errors, 8, 25);
+      master_errors, 2, slave_errors, 8, 25, 0);
 }
 
 int tests_run;
