@@ -28,13 +28,19 @@ void spi_stream_load_tx(SPIStream* stream, u32 pkt_id) {
       stream->tx_buffer);
 }
 
+int delta_packet_id(u32 a, u32 b) {
+  int difference = (s64)a - (s64)b;
+  int modulo_difference = difference + ((s64)(1) << 32);
+  return (abs(difference) < abs(modulo_difference)) ? difference : modulo_difference;
+}
+
 void spi_stream_transfer_data(SPIStream* stream, int error) {
   // verify the incoming data.
   int cksum_error = 0;
   u32 received_packet_id = spi_stream_verify_packet(
       stream->spi_rx_buffer, SPI_BUFFER_SIZE, &cksum_error);
 
-//  printf("transfer start: (ck)%li (rec)%li (want)%li (on)%li\n", 
+//  printf("transfer start: (ck)%"PRIx32" (rec)%"PRIx32" (want)%"PRIx32" (on)%"PRIx32"\n", 
 //      (u32)cksum_error, received_packet_id, stream->waiting_for_packet_id,
 //      stream->on_packet_id);
 
@@ -59,7 +65,7 @@ void spi_stream_transfer_data(SPIStream* stream, int error) {
         stream->on_packet_id++;
         pkt_to_send = stream->on_packet_id;
       }
-    } else if (received_packet_id < stream->on_packet_id) {
+    } else if (delta_packet_id(received_packet_id, stream->on_packet_id) < 0) {
       // The remote send an older packet than we were expecting - that means
       // it wants us to rewind to that packet
       pkt_to_send = received_packet_id;
@@ -67,7 +73,7 @@ void spi_stream_transfer_data(SPIStream* stream, int error) {
     } 
   }
 
-//  printf("transfer end: (send)%li (want)%li (on)%li\n", 
+//  printf("transfer end: (send)%"PRIx32" (want)%"PRIx32" (on)%"PRIx32"\n", 
 //      pkt_to_send, stream->waiting_for_packet_id, stream->on_packet_id);
 
   stream->transmit_callback(

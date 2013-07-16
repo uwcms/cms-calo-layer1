@@ -137,6 +137,15 @@ CircularBuffer* make_some_data(u16 size, u16 multiplier) {
   return output;
 }
 
+static char* test_delta_packet_id(void) {
+  mu_assert_eq("normal", delta_packet_id(5, 4), 1);
+  mu_assert_eq("inverted", delta_packet_id(4, 5), -1);
+  mu_assert_eq("Size", 0xFFFFFFFF, (u32)(-1));
+  mu_assert_eq("gt wraps", delta_packet_id(0, (u32)(-1)), 1);
+  mu_assert_eq("lt wraps", delta_packet_id((u32)(-1), 0), -1);
+  return 0;
+}
+
 static char* test_no_errors(void) {
   CircularBuffer* master_data = make_some_data(1000, 2);
   CircularBuffer* slave_data = make_some_data(5000, 3);
@@ -230,10 +239,41 @@ static char* test_simultaneous_a_lot_of_errors(void) {
       master_errors, 2, slave_errors, 8, 25, 0);
 }
 
+static char* test_wrap_around(void) {
+  CircularBuffer* master_data = make_some_data(5000, 2);
+  CircularBuffer* slave_data = make_some_data(5000, 3);
+  return simulate_interaction(master_data, slave_data, 
+      NULL, 0, NULL, 0, 25, 
+      ((u64)1 << 32) - 4
+      );
+}
+
+static char* test_wrap_around_errors(void) {
+  CircularBuffer* master_data = make_some_data(5000, 2);
+  CircularBuffer* slave_data = make_some_data(5000, 3);
+  u16 master_errors[4] = {2, 3, 4, 5};
+  u16 slave_errors[3] = {5, 6, 7};
+  return simulate_interaction(master_data, slave_data, 
+      master_errors, 4, slave_errors, 3, 25, 
+      ((u64)1 << 32) - 4
+      );
+}
+
+static char* test_wrap_around_single_error(void) {
+  CircularBuffer* master_data = make_some_data(5000, 2);
+  CircularBuffer* slave_data = make_some_data(5000, 3);
+  u16 master_errors[1] = {3};
+  return simulate_interaction(master_data, slave_data, 
+      master_errors, 1, NULL, 0, 20, 
+      ((u64)1 << 32) - 4
+      );
+}
+
 int tests_run;
 
 char * all_tests(void) {
   printf("\n\n=== spi_stream tests ===\n");
+  mu_run_test(test_delta_packet_id);
   mu_run_test(test_no_errors);
   mu_run_test(test_single_frame);
   mu_run_test(test_single_error);
@@ -243,5 +283,8 @@ char * all_tests(void) {
   mu_run_test(test_simultaneous_multiple_error);
   mu_run_test(test_simultaneous_staggered_multiple_error);
   mu_run_test(test_simultaneous_a_lot_of_errors);
+  mu_run_test(test_wrap_around);
+  mu_run_test(test_wrap_around_errors);
+  mu_run_test(test_wrap_around_single_error);
   return 0;
 }
