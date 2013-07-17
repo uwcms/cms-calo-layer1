@@ -1,32 +1,16 @@
-/*
- * Copyright (c) 2009 Xilinx, Inc.  All rights reserved.
- *
- * Xilinx, Inc.
- * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A
- * COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
- * ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR
- * STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
- * IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE
- * FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.
- * XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO
- * THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO
- * ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE
- * FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- */
-
-/*
- * helloworld.c: simple test application
- */
-
 #include <stdio.h>
 #include "platform.h"
-void print(char *str);
 
 #include "xspi.h"		/* SPI device driver */
 #include "xintc.h"		/* Interrupt controller device driver */
 #include "xil_exception.h"
+
+#include "spi_stream.h"
+
+/*  STDOUT functionality  */
+void print(char *str);
+
+/*  SPI device driver plumbing  */
 
 #define SPI_DEVICE_ID		XPAR_SPI_0_DEVICE_ID
 #define INTC_DEVICE_ID		XPAR_INTC_0_DEVICE_ID
@@ -35,14 +19,38 @@ void print(char *str);
 static XIntc IntcInstance;	 /* The instance of the Interrupt Controller */
 static XSpi  SpiInstance;	 /* The instance of the SPI device */
 
-void SpiIntrHandler(void *CallBackRef, u32 StatusEvent, u32 ByteCount);
-
 static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
     u16 SpiIntrId);
+
+/* SPI stream functionality */
+
+static SPIStream* spi_stream = NULL;
+/* Input and output buffers */
+static CircularBuffer* tx_buffer;
+static CircularBuffer* rx_buffer;
+
+void SpiIntrHandler(void *CallBackRef, u32 StatusEvent, u32 ByteCount) {
+  u32 error = StatusEvent != XST_SPI_TRANSFER_DONE ? StatusEvent : 0;
+  if (spi_stream != NULL) {
+    spi_stream_transfer_data(spi_stream, error);
+  }
+}
+
+void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
+  XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
+}
 
 int main() {
   // initialize stdout.
   init_platform();
+
+  tx_buffer = cbuffer_new();
+  rx_buffer = cbuffer_new();
+
+  spi_stream = spi_stream_init(
+      tx_buffer, rx_buffer, 
+      DoSpiTransfer, // callback which triggers a SPI transfer
+      0);
 
   print("Master SPI oRSC echo test\n");
 
