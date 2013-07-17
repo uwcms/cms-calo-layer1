@@ -1,4 +1,4 @@
-#include <stdio.h>
+//#include <stdio.h>
 #include "platform.h"
 
 #include "xspi.h"		/* SPI device driver */
@@ -69,13 +69,13 @@ int main() {
   Status = XSpi_CfgInitialize(&SpiInstance, ConfigPtr,
       ConfigPtr->BaseAddress);
   if (Status != XST_SUCCESS) {
-    printf("Error: could not initialize the SPI device\n");
+    print("Error: could not initialize the SPI device\n");
     return XST_FAILURE;
   }
 
   Status = XSpi_SelfTest(&SpiInstance);
   if (Status != XST_SUCCESS) {
-    printf("Error: The SPI self test failed.\n");
+    print("Error: The SPI self test failed.\n");
     return XST_FAILURE;
   }
 
@@ -101,7 +101,28 @@ int main() {
   // Go!
   XSpi_Start(&SpiInstance);
 
-  // Note: to disable, do: XIntc_Disconnect(&IntcInstance, SPI_IRPT_INTR);
+  // Note: to disable interrupt, do: XIntc_Disconnect(&IntcInstance,
+  // SPI_IRPT_INTR);
+
+  u32 expected_rx = 0;
+  u32 current_tx = 0;
+
+  while (1) {
+    // fill up the transmit buffer
+    while (cbuffer_freespace(tx_buffer)) {
+      cbuffer_push_back(tx_buffer, current_tx++);
+    }
+    // check to make sure the received buffer is what we expect
+    while (cbuffer_size(rx_buffer)) {
+      u32 front = cbuffer_value_at(rx_buffer, 0);
+      if (front != expected_rx) {
+        //print("Error: expected %lx, got %lx!\n", expected_rx, front);
+        print("Error: data value\n");
+      }
+      expected_rx++;
+      cbuffer_deletefront(rx_buffer, 1);
+    }
+  }
 
   return 0;
 }
@@ -136,7 +157,7 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
    */
   Status = XIntc_Initialize(IntcInstancePtr, INTC_DEVICE_ID);
   if (Status != XST_SUCCESS) {
-    printf("Could not initialize interrupt controller.\n");
+    print("Could not initialize interrupt controller.\n");
     return XST_FAILURE;
   }
 
@@ -149,7 +170,7 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
       (XInterruptHandler) XSpi_InterruptHandler,
       (void *)SpiInstancePtr);
   if (Status != XST_SUCCESS) {
-    printf("Could not connect interrupt controller to SPI.\n");
+    print("Could not connect interrupt controller to SPI.\n");
     return XST_FAILURE;
   }
 
