@@ -1,4 +1,16 @@
-//#include <stdio.h>
+/*
+ * Minimal test of inter-FPGA SPI communication on the oRSC backend.
+ *
+ * Author: Evan K. Friis, UW Madison
+ *
+ * Modified from Xilinx xspi_intr_example.c
+ *
+ * This program sets up the SPI as master, then sends a continuous stream of
+ * increasing words to the slave device, which should echo them back.  If there
+ * are transmission errors, they will be noted on stdout.
+ * 
+ */
+
 #include "platform.h"
 
 #include "xparameters.h"        /* Defined in BSP */
