@@ -4,7 +4,6 @@
 #include "xparameters.h"        /* Defined in BSP */
 #include "xspi.h"		/* SPI device driver */
 #include "xintc.h"		/* Interrupt controller device driver */
-#include "xil_exception.h"
 
 #include "spi_stream.h"
 
