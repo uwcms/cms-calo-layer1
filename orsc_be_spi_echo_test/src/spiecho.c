@@ -1,6 +1,7 @@
 //#include <stdio.h>
 #include "platform.h"
 
+#include "xparameters.h"        /* Defined in BSP */
 #include "xspi.h"		/* SPI device driver */
 #include "xintc.h"		/* Interrupt controller device driver */
 #include "xil_exception.h"
