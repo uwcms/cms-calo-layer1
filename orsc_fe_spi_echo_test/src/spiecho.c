@@ -1,14 +1,11 @@
 /*
- * Minimal test of inter-FPGA SPI communication on the oRSC backend.
+ * Minimal test of inter-FPGA SPI communication on the oRSC frontend.
  *
  * Author: Evan K. Friis, UW Madison
  *
  * Modified from Xilinx xspi_intr_example.c
  *
- * This program sets up the SPI as master, then sends a continuous stream of
- * increasing words to the slave device, which should echo them back.  If there
- * are transmission errors, they will be noted on stdout.
- * 
+ * This program sets up the SPI as slave, then echos all received data.   * 
  */
 
 #include "platform.h"
@@ -101,37 +98,16 @@ int main() {
     return XST_FAILURE;
   }
 
-  /*
-   * Set the Spi device as a master.
-   */
-  Status = XSpi_SetOptions(&SpiInstance, XSP_MASTER_OPTION);
-  if (Status != XST_SUCCESS) {
-    print("Error: Could not set as master\n");
-    return XST_FAILURE;
-  }
-
   // Go!
   XSpi_Start(&SpiInstance);
 
   // Note: to disable interrupt, do: XIntc_Disconnect(&IntcInstance,
   // SPI_IRPT_INTR);
 
-  u32 expected_rx = 0;
-  u32 current_tx = 0;
-
   while (1) {
-    // fill up the transmit buffer
-    while (cbuffer_freespace(tx_buffer)) {
-      cbuffer_push_back(tx_buffer, current_tx++);
-    }
-    // check to make sure the received buffer is what we expect
-    while (cbuffer_size(rx_buffer)) {
-      u32 front = cbuffer_value_at(rx_buffer, 0);
-      if (front != expected_rx) {
-        //print("Error: expected %lx, got %lx!\n", expected_rx, front);
-        print("Error: data value\n");
-      }
-      expected_rx++;
+    // copy things from the RX buffer to the transmit buffer
+    while (cbuffer_freespace(tx_buffer) && cbuffer_size(rx_buffer)) {
+      cbuffer_push_back(tx_buffer, cbuffer_value_at(rx_buffer, 0));
       cbuffer_deletefront(rx_buffer, 1);
     }
   }
