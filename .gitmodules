@@ -1,6 +1,6 @@
 [submodule "orsc_be_spi_echo_test/src/spi_stream"]
 	path = orsc_be_spi_echo_test/src/spi_stream
-	url = https://github.com/ekfriis/spi_stream.git
+	url = https://github.com/uwcms/spi-stream.git
 [submodule "orsc_fe_spi_echo_test/src/spi_stream"]
 	path = orsc_fe_spi_echo_test/src/spi_stream
-	url = https://github.com/ekfriis/spi_stream.git
+	url = https://github.com/uwcms/spi-stream.git
