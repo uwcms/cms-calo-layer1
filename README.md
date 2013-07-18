@@ -13,16 +13,16 @@ Example
 #include "circular_buffer.h"
 #include "spi_stream.h"
 
-// a call back which tells the device driver to swap the data.
-void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
-  XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
-}
-
 // The device-driver dependent "transer complete" callback.
 void SpiIntrHandler(void *CallBackRef, u32 StatusEvent, u32 ByteCount) {
   u32 error = StatusEvent != XST_SPI_TRANSFER_DONE ? StatusEvent : 0;
   // Move SPI data in/out of the local IO buffers
   spi_stream_transfer_data(spi_stream, error);
+}
+
+// a call back which tells the device driver to swap the data.
+void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
+  XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
 }
 
 // Program input/output buffers
