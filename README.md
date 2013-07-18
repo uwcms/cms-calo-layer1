@@ -10,8 +10,13 @@ Example
 -------
 
 ```c
+#include "xspi.h" // Xilinx driver
+
 #include "circular_buffer.h"
 #include "spi_stream.h"
+
+static SPIStream* spi_stream;
+static XSpi SpiInstance;
 
 // The device-driver dependent "transer complete" callback.
 void SpiIntrHandler(void *CallBackRef, u32 StatusEvent, u32 ByteCount) {
@@ -25,17 +30,21 @@ void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
   XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
 }
 
-// Program input/output buffers
-CircularBuffer* tx_buffer = cbuffer_new();
-CircularBuffer* rx_buffer = cbuffer_new();
+int main(void) {
+  // Program input/output buffers
+  CircularBuffer* tx_buffer = cbuffer_new();
+  CircularBuffer* rx_buffer = cbuffer_new();
 
-SPIStream* spi_stream = spi_stream_init(
-    tx_buffer, rx_buffer, 
-    DoSpiTransfer, 
-    0);
+  spi_stream = spi_stream_init(
+      tx_buffer, rx_buffer, 
+      DoSpiTransfer, 
+      0);
 
-// Once the interrupts are setup correctly, data should transparently disappear
-// from tx_buffer and appear in rx_buffer.  
+  // Once the SPI + interrupts are setup correctly, data should then 
+  // disappear from tx_buffer and appear in rx_buffer automagically
+
+  /* lots of driver setup plumbing lives here */
+}
 ```
 
 
