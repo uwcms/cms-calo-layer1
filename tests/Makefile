@@ -13,7 +13,7 @@ SHAREDOPTS = -shared -fPIC
 OUT_DIR=/tmp/spi_test
 
 # These live in a common package.
-BUFFER_SRC=../../../buffer-types/
+BUFFER_SRC=../../buffer-types/
 
 SRCS=$(BUFFER_SRC)/circular_buffer.c $(BUFFER_SRC)/buffer.c ../spi_stream.c ../adler32.c ../protocol.c
 
