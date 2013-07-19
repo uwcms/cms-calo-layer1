@@ -11,6 +11,7 @@ VMEController*
 VMEController::getVMEController()
 {
     char *environment = getenv("VME_CONTROLLER");
+    std::cout << "VME controller:" << environment << std::endl;
 
     if(environment != 0)
     {
@@ -18,6 +19,7 @@ VMEController::getVMEController()
             return caen::getVMEController();
         }
         else if (strcmp(environment, "TEST") == 0) {
+            std::cout << "Emulating oRSC" << std::endl;
             return OrscEmulator::getVMEController();
         }
     }
