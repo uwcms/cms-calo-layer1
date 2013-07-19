@@ -10,6 +10,7 @@ class VMEController
  public:
 
   static VMEController* getVMEController();
+  virtual ~VMEController(){};
 
   void setA32() {type = 0;}
   void setA24() {type = 1;}
@@ -18,7 +19,7 @@ class VMEController
   virtual bool read(unsigned long address, size_t size, void* value) = 0;
   virtual bool write(unsigned long address, size_t size, void* value) = 0;
   virtual bool multiread(unsigned int *addresses, size_t size, unsigned short *data, int dataCounter) = 0;
-  virtual bool multiwrite(unsigned int *addresses, size_t size, unsigned short *data, int dataCounter) = 0; 
+  virtual bool multiwrite(unsigned int *addresses, size_t size, unsigned short *data, int dataCounter) = 0;
 
   bool write(unsigned long address, unsigned long value)
     {
