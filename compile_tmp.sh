@@ -1,4 +1,4 @@
-export SOFTDIR=/afs/cern.ch/user/d/dbelknap/softipbus
+export SOFTDIR=../softipbus
 export FLAGS='-g -Wall -Iinclude -I'$SOFTDIR'/include -I/opt/xdaq/include/ -DLINUX'
 export LDFLAGS='-L/opt/xdaq/lib/ -lCAENVME -llog4cplus'
 
