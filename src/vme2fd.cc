@@ -22,6 +22,8 @@
 
 #define DATAWIDTH 4
 
+#define READ_BUFFER_SIZE 512
+
 
 const uint32_t MAXRAM = 1;
 
@@ -31,7 +33,7 @@ int main ( int argc, char** argv )
     int fin;
     int fout;
 
-    uint32_t buf [512];
+    uint32_t buf [READ_BUFFER_SIZE];
 
     if ( argc != 3 ) {
         printf("Usage: vme2fd [instream] [outstream]\n");
@@ -59,9 +61,11 @@ int main ( int argc, char** argv )
 
     while (1) {
         uint32_t words_free = cbuffer_freespace(stream->input);
+        int words_to_read = READ_BUFFER_SIZE > words_free ?
+          READ_BUFFER_SIZE : words_free;
 
         // read only as much as the cbuffer can handle
-        ssize_t bytes_read = read(fin, buf, words_free*sizeof(uint32_t));
+        ssize_t bytes_read = read(fin, buf, words_to_read*sizeof(uint32_t));
         uint32_t words_read = bytes_read/sizeof(uint32_t);
 
         if (words_read > 0) {
