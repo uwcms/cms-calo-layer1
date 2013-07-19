@@ -37,8 +37,7 @@ int main ( int argc, char** argv )
         printf("Usage: vme2fd [instream] [outstream]\n");
         exit(0);
     }
-
-    fin  = open( argv[1], O_RDONLY );
+    fin  = open( argv[1], O_RDONLY | O_NONBLOCK);
     fout = open( argv[2], O_WRONLY );
 
     CircularBuffer *input = cbuffer_new();
