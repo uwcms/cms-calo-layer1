@@ -4,3 +4,9 @@
 [submodule "orsc_fe_spi_echo_test/src/spi_stream"]
 	path = orsc_fe_spi_echo_test/src/spi_stream
 	url = https://github.com/uwcms/spi-stream.git
+[submodule "orsc_fe_spi_echo_test/src/buffer-types"]
+	path = orsc_fe_spi_echo_test/src/buffer-types
+	url = https://github.com/uwcms/buffer-types.git
+[submodule "orsc_be_spi_echo_test/src/buffer-types"]
+	path = orsc_be_spi_echo_test/src/buffer-types
+	url = https://github.com/uwcms/buffer-types.git

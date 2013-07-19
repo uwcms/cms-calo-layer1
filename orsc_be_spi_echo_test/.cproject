@@ -1158,13 +1158,13 @@
 								<option id="xilinx.gnu.mb.compiler.inferred.usebarrel.1699990596" name="Use Barrel Shifter (-mxl-barrel-shift)" superClass="xilinx.gnu.mb.compiler.inferred.usebarrel" value="true" valueType="boolean"/>
 								<option id="xilinx.gnu.mb.compiler.inferred.usepcmp.318833682" name="Use Pattern Compare (-mxl-pattern-compare)" superClass="xilinx.gnu.mb.compiler.inferred.usepcmp" value="true" valueType="boolean"/>
 								<option id="xilinx.gnu.mb.compiler.inferred.mul.1948077635" name="Hardware Multiplier" superClass="xilinx.gnu.mb.compiler.inferred.mul" value="xilinx.gnu.mb.compiler.inferred.mul.32bit" valueType="enumerated"/>
-								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.2068856418" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes" valueType="includePath">
-									<listOptionValue builtIn="false" value="../../orsc_be_bsp/microblaze_0/include"/>
-								</option>
+								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.2068856418" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes" valueType="includePath"/>
 								<option id="xilinx.gnu.compiler.misc.other.1443697884" name="Other flags" superClass="xilinx.gnu.compiler.misc.other" value="-c -fmessage-length=0  -std=c99" valueType="string"/>
 								<option id="xilinx.gnu.compiler.option.warnings.toerrors.1466080951" name="Warnings as errors (-Werror)" superClass="xilinx.gnu.compiler.option.warnings.toerrors" value="true" valueType="boolean"/>
 								<option id="xilinx.gnu.compiler.dircategory.includes.313933477" name="Include Paths" superClass="xilinx.gnu.compiler.dircategory.includes" valueType="includePath">
-									<listOptionValue builtIn="false" value="../src/spi_stream/src"/>
+									<listOptionValue builtIn="false" value="../../orsc_be_bsp/microblaze_0/include"/>
+									<listOptionValue builtIn="false" value="../src/buffer-types"/>
+									<listOptionValue builtIn="false" value="../src/spi_stream"/>
 								</option>
 								<inputType id="xilinx.gnu.compiler.input.39562436" name="C source files" superClass="xilinx.gnu.compiler.input"/>
 							</tool>
@@ -1222,7 +1222,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/spi_stream/src/tests/*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="src/spi_stream/tests/*|src/buffer-types/tests/*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
