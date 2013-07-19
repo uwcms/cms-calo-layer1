@@ -94,6 +94,17 @@ OrscEmulator::multiwrite(unsigned int *addresses, size_t size,
     return 1;
 }
 
+// Echo things from ram1->ram2, respecting the VMEStream protocol
+void
+OrscEmulator::doStuff() {
+  // input buffer has data and output is empty
+  if (*register1 && !*register2) {
+    memcpy(ram2, ram1, *register1 * sizeof(uint32_t));
+    *register2 = *register1;
+    *register1 = 0;
+  }
+}
+
 
 bool
 OrscEmulator::reset()

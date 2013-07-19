@@ -34,6 +34,7 @@ class OrscEmulator : public VMEController
                 unsigned short *data, int dataCounter);
         virtual bool multiwrite(unsigned int *addresses, size_t size,
                 unsigned short *data, int dataCounter);
+        virtual void doStuff();
 };
 
 #endif
