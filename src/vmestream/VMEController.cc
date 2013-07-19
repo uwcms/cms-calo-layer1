@@ -10,14 +10,16 @@
 VMEController*
 VMEController::getVMEController()
 {
-    char *environment = getenv("VME_CONTROLLER"); 
+    char *environment = getenv("VME_CONTROLLER");
 
     if(environment != 0)
     {
-        if(strcmp(environment, "CAEN") == 0)
+        if(strcmp(environment, "CAEN") == 0) {
             return caen::getVMEController();
-        else if (strcmp(environment, "TEST") == 0)
+        }
+        else if (strcmp(environment, "TEST") == 0) {
             return OrscEmulator::getVMEController();
+        }
     }
 
     return null::getVMEController();
