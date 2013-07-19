@@ -1,6 +1,6 @@
 SOFTDIR=/afs/cern.ch/user/d/dbelknap/softipbus
 
-CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include -I/opt/xdaq/include/ -std=c99
+CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include -I/opt/xdaq/include/ 
 CXXFLAGS:=$(CFLAGS) -DLINUX
 LDFLAGS:=-L/opt/xdaq/lib/ -lCAENVME -llog4cplus
 CC=gcc
@@ -27,7 +27,7 @@ all : $(LIB) $(EXEC) tests
 bin/% : $(LIB)
 bin/% : src/%.cc
 	@mkdir -p bin
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LIB)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $< $(LIB)
 
 $(LIB) : CFLAGS += -fPIC
 $(LIB) : $(OBJ)
