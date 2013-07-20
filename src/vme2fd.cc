@@ -92,7 +92,6 @@ int main ( int argc, char** argv )
         uint32_t n_words = cbuffer_size(stream->output);
         if (n_words > 0) {
             cbuffer_write_fd(stream->output, fout, n_words);
-            std::cerr << n_words << std::endl;
         }
         // do any desired emulation. in production, this does nothing.
         vme->doStuff();
