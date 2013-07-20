@@ -29,7 +29,7 @@
 #define MIN(x, y) ( (x) < (y) ? (x) : (y) )
 
 
-const uint32_t MAXRAM = 1;
+const uint32_t MAXRAM = 512;
 
 
 int main ( int argc, char** argv )
@@ -73,14 +73,14 @@ int main ( int argc, char** argv )
 
         vme->read(VME_TX_SIZE_ADDR, DATAWIDTH, &vme_tx_size);
         if (vme_tx_size == 0 && *(stream->tx_size) > 0) {
-            vme->write(VME_TX_DATA_ADDR, DATAWIDTH, stream->tx_data);
+            vme->write(VME_TX_DATA_ADDR, *(stream->tx_size), stream->tx_data);
             vme->write(VME_TX_SIZE_ADDR, DATAWIDTH, stream->tx_size);
             *(stream->tx_size) = 0;
         }
 
         vme->read(VME_RX_SIZE_ADDR, DATAWIDTH, &vme_rx_size);
         if (vme_rx_size > 0 && *(stream->rx_size) == 0) {
-            vme->read(VME_RX_DATA_ADDR, DATAWIDTH, stream->rx_data);
+            vme->read(VME_RX_DATA_ADDR, vme_rx_size, stream->rx_data);
             *(stream->rx_size) = vme_rx_size;
             uint32_t zero = 0;
             vme->write(VME_RX_SIZE_ADDR, DATAWIDTH, &zero);
@@ -92,6 +92,7 @@ int main ( int argc, char** argv )
         uint32_t n_words = cbuffer_size(stream->output);
         if (n_words > 0) {
             cbuffer_write_fd(stream->output, fout, n_words);
+            std::cerr << n_words << std::endl;
         }
         // do any desired emulation. in production, this does nothing.
         vme->doStuff();

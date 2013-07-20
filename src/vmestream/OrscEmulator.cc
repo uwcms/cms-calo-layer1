@@ -1,12 +1,14 @@
 #include "OrscEmulator.h"
 
+// we use 512 words a time for the RAMS
+#define MAXRAM (512 * sizeof(uint32_t))
 
 OrscEmulator::OrscEmulator()
 {
     register1 = 0;
     register2 = 0;
-    ram1      = (uint32_t*) malloc(sizeof(uint32_t));
-    ram2      = (uint32_t*) malloc(sizeof(uint32_t));
+    ram1      = (uint32_t*) malloc(MAXRAM);
+    ram2      = (uint32_t*) malloc(MAXRAM);
 }
 
 
@@ -28,21 +30,22 @@ OrscEmulator::getOrscEmulator()
 bool
 OrscEmulator::read(unsigned long address, size_t size, void* value)
 {
-    assert(size == 4); // assume 32-bit for now
 
     switch(address)
     {
         case 0xBEEFCAFE:
+            assert(size == 4);
             memcpy(value, &register1, sizeof(uint32_t));
             break;
         case 0xDEADBEEF:
+            assert(size == 4);
             memcpy(value, &register2, sizeof(uint32_t));
             break;
         case 0xCAFEBABE:
-            memcpy(value, ram1, sizeof(uint32_t));
+            memcpy(value, ram1, size * sizeof(uint32_t));
             break;
         case 0xFACEFEED:
-            memcpy(value, ram2, sizeof(uint32_t));
+            memcpy(value, ram2, size * sizeof(uint32_t));
             break;
         default:
             return 0;
@@ -54,21 +57,21 @@ OrscEmulator::read(unsigned long address, size_t size, void* value)
 bool
 OrscEmulator::write(unsigned long address, size_t size, void* value)
 {
-    assert(size == 4); // assume 32-bit for now
-
     switch(address)
     {
         case 0xBEEFCAFE:
+            assert(size == 4);
             memcpy(&register1, value, sizeof(uint32_t));
             break;
         case 0xDEADBEEF:
+            assert(size == 4);
             memcpy(&register2, value, sizeof(uint32_t));
             break;
         case 0xCAFEBABE:
-            memcpy(ram1, value, sizeof(uint32_t));
+            memcpy(ram1, value, size * sizeof(uint32_t));
             break;
         case 0xFACEFEED:
-            memcpy(ram2, value, sizeof(uint32_t));
+            memcpy(ram2, value, size * sizeof(uint32_t));
             break;
         default:
             return 0;
