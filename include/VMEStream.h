@@ -31,5 +31,4 @@ int vmestream_transfer_data(VMEStream *stream);
 
 void do_vme_transfer(VMEStream *stream);
 
-
 #endif
