@@ -13,8 +13,8 @@
 class OrscEmulator : public VMEController
 {
     private:
-        uint32_t* register1; // 0xBEEFCAFE
-        uint32_t* register2; // 0xDEADBEEF
+        uint32_t register1; // 0xBEEFCAFE
+        uint32_t register2; // 0xDEADBEEF
         uint32_t* ram1;      // 0xCAFEBABE
         uint32_t* ram2;      // 0xFACEFEED
 
