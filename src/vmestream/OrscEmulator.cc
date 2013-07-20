@@ -1,14 +1,27 @@
 #include "OrscEmulator.h"
+#include <stdlib.h>
 
 // we use 512 words a time for the RAMS
-#define MAXRAM (512 * sizeof(uint32_t))
+#define VMERAMSIZE (512 * sizeof(uint32_t))
 
 OrscEmulator::OrscEmulator()
 {
     register1 = 0;
     register2 = 0;
-    ram1      = (uint32_t*) malloc(MAXRAM);
-    ram2      = (uint32_t*) malloc(MAXRAM);
+    ram1      = (uint32_t*) malloc(VMERAMSIZE * sizeof(uint32_t));
+    ram2      = (uint32_t*) malloc(VMERAMSIZE * sizeof(uint32_t));
+
+    input_buffer = cbuffer_new();
+    output_buffer = cbuffer_new();
+
+    stream = (VMEStream*)malloc(sizeof(VMEStream));
+    stream->MAXRAM = VMERAMSIZE;
+    stream->input = input_buffer;
+    stream->output = output_buffer;
+    stream->tx_size = &register2;
+    stream->rx_size = &register1;
+    stream->tx_data = ram2;
+    stream->rx_data = ram1;
 }
 
 
@@ -16,6 +29,9 @@ OrscEmulator::~OrscEmulator()
 {
     free(ram1);
     free(ram2);
+    cbuffer_free(input_buffer);
+    cbuffer_free(output_buffer);
+    vmestream_destroy(stream);
 }
 
 
@@ -98,11 +114,11 @@ OrscEmulator::multiwrite(unsigned int *addresses, size_t size,
 // Echo things from ram1->ram2, respecting the VMEStream protocol
 void
 OrscEmulator::doStuff() {
-  // input buffer has data and output is empty
-  if (register1 && !register2) {
-    memcpy(ram2, ram1, register1 * sizeof(uint32_t));
-    register2 = register1;
-    register1 = 0;
+  // move from local memory into buffers
+  vmestream_transfer_data(stream);
+  // now echo the data
+  while (cbuffer_size(output_buffer) && cbuffer_freespace(input_buffer)) {
+    cbuffer_push_back(input_buffer, cbuffer_pop_front(output_buffer));
   }
 }
 

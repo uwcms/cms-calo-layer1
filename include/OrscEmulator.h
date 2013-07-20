@@ -7,8 +7,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "VMEController.h"
+#include "VMEStream.h"
+#include "circular_buffer.h"
 
+#include "VMEController.h"
 
 class OrscEmulator : public VMEController
 {
@@ -17,6 +19,10 @@ class OrscEmulator : public VMEController
         uint32_t register2; // 0xDEADBEEF
         uint32_t* ram1;      // 0xCAFEBABE
         uint32_t* ram2;      // 0xFACEFEED
+
+        VMEStream* stream;
+        CircularBuffer* input_buffer;
+        CircularBuffer* output_buffer;
 
         OrscEmulator();
         virtual ~OrscEmulator();
