@@ -59,13 +59,11 @@ int main ( int argc, char** argv )
     while (1) {
         // the size of the read buffer will be dynamically resized
         // as necessary.
-        ssize_t bytes_read = bytebuffer_read_fd(&buf, fin, READ_BUFFER_SIZE);
-        if (bytes_read == -1) {
-          bytes_read = 0;
-        }
-        uint32_t words_read = bytes_read/sizeof(uint32_t);
-        uint32_t words_to_append = MIN(words_read, cbuffer_freespace(stream->input));
-        if (words_read > 0) {
+        bytebuffer_read_fd(&buf, fin, READ_BUFFER_SIZE);
+
+        uint32_t words_to_append = MIN(
+            buf.bufsize/sizeof(uint32_t), cbuffer_freespace(stream->input));
+        if (words_to_append > 0) {
             cbuffer_append(stream->input, buf.buf, words_to_append);
         }
         // pop off read words, leaving any fractional words in the input buffer
