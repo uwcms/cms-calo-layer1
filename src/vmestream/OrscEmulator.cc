@@ -11,6 +11,7 @@ OrscEmulator::OrscEmulator()
     ram1      = (uint32_t*) malloc(VMERAMSIZE * sizeof(uint32_t));
     ram2      = (uint32_t*) malloc(VMERAMSIZE * sizeof(uint32_t));
 
+    // setup the VME stream mechanism
     input_buffer = cbuffer_new();
     output_buffer = cbuffer_new();
 
@@ -32,14 +33,6 @@ OrscEmulator::~OrscEmulator()
     cbuffer_free(input_buffer);
     cbuffer_free(output_buffer);
     vmestream_destroy(stream);
-}
-
-
-OrscEmulator*
-OrscEmulator::getOrscEmulator()
-{
-    OrscEmulator* out = new OrscEmulator();
-    return out;
 }
 
 
@@ -110,18 +103,6 @@ OrscEmulator::multiwrite(unsigned int *addresses, size_t size,
 {
     return 1;
 }
-
-// Echo things from ram1->ram2, respecting the VMEStream protocol
-void
-OrscEmulator::doStuff() {
-  // move from local memory into buffers
-  vmestream_transfer_data(stream);
-  // now echo the data
-  while (cbuffer_size(output_buffer) && cbuffer_freespace(input_buffer)) {
-    cbuffer_push_back(input_buffer, cbuffer_pop_front(output_buffer));
-  }
-}
-
 
 bool
 OrscEmulator::reset()

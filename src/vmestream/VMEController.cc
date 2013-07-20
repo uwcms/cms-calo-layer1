@@ -3,7 +3,7 @@
 #include <cstring>
 
 #include "VMEController.h"
-#include "OrscEmulator.h"
+#include "OrscEchoEmulator.h"
 #include "caen.h"
 #include "null.h"
 
@@ -18,9 +18,9 @@ VMEController::getVMEController()
         if(strcmp(environment, "CAEN") == 0) {
             return caen::getVMEController();
         }
-        else if (strcmp(environment, "TEST") == 0) {
-            std::cout << "Emulating oRSC" << std::endl;
-            return OrscEmulator::getVMEController();
+        else if (strcmp(environment, "TESTECHO") == 0) {
+            std::cout << "Emulating oRSC with Echo" << std::endl;
+            return OrscEchoEmulator::getVMEController();
         }
     }
 
