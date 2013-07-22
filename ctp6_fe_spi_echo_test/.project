@@ -79,4 +79,16 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>buffer-types</name>
+			<type>2</type>
+			<locationURI>WORKSPACE_LOC/common/buffer-types</locationURI>
+		</link>
+		<link>
+			<name>spi-stream</name>
+			<type>2</type>
+			<locationURI>WORKSPACE_LOC/common/spi-stream</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>
