@@ -34,10 +34,12 @@
 								<option id="xilinx.gnu.mb.compiler.inferred.usebarrel.1923348943" name="Use Barrel Shifter (-mxl-barrel-shift)" superClass="xilinx.gnu.mb.compiler.inferred.usebarrel" value="true" valueType="boolean"/>
 								<option id="xilinx.gnu.mb.compiler.inferred.usepcmp.179944398" name="Use Pattern Compare (-mxl-pattern-compare)" superClass="xilinx.gnu.mb.compiler.inferred.usepcmp" value="true" valueType="boolean"/>
 								<option id="xilinx.gnu.mb.compiler.inferred.mul.245324644" name="Hardware Multiplier" superClass="xilinx.gnu.mb.compiler.inferred.mul" value="xilinx.gnu.mb.compiler.inferred.mul.32bit" valueType="enumerated"/>
-								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.2109588754" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes" valueType="includePath">
-									<listOptionValue builtIn="false" value="../../orsc_be_bsp/microblaze_0/include"/>
-								</option>
+								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.2109588754" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes" valueType="includePath"/>
 								<option id="xilinx.gnu.compiler.misc.other.1101960067" name="Other flags" superClass="xilinx.gnu.compiler.misc.other" value="-c -fmessage-length=0 -std=c99" valueType="string"/>
+								<option id="xilinx.gnu.compiler.dircategory.includes.1767690458" name="Include Paths" superClass="xilinx.gnu.compiler.dircategory.includes" valueType="includePath">
+									<listOptionValue builtIn="false" value="../../orsc_be_bsp/microblaze_0/include"/>
+									<listOptionValue builtIn="false" value="../../common/spi-stream"/>
+								</option>
 								<inputType id="xilinx.gnu.compiler.input.403323693" name="C source files" superClass="xilinx.gnu.compiler.input"/>
 							</tool>
 							<tool id="xilinx.gnu.mb.cxx.toolchain.compiler.debug.2074270056" name="MicroBlaze g++ compiler" superClass="xilinx.gnu.mb.cxx.toolchain.compiler.debug">
@@ -107,7 +109,7 @@
 									<listOptionValue builtIn="false" value="../../orsc_be_bsp/microblaze_0/include"/>
 									<listOptionValue builtIn="false" value="../src/spi_stream/src"/>
 								</option>
-								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.1444541615" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes" valueType="includePath"/>
+								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.1444541615" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes"/>
 								<inputType id="xilinx.gnu.compiler.input.1144701277" name="C source files" superClass="xilinx.gnu.compiler.input"/>
 							</tool>
 							<tool id="xilinx.gnu.mb.cxx.toolchain.compiler.debug.1788968092" name="MicroBlaze g++ compiler" superClass="xilinx.gnu.mb.cxx.toolchain.compiler.debug.2074270056"/>
@@ -1163,6 +1165,11 @@
 								<option id="xilinx.gnu.compiler.option.warnings.toerrors.1466080951" name="Warnings as errors (-Werror)" superClass="xilinx.gnu.compiler.option.warnings.toerrors" value="true" valueType="boolean"/>
 								<option id="xilinx.gnu.compiler.dircategory.includes.313933477" name="Include Paths" superClass="xilinx.gnu.compiler.dircategory.includes" valueType="includePath">
 									<listOptionValue builtIn="false" value="../../orsc_be_bsp/microblaze_0/include"/>
+									<listOptionValue builtIn="false" value="../../common/spi-stream"/>
+									<listOptionValue builtIn="false" value="../../common/buffer-types"/>
+								</option>
+								<option id="xilinx.gnu.compiler.symbols.defined.1334387855" superClass="xilinx.gnu.compiler.symbols.defined" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="LITTLE_ENDIAN"/>
 								</option>
 								<inputType id="xilinx.gnu.compiler.input.39562436" name="C source files" superClass="xilinx.gnu.compiler.input"/>
 							</tool>
@@ -1220,7 +1227,9 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/spi_stream/tests/*|src/buffer-types/tests/*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="buffer-types|spi-stream|src/spi_stream/tests/*|src/buffer-types/tests/*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="tests/*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="spi-stream"/>
+						<entry excluding="tests/*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="buffer-types"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
