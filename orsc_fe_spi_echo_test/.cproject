@@ -41,6 +41,9 @@
 									<listOptionValue builtIn="false" value="../../common/spi-stream"/>
 								</option>
 								<option id="xilinx.gnu.compiler.misc.other.1704821743" name="Other flags" superClass="xilinx.gnu.compiler.misc.other" value="-c -fmessage-length=0  -std=c99" valueType="string"/>
+								<option id="xilinx.gnu.compiler.symbols.defined.83405086" superClass="xilinx.gnu.compiler.symbols.defined" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="LITTLE_ENDIAN"/>
+								</option>
 								<inputType id="xilinx.gnu.compiler.input.1512504898" name="C source files" superClass="xilinx.gnu.compiler.input"/>
 							</tool>
 							<tool id="xilinx.gnu.mb.cxx.toolchain.compiler.debug.875369337" name="MicroBlaze g++ compiler" superClass="xilinx.gnu.mb.cxx.toolchain.compiler.debug">
