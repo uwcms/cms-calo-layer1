@@ -9,7 +9,7 @@
 #include "protocol.h"
 
 SPIStream* spi_stream_init(CircularBuffer* tx, CircularBuffer* rx,
-    void (*transmit_callback)(u8*, u8*, u16), u32 initial_packet_id) {
+    void (*transmit_callback)(uint8_t*, uint8_t*, uint16_t), uint32_t initial_packet_id) {
   SPIStream* stream = malloc(sizeof(SPIStream));
   stream->tx_buffer = tx;
   stream->rx_buffer = rx;
@@ -20,7 +20,7 @@ SPIStream* spi_stream_init(CircularBuffer* tx, CircularBuffer* rx,
   return stream;
 }
 
-void spi_stream_load_tx(SPIStream* stream, u32 pkt_id) {
+void spi_stream_load_tx(SPIStream* stream, uint32_t pkt_id) {
   spi_stream_construct_tx_packet(
       pkt_id,
       stream->spi_tx_buffer[pkt_id % SPI_BUFFER_TX_HISTORY],
@@ -28,24 +28,24 @@ void spi_stream_load_tx(SPIStream* stream, u32 pkt_id) {
       stream->tx_buffer);
 }
 
-int delta_packet_id(u32 a, u32 b) {
-  int difference = (s64)a - (s64)b;
-  int modulo_difference = difference + ((s64)(1) << 32);
+int delta_packet_id(uint32_t a, uint32_t b) {
+  int difference = (int64_t)a - (int64_t)b;
+  int modulo_difference = difference + ((int64_t)(1) << 32);
   return (abs(difference) < abs(modulo_difference)) ? difference : modulo_difference;
 }
 
 void spi_stream_transfer_data(SPIStream* stream, int error) {
   // verify the incoming data.
   int cksum_error = 0;
-  u32 received_packet_id = spi_stream_verify_packet(
+  uint32_t received_packet_id = spi_stream_verify_packet(
       stream->spi_rx_buffer, SPI_BUFFER_SIZE, &cksum_error);
 
 //  printf("transfer start: (ck)%"PRIx32" (rec)%"PRIx32" (want)%"PRIx32" (on)%"PRIx32"\n", 
-//      (u32)cksum_error, received_packet_id, stream->waiting_for_packet_id,
+//      (uint32_t)cksum_error, received_packet_id, stream->waiting_for_packet_id,
 //      stream->on_packet_id);
 
   // if the data is corrupt: resend the previous packet we are syncing on
-  u32 pkt_to_send = stream->on_packet_id;
+  uint32_t pkt_to_send = stream->on_packet_id;
 
   // check if we got what we sent last go round
   if (!cksum_error && !error) {
@@ -79,5 +79,5 @@ void spi_stream_transfer_data(SPIStream* stream, int error) {
   stream->transmit_callback(
       (void*)(stream->spi_tx_buffer[pkt_to_send % SPI_BUFFER_TX_HISTORY]),
       (void*)stream->spi_rx_buffer,
-      SPI_BUFFER_SIZE * sizeof(u32));
+      SPI_BUFFER_SIZE * sizeof(uint32_t));
 }

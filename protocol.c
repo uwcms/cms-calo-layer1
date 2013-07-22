@@ -6,16 +6,16 @@
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
-u32 spi_stream_verify_packet(const u32* pkt, u16 pkt_size, int* cksum_error) {
-  u32 pkt_id = pkt[0];
+uint32_t spi_stream_verify_packet(const uint32_t* pkt, uint16_t pkt_size, int* cksum_error) {
+  uint32_t pkt_id = pkt[0];
   *cksum_error = !verify_checksum(pkt, pkt_size);
   return pkt_id;
 }
 
-void spi_stream_construct_tx_packet(u32 pkt_id, u32* pkt, u16 pkt_size, 
+void spi_stream_construct_tx_packet(uint32_t pkt_id, uint32_t* pkt, uint16_t pkt_size, 
     CircularBuffer* src) {
   pkt[0] = pkt_id;
-  u32 data_size = min(cbuffer_size(src), pkt_size - 3);
+  uint32_t data_size = min(cbuffer_size(src), pkt_size - 3);
   // write all available data in.
   data_size = cbuffer_read(src, pkt + 2, data_size);
   cbuffer_deletefront(src, data_size);
@@ -29,8 +29,8 @@ void spi_stream_construct_tx_packet(u32 pkt_id, u32* pkt, u16 pkt_size,
   add_checksum(pkt, pkt_size);
 }
 
-int spi_stream_read_rx_packet(const u32* pkt, CircularBuffer* dest) {
-  u32 data_size = pkt[1];
+int spi_stream_read_rx_packet(const uint32_t* pkt, CircularBuffer* dest) {
+  uint32_t data_size = pkt[1];
   if (cbuffer_freespace(dest) < data_size)
     return 0;
   cbuffer_append(dest, (void*)(pkt + 2), data_size);

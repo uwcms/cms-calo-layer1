@@ -31,18 +31,18 @@
 #ifndef PROTOCOL_KS06GHI2
 #define PROTOCOL_KS06GHI2
 
-#include "xil_types.h"
+#include <stdint.h>
 #include "circular_buffer.h"
 
 // Verify packet checksum, and return the packet ID.
-u32 spi_stream_verify_packet(const u32* pkt, u16 pkt_size, int* cksum_error);
+uint32_t spi_stream_verify_packet(const uint32_t* pkt, uint16_t pkt_size, int* cksum_error);
 
 // Build an outgoing packet from <src>.
-void spi_stream_construct_tx_packet(u32 pkt_id, u32* pkt, u16 pkt_size,
+void spi_stream_construct_tx_packet(uint32_t pkt_id, uint32_t* pkt, uint16_t pkt_size,
     CircularBuffer* src);
 
 // Read an incoming packet into <dest>.  Returns 1 on success, 0 on overflow of
 // dest.
-int spi_stream_read_rx_packet(const u32* pkt, CircularBuffer* dest);
+int spi_stream_read_rx_packet(const uint32_t* pkt, CircularBuffer* dest);
 
 #endif /* end of include guard: PROTOCOL_KS06GHI2 */

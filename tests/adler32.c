@@ -16,8 +16,8 @@
 #include "adler32.h"
 
 static char* test_adler32(void) {
-  u32 my_data[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  u32 my_data2[10] = {10, 2, 3, 4, 5, 6, 7, 8, 9, 1};
+  uint32_t my_data[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  uint32_t my_data2[10] = {10, 2, 3, 4, 5, 6, 7, 8, 9, 1};
 
   mu_assert("detect_difference", 
       adler32((void*)my_data, 40) != adler32((void*)my_data2, 40));
@@ -27,7 +27,7 @@ static char* test_adler32(void) {
 }
 
 static char* test_checksumming(void) {
-  u32 my_data[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, -1};
+  uint32_t my_data[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, -1};
 
   add_checksum(my_data, 10);
 

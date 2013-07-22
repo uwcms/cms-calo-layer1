@@ -14,8 +14,8 @@
 
 #define MOD_ADLER 65521
  
-u32 adler32(const unsigned char *data, int len) {
-  u32 a = 1, b = 0;
+uint32_t adler32(const unsigned char *data, int len) {
+  uint32_t a = 1, b = 0;
 
   /* Process each byte of the data in order */
   for (int index = 0; index < len; ++index) {
@@ -26,10 +26,10 @@ u32 adler32(const unsigned char *data, int len) {
   return (b << 16) | a;
 }
 
-void add_checksum(u32* data, int len) {
-  data[len - 1] = adler32((void*)data, sizeof(u32) * (len - 1));
+void add_checksum(uint32_t* data, int len) {
+  data[len - 1] = adler32((void*)data, sizeof(uint32_t) * (len - 1));
 }
 
-int verify_checksum(const u32* data, int len) {
-  return data[len - 1] == adler32((void*)data, sizeof(u32) * (len - 1));
+int verify_checksum(const uint32_t* data, int len) {
+  return data[len - 1] == adler32((void*)data, sizeof(uint32_t) * (len - 1));
 }
