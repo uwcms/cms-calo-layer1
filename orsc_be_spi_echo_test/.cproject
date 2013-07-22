@@ -1163,8 +1163,6 @@
 								<option id="xilinx.gnu.compiler.option.warnings.toerrors.1466080951" name="Warnings as errors (-Werror)" superClass="xilinx.gnu.compiler.option.warnings.toerrors" value="true" valueType="boolean"/>
 								<option id="xilinx.gnu.compiler.dircategory.includes.313933477" name="Include Paths" superClass="xilinx.gnu.compiler.dircategory.includes" valueType="includePath">
 									<listOptionValue builtIn="false" value="../../orsc_be_bsp/microblaze_0/include"/>
-									<listOptionValue builtIn="false" value="../src/buffer-types"/>
-									<listOptionValue builtIn="false" value="../src/spi_stream"/>
 								</option>
 								<inputType id="xilinx.gnu.compiler.input.39562436" name="C source files" superClass="xilinx.gnu.compiler.input"/>
 							</tool>
