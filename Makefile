@@ -32,6 +32,7 @@ bsps:
 	cd orsc_fe_bsp && make
 	cd orsc_be_bsp && make
 	cd ctp6_fe_bsp && make
+	cd ctp6_be_bsp && make
 
 # Initialize the eclipse workspace for the GUI.
 # Following instructions from
@@ -45,7 +46,7 @@ workspace:
 	$(ECLIPSE) -vm $(VM) -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild \
 	  -data $(WSPACE) \
 	  -import ctp6_fe_hw -import ctp6_fe_bsp \
-	  -import ctp6_be_hw \
+	  -import ctp6_be_hw -import ctp6_be_bsp \
 	  -import orsc_fe_hw -import orsc_fe_bsp \
 	  -import orsc_be_hw -import orsc_be_bsp \
 	  -vmargs -Dorg.eclipse.cdt.core.console=org.eclipse.cdt.core.systemConsole
