@@ -21,3 +21,5 @@ Debug/
 .metadata/
 Release/
 *.elf
+*.elf.size
+*.elf.check
