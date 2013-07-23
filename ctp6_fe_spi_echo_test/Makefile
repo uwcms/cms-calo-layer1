@@ -19,3 +19,7 @@ all: ctp6_fe_spi_echo_test.elf \
   ctp6_fe_spi_echo_test.elf.size \
   ctp6_fe_spi_echo_test.elf.check
 
+# to upload:
+#
+# XMD% connect mb sim
+# XMD% dow ctp6_fe_spi_echo_test.elf
