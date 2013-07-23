@@ -18,8 +18,8 @@ OPT=-O2
 DEBUG=-g3
 COMPILE=mb-gcc $(COMPILE_OPT) $(INCLUDES) $(OPT) $(DEBUG) $(LINK_OPT) $(LIBS)
 
-payload.elf: $(SRCS)
-	$(COMPILE) -o $@ $^
+#payload.elf: $(SRCS)
+	#$(COMPILE) -o $@ $^
 
 %.elf.size: %.elf
 	mb-size $< | tee $@
