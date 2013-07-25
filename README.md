@@ -27,6 +27,21 @@ make all
 More information is available at the [Xilinx git info page.](http://www.xilinx.com/support/documentation/sw_manuals/xilinx14_4/SDK_Doc/reference/sdk_u_cvs.htm)
 and the [Xilinx command line flows.](http://www.cs.indiana.edu/hmg/le/project-home/xilinx/ise_13.2/ISE_DS/EDK/eclipse/lin64/eclipse/plugins/com.xilinx.sdk.docs.user_1.0.0/reference/sdk_u_commandline.htm)
 
+Environment
+-----------
+
+To setup your build environment, put this into a file and source it:
+
+```shell
+#!/bin/bash
+
+. /opt/Xilinx/14.4/ISE_DS/settings32.sh
+
+pushd /afs/hep.wisc.edu/home/uwhepfpga/petalinux-v12.12-final-full
+source settings.sh
+popd
+```
+
 Miscellany
 ----------
 
