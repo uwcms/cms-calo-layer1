@@ -39,6 +39,7 @@
 #include "xtmrctr.h"
 #include "tmrctr_header.h"
 #include "tmrctr_intr_header.h"
+#include "uartlite_header.h"
 
 
 int main() 
@@ -145,6 +146,34 @@ int main()
          print("Timer Interrupt Test FAILED\r\n");
       }
 
+   }
+   
+
+   {
+      int status;
+      
+      print("\r\nRunning UartLiteSelfTestExample() for be2fe_console0...\r\n");
+      status = UartLiteSelfTestExample(XPAR_BE2FE_CONSOLE0_DEVICE_ID);
+      if (status == 0) {
+         print("UartLiteSelfTestExample PASSED\r\n");
+      }
+      else {
+         print("UartLiteSelfTestExample FAILED\r\n");
+      }
+   }
+   
+
+   {
+      int status;
+      
+      print("\r\nRunning UartLiteSelfTestExample() for be2fe_console1...\r\n");
+      status = UartLiteSelfTestExample(XPAR_BE2FE_CONSOLE1_DEVICE_ID);
+      if (status == 0) {
+         print("UartLiteSelfTestExample PASSED\r\n");
+      }
+      else {
+         print("UartLiteSelfTestExample FAILED\r\n");
+      }
    }
    
    /*
