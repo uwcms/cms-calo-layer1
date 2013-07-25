@@ -8,8 +8,8 @@ Installation
 
 There is some rudimentary (awful) support for putting all the eclipse plumbing
 together using the command line. In general, there are normal Makefiles for each
-project.  The correct compiler/linker flags are first cajoling eclipse to build
-the project, then copying the options into the Makefiles.
+project.  The correct compiler/linker flags are found by first cajoling eclipse
+to build the project, then copying the gcc options into the Makefiles.
 
 ```shell
 # check out the set of packages
