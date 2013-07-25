@@ -35,7 +35,7 @@ To setup your build environment, put this into a file and source it:
 ```shell
 #!/bin/bash
 
-. /opt/Xilinx/14.4/ISE_DS/settings32.sh
+. /opt/Xilinx/14.4/ISE_DS/settings64.sh
 
 pushd /afs/hep.wisc.edu/home/uwhepfpga/petalinux-v12.12-final-full
 source settings.sh
