@@ -33,6 +33,11 @@ bsps:
 	cd orsc_be_bsp && make
 	cd ctp6_fe_bsp && make
 
+clean:
+	rm -f *.elf
+	rm -f *.elf.size
+	rm -f *.elf.check
+
 # Initialize the eclipse workspace for the GUI.
 # Following instructions from
 # http://www.cs.indiana.edu/hmg/le/project-home/xilinx/ise_13.2/ISE_DS/EDK/eclipse/lin64/eclipse/plugins/com.xilinx.sdk.docs.user_1.0.0/reference/sdk_u_commandline.htm
