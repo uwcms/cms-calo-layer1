@@ -124,7 +124,7 @@ int main(void) {
     while (cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)) {
       cbuffer_push_back(tx_buffer, cbuffer_pop_front(rx_buffer));
     }
-    if (!currently_sending) {
+    if (!currently_sending && cbuffer_size(tx_buffer)) {
       currently_sending = 1;
       XUartLite_Send(&UartLite, 
           (u8*)&(tx_buffer->data[tx_buffer->pos]),
