@@ -17,7 +17,5 @@ all: ctp6_fe_uart_echo_test.elf \
   ctp6_fe_uart_echo_test.elf.size \
   ctp6_fe_uart_echo_test.elf.check
 
-# to upload:
-#
-# XMD% connect mb sim
-# XMD% dow ctp6_fe_uart_echo_test.elf
+upload: all
+	echo "connect mb mdm; dow ctp6_fe_uart_echo_test.elf;" | xmd
