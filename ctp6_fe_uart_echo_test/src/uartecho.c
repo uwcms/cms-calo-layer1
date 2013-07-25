@@ -31,9 +31,8 @@ XIntc InterruptController;     /* The instance of the Interrupt Controller */
 // application input/output buffers 
 static CircularBuffer* tx_buffer;
 static CircularBuffer* rx_buffer;
-uint32_t rx_tmp_buffer;
-
-int UartLiteIntrExample(u16 DeviceId);
+static volatile uint32_t rx_tmp_buffer;
+static volatile int currently_sending = 0;
 
 int SetupInterruptSystem(XUartLite *UartLitePtr);
 
@@ -43,9 +42,14 @@ void SendHandler(void *CallBackRef, unsigned int EventData) {
     print("ERROR: sent data not word aligned!!!\n");
   }
   cbuffer_deletefront(tx_buffer, EventData / sizeof(uint32_t));
-  XUartLite_Send(&UartLite, 
-      (u8*)&(tx_buffer->data[tx_buffer->pos]),
-      cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t));
+  if (cbuffer_size(tx_buffer)) {
+    XUartLite_Send(&UartLite, 
+        (u8*)&(tx_buffer->data[tx_buffer->pos]),
+        cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t));
+    currently_sending = 1;
+  } else {
+    currently_sending = 0;
+  }
 }
 
 void RecvHandler(void *CallBackRef, unsigned int EventData) {
@@ -57,6 +61,8 @@ void RecvHandler(void *CallBackRef, unsigned int EventData) {
 }
 
 int main(void) {
+
+  init_platform();
 
   tx_buffer = cbuffer_new();
   rx_buffer = cbuffer_new();
@@ -110,10 +116,19 @@ int main(void) {
    */
   XUartLite_EnableInterrupt(&UartLite);
 
+  // bootstrap the READ
+  XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
+
   /* echo received data forever */
   while (1) {
     while (cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)) {
       cbuffer_push_back(tx_buffer, cbuffer_pop_front(rx_buffer));
+    }
+    if (!currently_sending) {
+      currently_sending = 1;
+      XUartLite_Send(&UartLite, 
+          (u8*)&(tx_buffer->data[tx_buffer->pos]),
+          cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t));
     }
   }
 
