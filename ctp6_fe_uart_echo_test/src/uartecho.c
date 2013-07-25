@@ -6,7 +6,6 @@
  * Modified from Xilinx xuartlite_intr_example.c
  *
  */
-
 #include "platform.h"
 
 #include "xparameters.h"        
@@ -62,6 +61,8 @@ void RecvHandler(void *CallBackRef, unsigned int EventData) {
 
 int main(void) {
 
+  print("UART CTP FE echo test\n");
+
   init_platform();
 
   tx_buffer = cbuffer_new();
@@ -69,8 +70,6 @@ int main(void) {
 
   int Status;
   u16 DeviceId = UARTLITE_DEVICE_ID;     
-
-  print("UART CTP FE echo test\n");
 
   /*
    * Initialize the UartLite driver so that it's ready to use.
