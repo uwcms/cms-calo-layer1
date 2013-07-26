@@ -40,27 +40,28 @@ int SetupInterruptSystem(XUartLite *UartLitePtr);
 
 void SendHandler(void *CallBackRef, unsigned int EventData) {
   // delete the bytes which were sent previously
+  print("send interrupt\n");
+  printf("sent %i\n", EventData);
   if (EventData % sizeof(uint32_t)) {
     print("ERROR: sent data not word aligned!!!\n");
   }
-  print("send\n");
-  printf("sent %i\n", EventData);
   cbuffer_deletefront(tx_buffer, EventData / sizeof(uint32_t));
   if (cbuffer_size(tx_buffer)) {
-    XUartLite_Send(&UartLite, 
-        (u8*)&(tx_buffer->data[tx_buffer->pos]),
-        cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t));
+    unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
+    printf("sending %i\n", to_send);
+    XUartLite_Send(&UartLite, (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
     currently_sending = 1;
   } else {
+    print("sending completed");
     currently_sending = 0;
   }
 }
 
 void RecvHandler(void *CallBackRef, unsigned int EventData) {
+  printf("receive interrupt %i\n", EventData);
   if (EventData != sizeof(uint32_t)) {
     print("ERROR: did not receive a whole word!\n");
   }
-  printf("recv %i\n", EventData);
   cbuffer_push_back(rx_buffer, rx_tmp_buffer);
   XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
 }
@@ -122,17 +123,18 @@ int main(void) {
   XUartLite_EnableInterrupt(&UartLite);
 
   // bootstrap the READ
+  print("Bootstrapping READ\n");
   XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
 
   print("Starting loop\n");
 
   cbuffer_push_back(tx_buffer, 5);
 
-  print("help\n");
+  print("Sending 'wtf!'\n");
   currently_sending = 1;
-  char help[4] = "wtfd";
+  char help[4] = "wtf!";
   unsigned int ret = XUartLite_Send(&UartLite, (u8*)help, 4);
-  printf("send complete %i\n", ret);
+  printf("WTF send complete return: %i\n", ret);
 
   /* echo received data forever */
   while (1) {
@@ -140,23 +142,20 @@ int main(void) {
       cbuffer_push_back(tx_buffer, cbuffer_pop_front(rx_buffer));
     }
     if (!currently_sending && cbuffer_size(tx_buffer)) {
-      print("sending bootstrap\n");
+      print("Reinitializing SEND\n");
       currently_sending = 1;
 
-      if (cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t))
-        print("there is data\n");
+      if (XUartLite_IsSending(&UartLite)) {
+        print("UART is currently sending\n");
+      } else {
+        print("UART is not sending\n");
+      }
 
-      if (XUartLite_IsSending(&UartLite)) 
-        print("is sending\n");
-      else
-        print("not sending\n");
-
-      printf("sending bytes %lu\n", cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t));
-      int wtf = XUartLite_Send(&UartLite, 
-          (u8*)&(tx_buffer->data[tx_buffer->pos]),
-          cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t));
-      print("wtf!\n");
-      printf("sent bootstrap %i\n", wtf);
+      unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
+      printf("Sending bytes %u\n", to_send);
+      int ret = XUartLite_Send(&UartLite, 
+          (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
+      printf("Sent bootstrap, return code: %i\n", ret);
     }
   }
 
