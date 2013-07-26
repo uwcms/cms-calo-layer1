@@ -11,6 +11,7 @@
 #include "xparameters.h"        
 #include "xuartlite.h"
 #include "xintc.h"		
+#include "xil_exception.h"
 #include "circular_buffer.h"
 
 /*  STDOUT functionality  */
@@ -174,6 +175,25 @@ int SetupInterruptSystem(XUartLite *UartLitePtr) {
    * Enable the interrupt for the UartLite device.
    */
   XIntc_Enable(&InterruptController, UARTLITE_INT_IRQ_ID);
+
+  /*
+   * Initialize the exception table.
+   */
+  Xil_ExceptionInit();
+
+  /*
+   * Register the interrupt controller handler with the exception table.
+   */
+  Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
+      (Xil_ExceptionHandler)XIntc_InterruptHandler,
+      &InterruptController);
+
+  /*
+   * Enable exceptions.
+   */
+  Xil_ExceptionEnable();
+
+  print("setup interrupts okay\n");
 
   return XST_SUCCESS;
 }
