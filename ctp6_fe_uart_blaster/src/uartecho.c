@@ -180,7 +180,6 @@ int UartLitePolledExample(u16 DeviceId)
 {
   int Status;
   unsigned int SentCount;
-  unsigned int ReceivedCount = 0;
   int Index;
 
   /*
