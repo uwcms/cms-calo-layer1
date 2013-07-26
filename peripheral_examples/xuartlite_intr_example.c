@@ -71,6 +71,8 @@
 #include "xintc.h"
 #include "xil_exception.h"
 
+#include <stdio.h>
+
 /************************** Constant Definitions *****************************/
 
 /*
@@ -242,12 +244,16 @@ int UartLiteIntrExample(u16 DeviceId)
 	/*
 	 * Start receiving data before sending it since there is a loopback.
 	 */
+        print("recv\n");
 	XUartLite_Recv(&UartLite, ReceiveBuffer, TEST_BUFFER_SIZE);
 
 	/*
 	 * Send the buffer using the UartLite.
 	 */
+        print("send\n");
 	XUartLite_Send(&UartLite, SendBuffer, TEST_BUFFER_SIZE);
+
+        print("done\n");
 
 	/*
 	 * Wait for the entire buffer to be received, letting the interrupt
@@ -257,6 +263,8 @@ int UartLiteIntrExample(u16 DeviceId)
 	while ((TotalReceivedCount != TEST_BUFFER_SIZE) ||
 		(TotalSentCount != TEST_BUFFER_SIZE)) {
 	}
+        printf("sent %i\n", TotalSentCount);
+        printf("received %i\n", TotalReceivedCount);
 
 	/*
 	 * Verify the entire receive buffer was successfully received.
@@ -267,6 +275,7 @@ int UartLiteIntrExample(u16 DeviceId)
 		}
 	}
 
+        print("woot\n");
 	return XST_SUCCESS;
 }
 
