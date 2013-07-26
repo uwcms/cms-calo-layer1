@@ -239,13 +239,15 @@ int UartLitePolledExample(u16 DeviceId)
       int recv = XUartLite_Recv(&UartLite,
           RecvBuffer,
           TEST_BUFFER_SIZE);
-      print("recv");
       for (int i = 0; i < recv; ++i) {
         putchar(RecvBuffer[i]);
       }
       if (!recv) {
         break;
+      } else {
+        print("recv\n");
       }
+
     }
   }
 
