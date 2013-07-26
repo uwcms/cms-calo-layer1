@@ -80,6 +80,8 @@
 #include "xstatus.h"
 #include "xuartlite.h"
 
+#include "xintc.h"		
+#include "xil_exception.h"
 /************************** Constant Definitions *****************************/
 
 /*
@@ -118,7 +120,7 @@ int putchar(int chr);
  * with the UartLite.
  */
 u8 SendBuffer[TEST_BUFFER_SIZE];	/* Buffer for Transmitting Data */
-u8 RecvBuffer[TEST_BUFFER_SIZE];	/* Buffer for Receiving Data */
+u8 RecvBuffer[TEST_BUFFER_SIZE+1];	/* Buffer for Receiving Data */
 
 /*****************************************************************************/
 /**
@@ -199,6 +201,7 @@ int UartLitePolledExample(u16 DeviceId)
   }
 
   char output_string[16] = "trapped in fctr\n";
+  XUartLite_ResetFifos(&UartLite);
 
   /*
    * Initialize the send buffer bytes with a pattern to send and the
@@ -208,8 +211,9 @@ int UartLitePolledExample(u16 DeviceId)
     SendBuffer[Index] = output_string[Index];
     RecvBuffer[Index] = 0;
   }
+  RecvBuffer[TEST_BUFFER_SIZE] = '\0';
 
-  print("begin blast\n");
+  xil_printf("begin blast\n");
 
   /*
    * Send the buffer through the UartLite waiting til the data can be sent
@@ -217,14 +221,26 @@ int UartLitePolledExample(u16 DeviceId)
    * then an error occurred.
    */
 
+  unsigned int idx = 0;
 
   while (1) {
-
     int sent = XUartLite_Send(&UartLite, SendBuffer, TEST_BUFFER_SIZE);
     SentCount += sent;
     if (sent != TEST_BUFFER_SIZE) {
-      print("sent count wrong\n");
-      return XST_FAILURE;
+      xil_printf("sent count wrong %x\n", sent);
+      //return XST_FAILURE;
+    }
+
+    if (!(idx++)) {
+      XUartLite_Stats stats;
+      XUartLite_GetStats(&UartLite, &stats);
+      xil_printf("CharRX %x\n", stats.CharactersReceived);
+      xil_printf("CharTX %x\n", stats.CharactersTransmitted);
+      xil_printf("RX Interrupts %x\n", stats.ReceiveInterrupts);
+      xil_printf("RX Frame Err %x\n", stats.ReceiveFramingErrors);
+      xil_printf("RX Overrun Err %x\n", stats.ReceiveOverrunErrors);
+      xil_printf("RX Parity Err %x\n", stats.ReceiveParityErrors);
+      xil_printf("TX Interrupts %x\n", stats.TransmitInterrupts);
     }
 
     /*
@@ -238,15 +254,17 @@ int UartLitePolledExample(u16 DeviceId)
       int recv = XUartLite_Recv(&UartLite,
           RecvBuffer,
           TEST_BUFFER_SIZE);
-      for (int i = 0; i < recv; ++i) {
-        putchar(RecvBuffer[i]);
+      if (recv) {
+        xil_printf("received->");
+        for (int i = 0; i < recv; ++i) {
+          //xil_printf("0x%x,", RecvBuffer[i]);
+        }
+        xil_printf((const char*)RecvBuffer);
+        xil_printf("\n");
       }
       if (!recv) {
         break;
-      } else {
-        print("recv\n");
-      }
-
+      } 
     }
   }
 
