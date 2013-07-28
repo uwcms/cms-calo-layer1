@@ -14,10 +14,15 @@
 #include "xil_exception.h"
 #include "circular_buffer.h"
 
-#include <stdio.h>
+//#include <stdio.h>
 
 /*  STDOUT functionality  */
-void print(char *str);
+
+//#define printf xil_printf
+//#define print xil_printf
+
+#define printf(x, ...)
+#define print(x, ...)
 
 #define UARTLITE_DEVICE_ID      XPAR_UARTLITE_0_DEVICE_ID
 #define INTC_DEVICE_ID          XPAR_INTC_0_DEVICE_ID
@@ -40,25 +45,24 @@ int SetupInterruptSystem(XUartLite *UartLitePtr);
 
 void SendHandler(void *CallBackRef, unsigned int EventData) {
   // delete the bytes which were sent previously
-  print("send interrupt\n");
-  printf("sent %i\n", EventData);
+  printf("SendHandler INTR %x\n", EventData);
   if (EventData % sizeof(uint32_t)) {
     print("ERROR: sent data not word aligned!!!\n");
   }
   cbuffer_deletefront(tx_buffer, EventData / sizeof(uint32_t));
   if (cbuffer_size(tx_buffer)) {
     unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
-    printf("sending %i\n", to_send);
+    printf("SendHandler _Send  %x\n", to_send);
     XUartLite_Send(&UartLite, (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
     currently_sending = 1;
   } else {
-    print("sending completed");
+    printf("SendHandler Idling\n");
     currently_sending = 0;
   }
 }
 
 void RecvHandler(void *CallBackRef, unsigned int EventData) {
-  printf("receive interrupt %i\n", EventData);
+  printf("RecvHandler %x data %x\n", EventData, rx_tmp_buffer);
   if (EventData != sizeof(uint32_t)) {
     print("ERROR: did not receive a whole word!\n");
   }
@@ -87,7 +91,7 @@ int main(void) {
       return XST_FAILURE;
   }
 
-  //XUartLite_ResetFifos(&UartLite);
+  XUartLite_ResetFifos(&UartLite);
 
   /*
    * Perform a self-test to ensure that the hardware was built correctly.
@@ -128,34 +132,42 @@ int main(void) {
 
   print("Starting loop\n");
 
-  cbuffer_push_back(tx_buffer, 5);
-
+  /*  
   print("Sending 'wtf!'\n");
   currently_sending = 1;
   char help[4] = "wtf!";
   unsigned int ret = XUartLite_Send(&UartLite, (u8*)help, 4);
-  printf("WTF send complete return: %i\n", ret);
+  printf("WTF send complete return: %x\n", ret);
+  */
 
   /* echo received data forever */
+  unsigned int heartbeat = 0;
   while (1) {
+    if (heartbeat == 0) {
+      printf("bump %x\n", heartbeat);
+    }
     while (cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)) {
-      cbuffer_push_back(tx_buffer, cbuffer_pop_front(rx_buffer));
+      uint32_t data = cbuffer_pop_front(rx_buffer);
+      printf("Echoing data word %x\n", data);
+      cbuffer_push_back(tx_buffer, data);
     }
     if (!currently_sending && cbuffer_size(tx_buffer)) {
-      print("Reinitializing SEND\n");
+      print("\nREINT SEND\n");
       currently_sending = 1;
 
       if (XUartLite_IsSending(&UartLite)) {
-        print("UART is currently sending\n");
+        print("UART STAT: sending\n");
       } else {
-        print("UART is not sending\n");
+        print("UART STAT: idle\n");
       }
 
       unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
-      printf("Sending bytes %u\n", to_send);
+      u8* output_ptr = (u8*)&(tx_buffer->data[tx_buffer->pos]);
+      printf("REINIT %x\n", to_send);
+      printf("SENDADDR %x\n", output_ptr);
       int ret = XUartLite_Send(&UartLite, 
           (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
-      printf("Sent bootstrap, return code: %i\n", ret);
+      printf("REINT sent bootstrap, return code: %x\n", ret);
     }
   }
 

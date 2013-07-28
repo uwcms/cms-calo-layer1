@@ -200,7 +200,7 @@ int UartLitePolledExample(u16 DeviceId)
     return XST_FAILURE;
   }
 
-  char output_string[16] = "trapped in fctr\n";
+  char output_string[16] = "OH GOD HELP\n";
   XUartLite_ResetFifos(&UartLite);
 
   /*
@@ -224,23 +224,26 @@ int UartLitePolledExample(u16 DeviceId)
   unsigned int idx = 0;
 
   while (1) {
-    int sent = XUartLite_Send(&UartLite, SendBuffer, TEST_BUFFER_SIZE);
+    /* 
+    int sent = XUartLite_Send(&UartLite, SendBuffer, 12);
     SentCount += sent;
-    if (sent != TEST_BUFFER_SIZE) {
+    if (sent != 12) {
       xil_printf("sent count wrong %x\n", sent);
-      //return XST_FAILURE;
+      return XST_FAILURE;
     }
+    */
 
-    if (!(idx++)) {
+    if ((idx++ % 1024) == 0) {
       XUartLite_Stats stats;
       XUartLite_GetStats(&UartLite, &stats);
       xil_printf("CharRX %x\n", stats.CharactersReceived);
       xil_printf("CharTX %x\n", stats.CharactersTransmitted);
-      xil_printf("RX Interrupts %x\n", stats.ReceiveInterrupts);
-      xil_printf("RX Frame Err %x\n", stats.ReceiveFramingErrors);
-      xil_printf("RX Overrun Err %x\n", stats.ReceiveOverrunErrors);
-      xil_printf("RX Parity Err %x\n", stats.ReceiveParityErrors);
-      xil_printf("TX Interrupts %x\n", stats.TransmitInterrupts);
+      xil_printf("RXInt:%x Frm:%x Ovr:%x Par:%x TXInt%x\n", 
+          stats.ReceiveInterrupts,
+          stats.ReceiveFramingErrors,
+          stats.ReceiveOverrunErrors,
+          stats.ReceiveParityErrors,
+          stats.TransmitInterrupts);
     }
 
     /*
@@ -255,10 +258,10 @@ int UartLitePolledExample(u16 DeviceId)
           RecvBuffer,
           TEST_BUFFER_SIZE);
       if (recv) {
-        xil_printf("received->");
-        for (int i = 0; i < recv; ++i) {
-          //xil_printf("0x%x,", RecvBuffer[i]);
-        }
+        xil_printf("received(%x)->", recv);
+//        for (int i = 0; i < recv; ++i) {
+//          //xil_printf("0x%x,", RecvBuffer[i]);
+//        }
         xil_printf((const char*)RecvBuffer);
         xil_printf("\n");
       }
