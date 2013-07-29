@@ -224,16 +224,19 @@ int UartLitePolledExample(u16 DeviceId)
   unsigned int idx = 0;
 
   while (1) {
+    idx++;
+    if (!XUartLite_IsSending(&UartLite)) {
+      int sent = XUartLite_Send(&UartLite, SendBuffer, 12);
+      SentCount += sent;
+    }
     /* 
-    int sent = XUartLite_Send(&UartLite, SendBuffer, 12);
-    SentCount += sent;
     if (sent != 12) {
       xil_printf("sent count wrong %x\n", sent);
       return XST_FAILURE;
     }
     */
 
-    if ((idx++ % 1024) == 0) {
+    if (0 && (idx % 1024) == 0) {
       XUartLite_Stats stats;
       XUartLite_GetStats(&UartLite, &stats);
       xil_printf("CharRX %x\n", stats.CharactersReceived);
