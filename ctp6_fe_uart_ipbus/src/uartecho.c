@@ -6,21 +6,21 @@
  * Modified from Xilinx xuartlite_intr_example.c
  *
  */
-
 #include "platform.h"
 
 #include "xparameters.h"        
 #include "xuartlite.h"
 #include "xintc.h"		
-
+#include "xil_exception.h"
 #include "circular_buffer.h"
 
 // IPBUS functionality
 #include "packethandler.h"
 #include "client.h"
 
-/*  STDOUT functionality  */
-void print(char *str);
+#include <stdio.h>
+#include <inttypes.h>
+#include "macrologger.h"
 
 #define UARTLITE_DEVICE_ID      XPAR_UARTLITE_0_DEVICE_ID
 #define INTC_DEVICE_ID          XPAR_INTC_0_DEVICE_ID
@@ -44,25 +44,26 @@ int SetupInterruptSystem(XUartLite *UartLitePtr);
 void SendHandler(void *CallBackRef, unsigned int EventData) {
   // delete the bytes which were sent previously
   if (EventData % sizeof(uint32_t)) {
-    print("ERROR: sent data not word aligned!!!\n");
+    LOG_ERROR("ERROR: sent data not word aligned!!!\n");
   }
   cbuffer_deletefront(tx_buffer, EventData / sizeof(uint32_t));
   if (cbuffer_size(tx_buffer)) {
-    XUartLite_Send(&UartLite, 
-        (u8*)&(tx_buffer->data[tx_buffer->pos]),
-        cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t));
+    unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
+    XUartLite_Send(&UartLite, (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
     currently_sending = 1;
   } else {
     currently_sending = 0;
   }
+  LOG_DEBUG("sent %x\n", EventData);
 }
 
 void RecvHandler(void *CallBackRef, unsigned int EventData) {
   if (EventData != sizeof(uint32_t)) {
-    print("ERROR: did not receive a whole word!\n");
+    LOG_ERROR("ERROR: did not receive a whole word!\n");
   }
   cbuffer_push_back(rx_buffer, rx_tmp_buffer);
   XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
+  LOG_DEBUG("recv %x\n", EventData);
 }
 
 int main(void) {
@@ -75,25 +76,24 @@ int main(void) {
   int Status;
   u16 DeviceId = UARTLITE_DEVICE_ID;     
 
-  print("UART CTP FE echo test\n");
+  LOG_INFO("UART CTP SPI server\n");
 
   /*
    * Initialize the UartLite driver so that it's ready to use.
    */
   Status = XUartLite_Initialize(&UartLite, DeviceId);
   if (Status != XST_SUCCESS) {
-    print ("Error: could not initialize UART\n");
+    LOG_ERROR("Error: could not initialize UART\n");
       return XST_FAILURE;
   }
 
-  XUartLite_ResetFifos(&UartLite);
 
   /*
    * Perform a self-test to ensure that the hardware was built correctly.
    */
   Status = XUartLite_SelfTest(&UartLite);
   if (Status != XST_SUCCESS) {
-    print ("Error: self test failed\n");
+    LOG_ERROR("Error: self test failed\n");
       return XST_FAILURE;
   }
 
@@ -103,8 +103,8 @@ int main(void) {
    */
   Status = SetupInterruptSystem(&UartLite);
   if (Status != XST_SUCCESS) {
-    print ("Error: could not setup interrupts\n");
-      return XST_FAILURE;
+    LOG_ERROR("Error: could not setup interrupts\n");
+    return XST_FAILURE;
   }
 
   /*
@@ -115,6 +115,8 @@ int main(void) {
    */
   XUartLite_SetSendHandler(&UartLite, SendHandler, &UartLite);
   XUartLite_SetRecvHandler(&UartLite, RecvHandler, &UartLite);
+
+  XUartLite_ResetFifos(&UartLite);
 
   /*
    * Enable the interrupt of the UartLite so that interrupts will occur.
@@ -131,14 +133,17 @@ int main(void) {
   client.inputstream = rx_buffer;
   client.swapbytes = 0;
 
+  LOG_INFO ("Serving memory.\n");
+
+  LOG_INFO ("Start size: %"PRIx32"\n", cbuffer_size(rx_buffer));
+
   while (1) {
     ipbus_process_input_stream(&client);
     // if we have data to send and the TX is currently idle, start sending it.
     if (!currently_sending && cbuffer_size(tx_buffer)) {
       currently_sending = 1;
-      XUartLite_Send(&UartLite, 
-          (u8*)&(tx_buffer->data[tx_buffer->pos]),
-          cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t));
+      unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
+      XUartLite_Send(&UartLite, (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
     }
   }
 
@@ -185,6 +190,25 @@ int SetupInterruptSystem(XUartLite *UartLitePtr) {
    * Enable the interrupt for the UartLite device.
    */
   XIntc_Enable(&InterruptController, UARTLITE_INT_IRQ_ID);
+
+  /*
+   * Initialize the exception table.
+   */
+  Xil_ExceptionInit();
+
+  /*
+   * Register the interrupt controller handler with the exception table.
+   */
+  Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
+      (Xil_ExceptionHandler)XIntc_InterruptHandler,
+      &InterruptController);
+
+  /*
+   * Enable exceptions.
+   */
+  Xil_ExceptionEnable();
+
+  LOG_DEBUG("Setup interrupts okay\n");
 
   return XST_SUCCESS;
 }

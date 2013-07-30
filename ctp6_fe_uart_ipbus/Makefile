@@ -17,7 +17,7 @@ SRCS=$(wildcard src/*.c) $(wildcard ../common/buffer-types/*.c) \
      $(IPBUS)/src/nullmembase.c
 
 ctp6_fe_uart_ipbus.elf: $(SRCS)
-	$(COMPILE) -DLOG_LEVEL=0 -o $@ $^
+	$(COMPILE) -DLOG_LEVEL=2 -o $@ $^
 
 all: ctp6_fe_uart_ipbus.elf \
   ctp6_fe_uart_ipbus.elf.size \
