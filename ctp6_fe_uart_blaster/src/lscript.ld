@@ -10,14 +10,14 @@
 /*                                                                 */
 /*******************************************************************/
 
-_STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x400;
-_HEAP_SIZE = DEFINED(_HEAP_SIZE) ? _HEAP_SIZE : 0x400;
+_STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x2000;
+_HEAP_SIZE = DEFINED(_HEAP_SIZE) ? _HEAP_SIZE : 0x2000;
 
 /* Define Memories in the system */
 
 MEMORY
 {
-   microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl : ORIGIN = 0x00000050, LENGTH = 0x00007FB0
+   microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl : ORIGIN = 0x00000050, LENGTH = 0x0001FFB0
    axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR : ORIGIN = 0xF0000000, LENGTH = 0x10000000
    axi_bram_ctrl_0_S_AXI_BASEADDR : ORIGIN = 0x60000000, LENGTH = 0x00100000
 }
@@ -50,15 +50,15 @@ SECTIONS
    *(.text)
    *(.text.*)
    *(.gnu.linkonce.t.*)
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .init : {
    KEEP (*(.init))
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .fini : {
    KEEP (*(.fini))
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .ctors : {
    __CTOR_LIST__ = .;
@@ -69,7 +69,7 @@ SECTIONS
    KEEP (*(.ctors))
    __CTOR_END__ = .;
    ___CTORS_END___ = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .dtors : {
    __DTOR_LIST__ = .;
@@ -80,7 +80,7 @@ SECTIONS
    KEEP (*(.dtors))
    PROVIDE(__DTOR_END__ = .);
    PROVIDE(___DTORS_END___ = .);
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .rodata : {
    __rodata_start = .;
@@ -88,7 +88,7 @@ SECTIONS
    *(.rodata.*)
    *(.gnu.linkonce.r.*)
    __rodata_end = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .sdata2 : {
    . = ALIGN(8);
@@ -98,7 +98,7 @@ SECTIONS
    *(.gnu.linkonce.s2.*)
    . = ALIGN(8);
    __sdata2_end = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .sbss2 : {
    __sbss2_start = .;
@@ -106,7 +106,7 @@ SECTIONS
    *(.sbss2.*)
    *(.gnu.linkonce.sb2.*)
    __sbss2_end = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .data : {
    . = ALIGN(4);
@@ -115,31 +115,31 @@ SECTIONS
    *(.data.*)
    *(.gnu.linkonce.d.*)
    __data_end = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .got : {
    *(.got)
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .got1 : {
    *(.got1)
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .got2 : {
    *(.got2)
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .eh_frame : {
    *(.eh_frame)
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .jcr : {
    *(.jcr)
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .gcc_except_table : {
    *(.gcc_except_table)
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .sdata : {
    . = ALIGN(8);
@@ -148,7 +148,7 @@ SECTIONS
    *(.sdata.*)
    *(.gnu.linkonce.s.*)
    __sdata_end = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .sbss (NOLOAD) : {
    . = ALIGN(4);
@@ -158,7 +158,7 @@ SECTIONS
    *(.gnu.linkonce.sb.*)
    . = ALIGN(8);
    __sbss_end = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .tdata : {
    __tdata_start = .;
@@ -166,7 +166,7 @@ SECTIONS
    *(.tdata.*)
    *(.gnu.linkonce.td.*)
    __tdata_end = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .tbss : {
    __tbss_start = .;
@@ -174,7 +174,7 @@ SECTIONS
    *(.tbss.*)
    *(.gnu.linkonce.tb.*)
    __tbss_end = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .bss (NOLOAD) : {
    . = ALIGN(4);
@@ -185,7 +185,7 @@ SECTIONS
    *(COMMON)
    . = ALIGN(4);
    __bss_end = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 _SDA_BASE_ = __sdata_start + ((__sbss_end - __sdata_start) / 2 );
 
@@ -199,7 +199,7 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
    _heap_start = .;
    . += _HEAP_SIZE;
    _heap_end = .;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 .stack (NOLOAD) : {
    _stack_end = .;
@@ -207,7 +207,7 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
    . = ALIGN(8);
    _stack = .;
    __stack = _stack;
-} > axi_ext_slave_conn_0_S_AXI_MEM_RNG00_BASEADDR
+} > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
 
 _end = .;
 }
