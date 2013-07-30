@@ -6,8 +6,8 @@ BEGIN OS
  PARAMETER OS_NAME = standalone
  PARAMETER OS_VER = 3.08.a
  PARAMETER PROC_INSTANCE = microblaze_0
- PARAMETER STDIN = be2fe_console0
- PARAMETER STDOUT = be2fe_console0
+ PARAMETER STDIN = debug_module
+ PARAMETER STDOUT = debug_module
 END
 
 
