@@ -68,6 +68,8 @@ void RecvHandler(void *CallBackRef, unsigned int EventData) {
 
 int main(void) {
 
+  LOG_INFO("UART CTP SPI server\n");
+
   init_platform();
 
   tx_buffer = cbuffer_new();
@@ -75,8 +77,6 @@ int main(void) {
 
   int Status;
   u16 DeviceId = UARTLITE_DEVICE_ID;     
-
-  LOG_INFO("UART CTP SPI server\n");
 
   /*
    * Initialize the UartLite driver so that it's ready to use.
