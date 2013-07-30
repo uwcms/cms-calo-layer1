@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>ctp6_fe_spi_echo_test</name>
+	<name>ctp6_fe_uart_blaster</name>
 	<comment>ctp6_fe_bsp - microblaze_0</comment>
 	<projects>
 		<project>ctp6_fe_bsp</project>
@@ -31,7 +31,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${workspace_loc:/ctp6_fe_spi_echo_test/Debug}</value>
+					<value>${workspace_loc:/ctp6_fe_uart_blaster/Debug}</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
