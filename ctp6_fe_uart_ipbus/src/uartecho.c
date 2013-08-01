@@ -26,6 +26,8 @@
 #define INTC_DEVICE_ID          XPAR_INTC_0_DEVICE_ID
 #define UARTLITE_INT_IRQ_ID     XPAR_INTC_0_UARTLITE_0_VEC_ID
 
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
 /************************** Variable Definitions *****************************/
 
 XUartLite UartLite;            /* The instance of the UartLite Device */
@@ -49,6 +51,7 @@ void SendHandler(void *CallBackRef, unsigned int EventData) {
   cbuffer_deletefront(tx_buffer, EventData / sizeof(uint32_t));
   if (cbuffer_size(tx_buffer)) {
     unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
+    to_send = MAX(to_send, 16);
     XUartLite_Send(&UartLite, (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
     currently_sending = 1;
   } else {
