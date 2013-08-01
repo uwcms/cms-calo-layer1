@@ -13,6 +13,7 @@
 #include "xintc.h"		
 #include "xil_exception.h"
 #include "circular_buffer.h"
+#include "xio.h"
 
 // IPBUS functionality
 #include "packethandler.h"
@@ -43,6 +44,12 @@ static volatile int currently_sending = 0;
 
 int SetupInterruptSystem(XUartLite *UartLitePtr);
 
+// For readout with the debugger
+#define TX_SIZE_WORD    0xF0000004
+#define RX_SIZE_WORD    0xF0000008
+#define BYTES_IN_WORD   0xF000000C
+#define BYTES_OUT_WORD  0xF0000010
+
 void SendHandler(void *CallBackRef, unsigned int EventData) {
   // delete the bytes which were sent previously
   if (EventData % sizeof(uint32_t)) {
@@ -57,6 +64,8 @@ void SendHandler(void *CallBackRef, unsigned int EventData) {
   } else {
     currently_sending = 0;
   }
+  uint32_t read = XIo_In32(BYTES_OUT_WORD);
+  XIo_Out32(BYTES_OUT_WORD, (EventData >> 2) + read);
   LOG_DEBUG("sent %x", EventData);
 }
 
@@ -67,11 +76,15 @@ void RecvHandler(void *CallBackRef, unsigned int EventData) {
   cbuffer_push_back(rx_buffer, rx_tmp_buffer);
   XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
   LOG_DEBUG("recv %x", EventData);
+  uint32_t written = (EventData >> 2) + XIo_In32(BYTES_IN_WORD);
+  XIo_Out32(BYTES_IN_WORD, written);
 }
 
 int main(void) {
 
   LOG_INFO("UART CTP SPI server");
+  XIo_Out32(BYTES_OUT_WORD, 0);
+  XIo_Out32(BYTES_IN_WORD, 0);
 
   init_platform();
 
@@ -141,6 +154,8 @@ int main(void) {
   LOG_INFO ("Start size: %"PRIx32, cbuffer_size(rx_buffer));
 
   while (1) {
+    XIo_Out32(TX_SIZE_WORD, cbuffer_size(tx_buffer));
+    XIo_Out32(RX_SIZE_WORD, cbuffer_size(rx_buffer));
     ipbus_process_input_stream(&client);
     // if we have data to send and the TX is currently idle, start sending it.
     if (!currently_sending && cbuffer_size(tx_buffer)) {
