@@ -13,6 +13,7 @@
 #include "xintc.h"		
 #include "xil_exception.h"
 #include "circular_buffer.h"
+#include "macrologger.h"
 
 //#include <stdio.h>
 
@@ -46,25 +47,25 @@ int SetupInterruptSystem(XUartLite *UartLitePtr);
 void SendHandler(void *CallBackRef, unsigned int EventData) {
   // delete the bytes which were sent previously
   if (EventData % sizeof(uint32_t)) {
-    print("ERROR: sent data not word aligned!!!\n");
+    LOG_DEBUG("ERROR: sent data not word aligned!!!\n");
   }
   cbuffer_deletefront(tx_buffer, EventData / sizeof(uint32_t));
   if (cbuffer_size(tx_buffer)) {
     unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
     XUartLite_Send(&UartLite, (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
-    printf("SendHandler _Send  %x\n", to_send);
+    LOG_DEBUG("SendHandler _Send  %x\n", to_send);
     currently_sending = 1;
   } else {
-    printf("SendHandler Idling\n");
+    LOG_DEBUG("SendHandler Idling\n");
     currently_sending = 0;
   }
-  printf("SendHandler SENT INTR %x\n", EventData);
+  LOG_DEBUG("SendHandler SENT INTR %x\n", EventData);
 }
 
 void RecvHandler(void *CallBackRef, unsigned int EventData) {
-  printf("RecvHandler %x data %x\n", EventData, rx_tmp_buffer);
+  LOG_DEBUG("RecvHandler %x data %x\n", EventData, rx_tmp_buffer);
   if (EventData != sizeof(uint32_t)) {
-    print("ERROR: did not receive a whole word!\n");
+    LOG_DEBUG("ERROR: did not receive a whole word!\n");
   }
   cbuffer_push_back(rx_buffer, rx_tmp_buffer);
   XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
@@ -72,7 +73,7 @@ void RecvHandler(void *CallBackRef, unsigned int EventData) {
 
 int main(void) {
 
-  print("UART CTP FE echo test\n");
+  LOG_INFO("UART CTP FE echo test\n");
 
   init_platform();
 
@@ -87,7 +88,7 @@ int main(void) {
    */
   Status = XUartLite_Initialize(&UartLite, DeviceId);
   if (Status != XST_SUCCESS) {
-    print ("Error: could not initialize UART\n");
+    LOG_ERROR ("Error: could not initialize UART\n");
       return XST_FAILURE;
   }
 
@@ -98,7 +99,7 @@ int main(void) {
    */
   Status = XUartLite_SelfTest(&UartLite);
   if (Status != XST_SUCCESS) {
-    print ("Error: self test failed\n");
+    LOG_ERROR ("Error: self test failed\n");
       return XST_FAILURE;
   }
 
@@ -108,7 +109,7 @@ int main(void) {
    */
   Status = SetupInterruptSystem(&UartLite);
   if (Status != XST_SUCCESS) {
-    print ("Error: could not setup interrupts\n");
+    LOG_ERROR ("Error: could not setup interrupts\n");
       return XST_FAILURE;
   }
 
@@ -127,48 +128,48 @@ int main(void) {
   XUartLite_EnableInterrupt(&UartLite);
 
   // bootstrap the READ
-  print("Bootstrapping READ\n");
+  LOG_DEBUG("Bootstrapping READ\n");
   XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
 
-  print("Starting loop\n");
+  LOG_INFO("Starting loop\n");
 
   /*  
-  print("Sending 'wtf!'\n");
+  LOG_DEBUG("Sending 'wtf!'\n");
   currently_sending = 1;
   char help[4] = "wtf!";
   unsigned int ret = XUartLite_Send(&UartLite, (u8*)help, 4);
-  printf("WTF send complete return: %x\n", ret);
+  LOG_DEBUG("WTF send complete return: %x\n", ret);
   */
 
   /* echo received data forever */
   unsigned int heartbeat = 0;
   while (1) {
     if (heartbeat++ % (1 << 8)) {
-      //printf("bump %x\n", heartbeat);
+      //LOG_DEBUG("bump %x\n", heartbeat);
     }
     while (cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)) {
       uint32_t data = cbuffer_pop_front(rx_buffer);
-      //printf("Echoing data word %x\n", data);
+      //LOG_DEBUG("Echoing data word %x\n", data);
       cbuffer_push_back(tx_buffer, data);
     }
     if (!currently_sending && cbuffer_size(tx_buffer)) {
-      print("\nREINT SEND\n");
+      LOG_DEBUG("\nREINT SEND\n");
       currently_sending = 1;
 
       /* 
       if (XUartLite_IsSending(&UartLite)) {
-        print("UART STAT: sending\n");
+        LOG_DEBUG("UART STAT: sending\n");
       } else {
-        print("UART STAT: idle\n");
+        LOG_DEBUG("UART STAT: idle\n");
       }
       */
 
       unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
       u8* output_ptr = (u8*)&(tx_buffer->data[tx_buffer->pos]);
-      //printf("REINIT %x\n", to_send);
-      //printf("SENDADDR %x\n", output_ptr);
+      //LOG_DEBUG("REINIT %x\n", to_send);
+      //LOG_DEBUG("SENDADDR %x\n", output_ptr);
       int ret = XUartLite_Send(&UartLite, output_ptr, to_send);
-      //printf("REINT sent bootstrap, return code: %x\n", ret);
+      //LOG_DEBUG("REINT sent bootstrap, return code: %x\n", ret);
     }
   }
 
@@ -233,7 +234,7 @@ int SetupInterruptSystem(XUartLite *UartLitePtr) {
    */
   Xil_ExceptionEnable();
 
-  print("setup interrupts okay\n");
+  LOG_DEBUG("setup interrupts okay\n");
 
   return XST_SUCCESS;
 }
