@@ -44,7 +44,7 @@ int SetupInterruptSystem(XUartLite *UartLitePtr);
 void SendHandler(void *CallBackRef, unsigned int EventData) {
   // delete the bytes which were sent previously
   if (EventData % sizeof(uint32_t)) {
-    LOG_ERROR("ERROR: sent data not word aligned!!!\n");
+    LOG_ERROR("ERROR: sent data not word aligned!!!");
   }
   cbuffer_deletefront(tx_buffer, EventData / sizeof(uint32_t));
   if (cbuffer_size(tx_buffer)) {
@@ -54,21 +54,21 @@ void SendHandler(void *CallBackRef, unsigned int EventData) {
   } else {
     currently_sending = 0;
   }
-  LOG_DEBUG("sent %x\n", EventData);
+  LOG_DEBUG("sent %x", EventData);
 }
 
 void RecvHandler(void *CallBackRef, unsigned int EventData) {
   if (EventData != sizeof(uint32_t)) {
-    LOG_ERROR("ERROR: did not receive a whole word!\n");
+    LOG_ERROR("ERROR: did not receive a whole word!");
   }
   cbuffer_push_back(rx_buffer, rx_tmp_buffer);
   XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
-  LOG_DEBUG("recv %x\n", EventData);
+  LOG_DEBUG("recv %x", EventData);
 }
 
 int main(void) {
 
-  LOG_INFO("UART CTP SPI server\n");
+  LOG_INFO("UART CTP SPI server");
 
   init_platform();
 
@@ -83,7 +83,7 @@ int main(void) {
    */
   Status = XUartLite_Initialize(&UartLite, DeviceId);
   if (Status != XST_SUCCESS) {
-    LOG_ERROR("Error: could not initialize UART\n");
+    LOG_ERROR("Error: could not initialize UART");
       return XST_FAILURE;
   }
 
@@ -93,7 +93,7 @@ int main(void) {
    */
   Status = XUartLite_SelfTest(&UartLite);
   if (Status != XST_SUCCESS) {
-    LOG_ERROR("Error: self test failed\n");
+    LOG_ERROR("Error: self test failed");
       return XST_FAILURE;
   }
 
@@ -103,7 +103,7 @@ int main(void) {
    */
   Status = SetupInterruptSystem(&UartLite);
   if (Status != XST_SUCCESS) {
-    LOG_ERROR("Error: could not setup interrupts\n");
+    LOG_ERROR("Error: could not setup interrupts");
     return XST_FAILURE;
   }
 
@@ -133,9 +133,9 @@ int main(void) {
   client.inputstream = rx_buffer;
   client.swapbytes = 0;
 
-  LOG_INFO ("Serving memory.\n");
+  LOG_INFO ("Serving memory.");
 
-  LOG_INFO ("Start size: %"PRIx32"\n", cbuffer_size(rx_buffer));
+  LOG_INFO ("Start size: %"PRIx32, cbuffer_size(rx_buffer));
 
   while (1) {
     ipbus_process_input_stream(&client);
@@ -208,7 +208,7 @@ int SetupInterruptSystem(XUartLite *UartLitePtr) {
    */
   Xil_ExceptionEnable();
 
-  LOG_DEBUG("Setup interrupts okay\n");
+  LOG_DEBUG("Setup interrupts okay");
 
   return XST_SUCCESS;
 }
