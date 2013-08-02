@@ -9,6 +9,8 @@ INCLUDES=-I../common/buffer-types -I$(IPBUS)/inc
 
 include ../Makefile
 
+OPT=-O0
+
 # Make a single megalibrary of all user code.
 SRCS=$(wildcard src/*.c) $(wildcard ../common/buffer-types/*.c) \
      $(IPBUS)/src/serialization.c $(IPBUS)/src/packethandler.c \

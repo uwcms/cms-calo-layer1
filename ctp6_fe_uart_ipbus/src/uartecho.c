@@ -20,6 +20,7 @@
 #include "client.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <inttypes.h>
 #include "macrologger.h"
 
@@ -49,8 +50,11 @@ int SetupInterruptSystem(XUartLite *UartLitePtr);
 #define RX_SIZE_WORD    0xF0000008
 #define BYTES_IN_WORD   0xF000000C
 #define BYTES_OUT_WORD  0xF0000010
+#define CYCLE_WORD      0xF0000014
 
 void SendHandler(void *CallBackRef, unsigned int EventData) {
+  // fix me use         XUartLite_DisableInterrup
+  XUartLite_DisableInterrupt(&UartLite);
   // delete the bytes which were sent previously
   if (EventData % sizeof(uint32_t)) {
     LOG_ERROR("ERROR: sent data not word aligned!!!");
@@ -67,9 +71,11 @@ void SendHandler(void *CallBackRef, unsigned int EventData) {
   uint32_t read = XIo_In32(BYTES_OUT_WORD);
   XIo_Out32(BYTES_OUT_WORD, (EventData >> 2) + read);
   LOG_DEBUG("sent %x", EventData);
+  XUartLite_EnableInterrupt(&UartLite);
 }
 
 void RecvHandler(void *CallBackRef, unsigned int EventData) {
+  XUartLite_DisableInterrupt(&UartLite);
   if (EventData != sizeof(uint32_t)) {
     LOG_ERROR("ERROR: did not receive a whole word!");
   }
@@ -78,6 +84,12 @@ void RecvHandler(void *CallBackRef, unsigned int EventData) {
   LOG_DEBUG("recv %x", EventData);
   uint32_t written = (EventData >> 2) + XIo_In32(BYTES_IN_WORD);
   XIo_Out32(BYTES_IN_WORD, written);
+  XUartLite_EnableInterrupt(&UartLite);
+}
+
+static u8* exception_codes;
+void ExceptionHandler(void *Data) {
+  LOG_ERROR("Caught exception: %x", *((u8*)Data));
 }
 
 int main(void) {
@@ -153,16 +165,21 @@ int main(void) {
 
   LOG_INFO ("Start size: %"PRIx32, cbuffer_size(rx_buffer));
 
+  size_t i = 0;
   while (1) {
+    i++;
+    XIo_Out32(CYCLE_WORD, i);
     XIo_Out32(TX_SIZE_WORD, cbuffer_size(tx_buffer));
     XIo_Out32(RX_SIZE_WORD, cbuffer_size(rx_buffer));
     ipbus_process_input_stream(&client);
     // if we have data to send and the TX is currently idle, start sending it.
     if (!currently_sending && cbuffer_size(tx_buffer)) {
+      XUartLite_DisableInterrupt(&UartLite);
       currently_sending = 1;
       unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
       to_send = MIN(to_send, 16);
       XUartLite_Send(&UartLite, (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
+      XUartLite_EnableInterrupt(&UartLite);
     }
   }
 
@@ -221,6 +238,16 @@ int SetupInterruptSystem(XUartLite *UartLitePtr) {
   Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
       (Xil_ExceptionHandler)XIntc_InterruptHandler,
       &InterruptController);
+
+  // Give a descriptive error on uncaught exception
+  exception_codes = malloc(XIL_EXCEPTION_ID_LAST + 1 - XIL_EXCEPTION_ID_FIRST);
+
+  for (int i = XIL_EXCEPTION_ID_FIRST; i < XIL_EXCEPTION_ID_LAST + 1; ++i) {
+    exception_codes[i] = i;
+    Xil_ExceptionRegisterHandler(i,
+        (Xil_ExceptionHandler)ExceptionHandler,
+        &(exception_codes[i]));
+  }
 
   /*
    * Enable exceptions.
