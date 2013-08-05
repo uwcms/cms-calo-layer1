@@ -13,14 +13,12 @@ the driver headers and libraries for a given device.   There are a number of
 standalone programs for each of the boards.   Most of them are small tests of
 various device functionality (UART or SPI, etc).  The production ones are:
 
-cp6_fe_uart_ipbus
------------------
+### cp6_fe_uart_ipbus ###
 
 Receives IPBus packets over UART, reads and writes local memories, and returns
 IPBus packets back over the serial link.
 
-orsc_fe_spi_ipbus
------------------
+### orsc_fe_spi_ipbus ###
 
 Receives IPBus packets over SPI, reads and writes local memories, and returns
 IPBus packets back over the serial link.
