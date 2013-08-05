@@ -3,20 +3,42 @@ rct-upgrade-microblaze
 
 Xilinx Microblaze Projects for RCT Upgrade 
 
+Packages
+--------
+
+In general, for each board there is a HW and BSP package.  These are generated
+using the Xilinx SDK GUI using HW .xml file provided by Mathias.  These contain
+information about the devices attached to the processor.  The BSP contains all
+the driver headers and libraries for a given device.   There are a number of
+standalone programs for each of the boards.   Most of them are small tests of
+various device functionality (UART or SPI, etc).  The production ones are:
+
+cp6_fe_uart_ipbus
+-----------------
+
+Receives IPBus packets over UART, reads and writes local memories, and returns
+IPBus packets back over the serial link.
+
+orsc_fe_spi_ipbus
+-----------------
+
+Receives IPBus packets over SPI, reads and writes local memories, and returns
+IPBus packets back over the serial link.
+
+
 Installation
 ------------
 
-There is some rudimentary (awful) support for putting all the eclipse plumbing
-together using the command line. In general, there are normal Makefiles for each
-project.  The correct compiler/linker flags are found by first cajoling eclipse
-to build the project, then copying the gcc options into the Makefiles.
+Compilation requires installation of both the Xilinx EDK (for mb-gcc and libgen)
+and a Petalinux installation (for compiling the soft-ipbus server).  See the
+next section for initializing the environment.
+
+To check out and build the trigger packages, do the following.
 
 ```shell
 # check out the set of packages
 git clone --recursive https://github.com/uwcms/rct-upgrade-microblaze.git
 cd rct-upgrade-microblaze
-# initialize the Eclipse workspace
-make workspace
 # compile the Board Support Packages (BSPs)
 make bsps
 # Make one of the subprojects
@@ -24,8 +46,7 @@ cd orsc_fe_spi_echo_test
 make all
 ```
 
-More information is available at the [Xilinx git info page.](http://www.xilinx.com/support/documentation/sw_manuals/xilinx14_4/SDK_Doc/reference/sdk_u_cvs.htm)
-and the [Xilinx command line flows.](http://www.cs.indiana.edu/hmg/le/project-home/xilinx/ise_13.2/ISE_DS/EDK/eclipse/lin64/eclipse/plugins/com.xilinx.sdk.docs.user_1.0.0/reference/sdk_u_commandline.htm)
+More information about which HW and BSP files need to be tracked is available at the [Xilinx git info page.](http://www.xilinx.com/support/documentation/sw_manuals/xilinx14_4/SDK_Doc/reference/sdk_u_cvs.htm)
 
 Environment
 -----------
