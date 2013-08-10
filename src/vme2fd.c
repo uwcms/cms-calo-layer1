@@ -20,8 +20,7 @@ int main ( int argc, char** argv ) {
     fout = open( argv[2], O_WRONLY );
 
     read( fin, buf, 100 );
-    printf("%i\n", strlen(buf));
-    write( fout, buf, strlen(buf) - 1 );
+    write( fout, buf, strlen(buf) );
 
     close( fin );
     close( fout );
