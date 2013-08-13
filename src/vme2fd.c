@@ -20,8 +20,8 @@ int main ( int argc, char** argv ) {
     fin  = open( argv[1], O_RDONLY );
     fout = open( argv[2], O_WRONLY );
 
-    read( fin, buf, 100 );
-    write( fout, buf, strlen(buf) );
+    ssize_t bytes_read = read( fin, buf, 100 );
+    write( fout, buf, bytes_read );
 
     close( fin );
     close( fout );
