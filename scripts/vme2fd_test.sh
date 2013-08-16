@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TEST_STRING="Put that in your pipe and smoke it"
+TEST_STRING="Put that in your pipe and smoke it\nNewline"
 
 mkfifo in_stream
 mkfifo out_stream
