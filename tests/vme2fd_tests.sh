@@ -16,11 +16,14 @@ DIFF=`diff test.in test.out`
 
 if [ "$DIFF" == "" ]
 then
-    echo "Passed"
+    rm in_stream out_stream test.in test.out
+    exit 0
 else
-    echo "Failed"
+    echo "vme2fd_test"
+    echo "----------"
     cat test.in
     cat test.out
+    rm in_stream out_stream test.in test.out
+    echo ""
+    exit 1
 fi
-
-rm in_stream out_stream test.in test.out

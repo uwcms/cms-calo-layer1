@@ -1,20 +1,43 @@
 SOFTDIR=/Users/austin/Documents/CMS/softipbus
 
-CFLAGS=-Wall -I./include/ -I$(SOFTDIR)/include/
+CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include
 CC=gcc
 
-bin/vme2fd : src/vme2fd.c
-	mkdir -p ./bin
-	gcc $(CFLAGS) -o $@ $<
+SRC:=$(wildcard src/vmestream/*.c) \
+	$(SOFTDIR)/src/circular_buffer.c \
+	$(SOFTDIR)/src/buffer.c
 
-test : bin/vme2fd
-	./scripts/vme2fd_test.sh
+OBJ:=$(patsubst %.c,%.o,$(SRC))
 
-tests : tests/bin/VMEStream_tests
-	./tests/bin/VMEStream_tests
+LIB=lib/libvmestream.a
 
-VME_OBJECTS=tests/VMEStream_tests.o src/VMEStream_PC.o $(SOFTDIR)/src/circular_buffer.o $(SOFTDIR)/src/buffer.o
+EXEC_SRC:=$(wildcard src/*.c)
+EXEC:=$(patsubst src/%.c,bin/%,$(EXEC_SRC))
 
-tests/bin/VMEStream_tests : $(VME_OBJECTS)
-	mkdir -p ./tests/bin
-	$(CC) $^ -o $@
+TEST_SRC:=$(wildcard tests/*_tests.c)
+TESTS:=$(patsubst %.c,%,$(TEST_SRC))
+SH_TESTS:=$(wildcard tests/*_tests.sh)
+
+all : $(LIB) $(EXEC) tests
+
+bin/% : CFLAGS += $(LIB)
+bin/% : src/%.c
+	@mkdir -p bin
+	$(CC) $(CFLAGS) -o $@ $<
+
+$(LIB) : CFLAGS += -fPIC
+$(LIB) : $(OBJ)
+	@mkdir -p lib
+	ar rcs $@ $(OBJ)
+	ranlib $@
+
+.PHONY : clean tests
+
+tests : CFLAGS += $(LIB)
+tests : $(SH_TESTS)
+tests : $(TESTS)
+	sh ./tests/runtests.sh
+
+clean :
+	rm -rf lib bin $(OBJ) $(TESTS)
+	rm -f tests/tests.log
