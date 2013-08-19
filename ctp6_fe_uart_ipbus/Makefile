@@ -3,16 +3,18 @@
 HW=../ctp6_fe_hw
 BSP=../ctp6_fe_bsp
 
-IPBUS=../common/soft-ipbus
+IPBUS=$(SOFTIPBUS)
 
-INCLUDES=-I../common/buffer-types -I$(IPBUS)/inc
+INCLUDES=-I$(IPBUS)/include
 
 include ../Makefile
 
 OPT=-O0
 
 # Make a single megalibrary of all user code.
-SRCS=$(wildcard src/*.c) $(wildcard ../common/buffer-types/*.c) \
+SRCS=$(wildcard src/*.c) \
+     $(wildcard $(IPBUS)/src/*buffer*c) \
+     $(IPBUS)/src/serialization.c $(IPBUS)/src/packethandler.c \
      $(IPBUS)/src/serialization.c $(IPBUS)/src/packethandler.c \
      $(IPBUS)/src/transactionhandler.c \
      $(IPBUS)/src/handlers.c \
