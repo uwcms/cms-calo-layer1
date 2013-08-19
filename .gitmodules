@@ -1,9 +1,3 @@
-[submodule "common/buffer-types"]
-	path = common/buffer-types
-	url = https://github.com/uwcms/buffer-types.git
 [submodule "common/spi-stream"]
 	path = common/spi-stream
 	url = https://github.com/uwcms/spi-stream.git
-[submodule "common/soft-ipbus"]
-	path = common/soft-ipbus
-	url = https://github.com/uwcms/soft-ipbus.git
