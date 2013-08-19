@@ -59,6 +59,9 @@ To setup your build environment, put this into a file and source it:
 pushd /afs/hep.wisc.edu/home/uwhepfpga/petalinux-v12.12-final-full
 source settings.sh
 popd
+
+# Setup an env var pointing to your softipbus installation
+export SOFTIPBUS=$HOME/trigger_code/softipbus
 ```
 
 Miscellany
