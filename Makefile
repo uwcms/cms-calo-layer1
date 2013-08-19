@@ -20,10 +20,10 @@ DEBUG=-g3
 COMPILE=mb-gcc $(COMPILE_OPT) $(INCLUDES) $(OPT) $(DEBUG) $(LINK_OPT) $(LIBS)
 
 PROJECTS=\
-	 ctp6_fe_uart_ipbus
+	 ctp6_fe_uart_ipbus \
+	 ctp6_fe_uart_echo_test 
 	 #ctp6_fe_spi_echo_test \
 	 #ctp6_fe_uart_blaster \
-	 #ctp6_fe_uart_echo_test \
 	 #orsc_be_spi_echo_test \
 	 #orsc_fe_spi_echo_test \
 	 orsc_fe_ipbus 
