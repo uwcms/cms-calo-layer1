@@ -168,8 +168,7 @@ int main(void) {
       u8* output_ptr = (u8*)&(tx_buffer->data[tx_buffer->pos]);
       //LOG_DEBUG("REINIT %x\n", to_send);
       //LOG_DEBUG("SENDADDR %x\n", output_ptr);
-      int ret = XUartLite_Send(&UartLite, output_ptr, to_send);
-      //LOG_DEBUG("REINT sent bootstrap, return code: %x\n", ret);
+      XUartLite_Send(&UartLite, output_ptr, to_send);
     }
   }
 
