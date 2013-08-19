@@ -35,8 +35,8 @@ To check out and build the trigger packages, do the following.
 
 ```shell
 # check out the set of packages
-git clone --recursive https://github.com/uwcms/rct-upgrade-microblaze.git
-cd rct-upgrade-microblaze
+git clone --recursive https://github.com/uwcms/cms-calo-layer1.git
+cd cms-calo-layer1
 # compile the Board Support Packages (BSPs)
 make bsps
 # Make one of the subprojects
