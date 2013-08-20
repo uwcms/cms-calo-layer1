@@ -1,6 +1,6 @@
 SOFTDIR=/Users/austin/Documents/CMS/softipbus
 
-CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include
+CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include -std=c99
 CC=gcc
 
 SRC:=$(wildcard src/vmestream/*.c) \
