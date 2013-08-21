@@ -20,8 +20,7 @@ VMEStream *vmestream_initialize(
     stream->tx_data = malloc(sizeof(uint32_t));
     stream->rx_data = malloc(sizeof(uint32_t));
 
-    stream->MAXRAM = malloc(sizeof(uint32_t));
-    *(stream->MAXRAM) = MAXRAM;
+    stream->MAXRAM = MAXRAM;
 
     stream->input = input;
     stream->output = output;
@@ -43,7 +42,7 @@ int vmestream_transfer_data(VMEStream *stream)
 
     uint32_t input_size = cbuffer_size(stream->input);
     uint32_t tx_size    = *(stream->tx_size);
-    uint32_t MAXSIZE    = *(stream->MAXRAM);
+    uint32_t MAXSIZE    = stream->MAXRAM;
 
     // number of words to transmit to tx_data
     uint32_t data2transfer = min(input_size, MAXSIZE-tx_size);
