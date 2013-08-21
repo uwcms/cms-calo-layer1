@@ -11,21 +11,24 @@ int main(int argc, char* argv[])
     CircularBuffer *tx2 = cbuffer_new();
     CircularBuffer *rx2 = cbuffer_new();
 
-    VMEStream *test1 = vmestream_initialize(tx1, rx1);
-    VMEStream *test2 = vmestream_initialize(tx2, rx2);
+    VMEStream *test1 = vmestream_initialize(tx1, rx1, 1);
+    VMEStream *test2 = malloc(sizeof(VMEStream));
+    test2->input = tx2;
+    test2->output = rx2;
 
     test2->rx_size = test1->tx_size;
     test2->tx_size = test1->rx_size;
     test2->rx_data = test1->tx_data;
     test2->tx_data = test1->rx_data;
+    test2->MAXRAM  = test1->MAXRAM;
 
     for (unsigned int i = 0; i < 20; ++i) {
-      // put some output data on host #1
-      cbuffer_push_back(tx1, 0xDEADBEEF + i);
-      // put some output data on host #2
-      cbuffer_push_back(tx2, 0xBEEFCAFE + i);
+        // put some output data on host #1
+        cbuffer_push_back(tx1, 0xDEADBEEF + i);
+        // put some output data on host #2
+        cbuffer_push_back(tx2, 0xBEEFCAFE + i);
     }
-    
+
     // do a transfer
     vmestream_transfer_data(test1); // step 1 
     vmestream_transfer_data(test2); // step 2
