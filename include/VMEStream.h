@@ -25,6 +25,8 @@ VMEStream *vmestream_initialize(
         CircularBuffer *output,
         uint32_t MAXRAM);
 
+void vmestream_destroy(VMEStream *stream);
+
 int vmestream_transfer_data(VMEStream *stream);
 
 void do_vme_transfer(VMEStream *stream);

@@ -29,6 +29,17 @@ VMEStream *vmestream_initialize(
 }
 
 
+void vmestream_destroy(VMEStream *stream)
+{
+    free(stream->tx_size);
+    free(stream->tx_data);
+    free(stream->rx_size);
+    free(stream->rx_data);
+
+    free(stream);
+}
+
+
 int vmestream_transfer_data(VMEStream *stream)
 {
     if (!stream) return -1;
