@@ -80,7 +80,123 @@ static char *test_ram1()
     // free memory
     vmestream_destroy(test1);
     free(test2);
+    cbuffer_free(tx1);
+    cbuffer_free(rx1);
+    cbuffer_free(tx2);
+    cbuffer_free(rx2);
 
+    return 0;
+}
+
+
+/**
+ * Push less data to the buffers than we have RAM available
+ */
+static char *test_ram2()
+{
+    // local application buffers
+    CircularBuffer *tx1 = cbuffer_new();
+    CircularBuffer *rx1 = cbuffer_new();
+    CircularBuffer *tx2 = cbuffer_new();
+    CircularBuffer *rx2 = cbuffer_new();
+
+    VMEStream *test1 = vmestream_initialize(tx1, rx1, 2);
+    VMEStream *test2 = malloc(sizeof(VMEStream));
+    test2->input = tx2;
+    test2->output = rx2;
+
+    test2->rx_size = test1->tx_size;
+    test2->tx_size = test1->rx_size;
+    test2->rx_data = test1->tx_data;
+    test2->tx_data = test1->rx_data;
+    test2->MAXRAM  = test1->MAXRAM;
+
+    // place only one word on the buffers
+    cbuffer_push_back(tx1, 0xDEADBEEF);
+    // put some output data on host #2
+    cbuffer_push_back(tx2, 0xBEEFCAFE);
+
+    vmestream_transfer_data(test1);
+    vmestream_transfer_data(test2);
+    vmestream_transfer_data(test1);
+
+    mu_assert("Error: tx1 not empty", 0 == cbuffer_size(tx1));
+    mu_assert("Error: tx2 not empty", 0 == cbuffer_size(tx2));
+
+    mu_assert("Error: 0xDEADBEEF != rx2.pop", 0xDEADBEEF == cbuffer_pop_front(rx2));
+    mu_assert("Error: 0xBEEFCAFE != rx1.pop", 0xBEEFCAFE == cbuffer_pop_front(rx1));
+
+    mu_assert("Error: rx2 not empty", 0 == cbuffer_size(rx2));
+    mu_assert("Error: rx1 not empty", 0 == cbuffer_size(rx1));
+
+
+    // free memory
+    vmestream_destroy(test1);
+    free(test2);
+    cbuffer_free(tx1);
+    cbuffer_free(rx1);
+    cbuffer_free(tx2);
+    cbuffer_free(rx2);
+
+    return 0;
+}
+
+
+/**
+ * Overload buffer test
+ */
+static char *test_buf()
+{
+    // local application buffers
+    CircularBuffer *tx1 = cbuffer_new();
+    CircularBuffer *rx1 = cbuffer_new();
+    CircularBuffer *tx2 = cbuffer_new();
+    CircularBuffer *rx2 = cbuffer_new();
+
+    VMEStream *test1 = vmestream_initialize(tx1, rx1, 2);
+    VMEStream *test2 = malloc(sizeof(VMEStream));
+    test2->input = tx2;
+    test2->output = rx2;
+
+    test2->rx_size = test1->tx_size;
+    test2->tx_size = test1->rx_size;
+    test2->rx_data = test1->tx_data;
+    test2->tx_data = test1->rx_data;
+    test2->MAXRAM  = test1->MAXRAM;
+
+
+    cbuffer_push_back(rx2, 0xDEADBEEF);
+    for (int i = 0; i < 510; i++) {
+        cbuffer_push_back(rx2, 0xBEEFCAFE);
+    }
+    cbuffer_push_back(tx1, 0xBEEFCAFE);
+
+    // do several transfers
+    vmestream_transfer_data(test1);
+    vmestream_transfer_data(test2);
+    vmestream_transfer_data(test1);
+    vmestream_transfer_data(test2);
+
+    // no data should have been transferred
+    mu_assert("Error: tx_size != 1", *(test1->tx_size) == 1);
+    mu_assert("Error: rx2.pop != 0xDEADBEEF", 0xDEADBEEF == cbuffer_pop_front(rx2));
+
+    // popping off rx2 should have freed 1 word
+    vmestream_transfer_data(test1);
+    vmestream_transfer_data(test2);
+
+    mu_assert("Error: tx_size != 0", *(test1->tx_size) == 0);
+    mu_assert("Error: tx1 not empty", 0 == cbuffer_size(tx1));
+    mu_assert("Errrr: rx2.pop not 0xBEEFCAFE", 0xBEEFCAFE == cbuffer_pop_front(rx2));
+
+
+    // free memory
+    vmestream_destroy(test1);
+    free(test2);
+    cbuffer_free(tx1);
+    cbuffer_free(rx1);
+    cbuffer_free(tx2);
+    cbuffer_free(rx2);
 
     return 0;
 }
@@ -89,8 +205,11 @@ static char *test_ram1()
 static char *all_tests()
 {
     mu_run_test(test_ram1);
+    mu_run_test(test_ram2);
+    mu_run_test(test_buf);
     return 0;
 }
+
 
 int main(int argc, char *argv[])
 {
