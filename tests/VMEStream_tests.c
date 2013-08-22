@@ -153,7 +153,7 @@ static char *test_buf()
     CircularBuffer *tx2 = cbuffer_new();
     CircularBuffer *rx2 = cbuffer_new();
 
-    VMEStream *test1 = vmestream_initialize(tx1, rx1, 2);
+    VMEStream *test1 = vmestream_initialize(tx1, rx1, 32);
     VMEStream *test2 = malloc(sizeof(VMEStream));
     test2->input = tx2;
     test2->output = rx2;
@@ -169,7 +169,15 @@ static char *test_buf()
     for (int i = 0; i < 510; i++) {
         cbuffer_push_back(rx2, 0xBEEFCAFE);
     }
-    cbuffer_push_back(tx1, 0xBEEFCAFE);
+    cbuffer_push_back(tx1, 0xBEEFCAFE + 1);
+    cbuffer_push_back(tx1, 0xBEEFCAFE + 2);
+    cbuffer_push_back(tx1, 0xBEEFCAFE + 3);
+    cbuffer_push_back(tx1, 0xBEEFCAFE + 4);
+
+    mu_assert("Error: rx2 should have no space left", 
+        cbuffer_freespace(rx2) == 0);
+    // sanity check
+    mu_assert_eq("Error: output size != 4", cbuffer_size(tx1), 4);
 
     // do several transfers
     vmestream_transfer_data(test1);
@@ -178,16 +186,30 @@ static char *test_buf()
     vmestream_transfer_data(test2);
 
     // no data should have been transferred
-    mu_assert("Error: tx_size != 1", *(test1->tx_size) == 1);
+    mu_assert_eq("Error: tx_size != 4", *(test1->tx_size), 4);
     mu_assert("Error: rx2.pop != 0xDEADBEEF", 0xDEADBEEF == cbuffer_pop_front(rx2));
+    cbuffer_pop_front(rx2);
+    cbuffer_pop_front(rx2);
 
-    // popping off rx2 should have freed 1 word
+    // popping off rx2 should have freed 3 words, but not enough to transfer all
+    // four
+    vmestream_transfer_data(test1);
+    vmestream_transfer_data(test2);
+
+    mu_assert_eq("Error: tx_size != 4", *(test1->tx_size), 4);
+    mu_assert("Errrr: rx2.pop not 0xBEEFCAFE", 0xBEEFCAFE == cbuffer_pop_front(rx2));
+
+    cbuffer_pop_front(rx2);
+    // now there is enough room for all the limbo data to be transferred to rx2
     vmestream_transfer_data(test1);
     vmestream_transfer_data(test2);
 
     mu_assert("Error: tx_size != 0", *(test1->tx_size) == 0);
     mu_assert("Error: tx1 not empty", 0 == cbuffer_size(tx1));
-    mu_assert("Errrr: rx2.pop not 0xBEEFCAFE", 0xBEEFCAFE == cbuffer_pop_front(rx2));
+    for (int i = 0; i < 4; ++i) {
+      mu_assert_eq("Unexpected data transferred", 
+          cbuffer_value_at(rx2, cbuffer_size(rx2) - 4 + i), 0xBEEFCAFE + i + 1);
+    }
 
 
     // free memory
