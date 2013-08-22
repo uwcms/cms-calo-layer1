@@ -11,9 +11,9 @@
 
 
 typedef struct {
-    uint32_t tx_size;
+    uint32_t *tx_size;
     uint32_t *tx_data;
-    uint32_t rx_size;
+    uint32_t *rx_size;
     uint32_t *rx_data;
     uint32_t MAXRAM;
     CircularBuffer *input;
