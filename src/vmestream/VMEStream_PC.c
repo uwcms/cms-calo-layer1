@@ -56,15 +56,16 @@ int vmestream_transfer_data(VMEStream *stream)
     uint32_t MAXSIZE    = stream->MAXRAM;
 
     // number of words to transmit to tx_data
-    uint32_t data2transfer = min(input_size, MAXSIZE-tx_size);
+    uint32_t data2transfer = min(input_size, MAXSIZE);
 
-    if (data2transfer > 0) {
-        Buffer *read_data = cbuffer_pop(stream->input, data2transfer);
-        memcpy(stream->tx_data, read_data->data,
-                data2transfer*sizeof(uint32_t));
-        *(stream->tx_size) += data2transfer;
+    // check if any previously sent data has been received.
+    if (tx_size == 0 && data2transfer > 0) {
+      Buffer *read_data = cbuffer_pop(stream->input, data2transfer);
+      memcpy(stream->tx_data, read_data->data,
+          data2transfer*sizeof(uint32_t));
+      *(stream->tx_size) = data2transfer;
 
-        buffer_free(read_data);
+      buffer_free(read_data);
     }
 
     // ------------------------------------
