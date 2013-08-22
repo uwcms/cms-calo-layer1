@@ -12,10 +12,8 @@ VMEStream *vmestream_initialize(
 {
     VMEStream *stream = malloc(sizeof(VMEStream));
 
-    stream->tx_size = malloc(sizeof(uint32_t));
-    stream->rx_size = malloc(sizeof(uint32_t));
-    *(stream->tx_size) = 0;
-    *(stream->rx_size) = 0;
+    stream->tx_size = 0;
+    stream->rx_size = 0;
 
     stream->tx_data = malloc(sizeof(uint32_t) * MAXRAM);
     stream->rx_data = malloc(sizeof(uint32_t) * MAXRAM);
@@ -31,9 +29,7 @@ VMEStream *vmestream_initialize(
 
 void vmestream_destroy(VMEStream *stream)
 {
-    free(stream->tx_size);
     free(stream->tx_data);
-    free(stream->rx_size);
     free(stream->rx_data);
 
     free(stream);
@@ -52,7 +48,7 @@ int vmestream_transfer_data(VMEStream *stream)
     // -----------------------------------
 
     uint32_t input_size = cbuffer_size(stream->input);
-    uint32_t tx_size    = *(stream->tx_size);
+    uint32_t tx_size    = stream->tx_size;
     uint32_t MAXSIZE    = stream->MAXRAM;
 
     // number of words to transmit to tx_data
@@ -62,7 +58,7 @@ int vmestream_transfer_data(VMEStream *stream)
         Buffer *read_data = cbuffer_pop(stream->input, data2transfer);
         memcpy(stream->tx_data, read_data->data,
                 data2transfer*sizeof(uint32_t));
-        *(stream->tx_size) += data2transfer;
+        stream->tx_size += data2transfer;
 
         buffer_free(read_data);
     }
@@ -72,14 +68,14 @@ int vmestream_transfer_data(VMEStream *stream)
     // ------------------------------------
 
     uint32_t output_space = cbuffer_freespace(stream->output);
-    uint32_t rx_size      = *(stream->rx_size);
+    uint32_t rx_size      = stream->rx_size;
 
     // number of words to transmit to output
     data2transfer = min(output_space, rx_size);
 
     if (data2transfer > 0) {
         cbuffer_append(stream->output, stream->rx_data, data2transfer);
-        *(stream->rx_size) -= data2transfer;
+        stream->rx_size -= data2transfer;
     }
 
     return 0;
