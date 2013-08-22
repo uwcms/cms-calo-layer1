@@ -3,3 +3,5 @@
 *.o
 bin/
 lib/
+tests/VMEStream_tests
+*.log
