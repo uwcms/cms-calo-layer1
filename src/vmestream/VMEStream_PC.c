@@ -75,12 +75,11 @@ int vmestream_transfer_data(VMEStream *stream)
     uint32_t output_space = cbuffer_freespace(stream->output);
     uint32_t rx_size      = *(stream->rx_size);
 
-    // number of words to transmit to output
-    data2transfer = min(output_space, rx_size);
-
-    if (data2transfer > 0) {
-        cbuffer_append(stream->output, stream->rx_data, data2transfer);
-        *(stream->rx_size) -= data2transfer;
+    // just leave the data in limbo until we have room for it.
+    if (rx_size && output_space >= rx_size) {
+        cbuffer_append(stream->output, stream->rx_data, rx_size);
+        // indicate successful receipt.
+        *(stream->rx_size) = 0;
     }
 
     return 0;
