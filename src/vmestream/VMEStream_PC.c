@@ -17,8 +17,8 @@ VMEStream *vmestream_initialize(
     *(stream->tx_size) = 0;
     *(stream->rx_size) = 0;
 
-    stream->tx_data = malloc(sizeof(uint32_t));
-    stream->rx_data = malloc(sizeof(uint32_t));
+    stream->tx_data = malloc(sizeof(uint32_t) * MAXRAM);
+    stream->rx_data = malloc(sizeof(uint32_t) * MAXRAM);
 
     stream->MAXRAM = MAXRAM;
 
