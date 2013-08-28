@@ -1,4 +1,4 @@
-SOFTDIR=/Users/austin/Documents/CMS/RCT/softipbus
+SOFTDIR=/tmp/dbelknap/softipbus
 
 CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include -std=c99
 CC=gcc
@@ -20,10 +20,10 @@ SH_TESTS:=$(wildcard tests/*_tests.sh)
 
 all : $(LIB) $(EXEC) tests
 
-bin/% : CFLAGS += $(LIB)
+bin/% : $(LIB)
 bin/% : src/%.c
 	@mkdir -p bin
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $< $(LIB)
 
 $(LIB) : CFLAGS += -fPIC
 $(LIB) : $(OBJ)
@@ -33,10 +33,13 @@ $(LIB) : $(OBJ)
 
 .PHONY : clean tests
 
-tests : CFLAGS += $(LIB)
+tests : $(LIB)
 tests : $(SH_TESTS)
 tests : $(TESTS)
-	sh ./tests/runtests.sh
+	@sh ./tests/runtests.sh
+
+tests/%_tests : tests/%_tests.c
+	$(CC) $(CFLAGS) -o $@ $< $(LIB)
 
 clean :
 	rm -rf lib bin $(OBJ) $(TESTS)
