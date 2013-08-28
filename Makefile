@@ -1,4 +1,4 @@
-SOFTDIR=/Users/austin/Documents/CMS/softipbus
+SOFTDIR=/Users/austin/Documents/CMS/RCT/softipbus
 
 CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include -std=c99
 CC=gcc
