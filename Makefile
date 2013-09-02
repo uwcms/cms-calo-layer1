@@ -1,13 +1,17 @@
 SOFTDIR=/tmp/dbelknap/softipbus
 
-CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include -std=c99
+CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include -I/opt/xdaq/include/ -std=c99
+CXXFLAGS:=$(CFLAGS) -DLINUX
+LDFLAGS:=-L/opt/xdaq/lib/ -lCAENVME -llog4cplus
 CC=gcc
+CXX=g++
 
 SRC:=$(wildcard src/vmestream/*.c) \
+	$(wildcard src/vmestream/*.cc) \
 	$(SOFTDIR)/src/circular_buffer.c \
 	$(SOFTDIR)/src/buffer.c
 
-OBJ:=$(patsubst %.c,%.o,$(SRC))
+OBJ:=$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(SRC)))
 
 LIB=lib/libvmestream.a
 
@@ -23,7 +27,7 @@ all : $(LIB) $(EXEC) tests
 bin/% : $(LIB)
 bin/% : src/%.c
 	@mkdir -p bin
-	$(CC) $(CFLAGS) -o $@ $< $(LIB)
+	$(CXX) $(CFLAGS) -o $@ $< $(LIB)
 
 $(LIB) : CFLAGS += -fPIC
 $(LIB) : $(OBJ)
@@ -39,7 +43,7 @@ tests : $(TESTS)
 	@sh ./tests/runtests.sh
 
 tests/%_tests : tests/%_tests.c
-	$(CC) $(CFLAGS) -o $@ $< $(LIB)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< $(LIB)
 
 clean :
 	rm -rf lib bin $(OBJ) $(TESTS)
