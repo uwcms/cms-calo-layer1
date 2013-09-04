@@ -1,4 +1,4 @@
-SOFTDIR=/tmp/dbelknap/softipbus
+SOFTDIR=/afs/cern.ch/user/d/dbelknap/softipbus
 
 CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include -I/opt/xdaq/include/ -std=c99
 CXXFLAGS:=$(CFLAGS) -DLINUX
@@ -15,8 +15,8 @@ OBJ:=$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(SRC)))
 
 LIB=lib/libvmestream.a
 
-EXEC_SRC:=$(wildcard src/*.c)
-EXEC:=$(patsubst src/%.c,bin/%,$(EXEC_SRC))
+EXEC_SRC:=$(wildcard src/*.cc)
+EXEC:=$(patsubst src/%.cc,bin/%,$(EXEC_SRC))
 
 TEST_SRC:=$(wildcard tests/*_tests.c)
 TESTS:=$(patsubst %.c,%,$(TEST_SRC))
@@ -25,9 +25,9 @@ SH_TESTS:=$(wildcard tests/*_tests.sh)
 all : $(LIB) $(EXEC) tests
 
 bin/% : $(LIB)
-bin/% : src/%.c
+bin/% : src/%.cc
 	@mkdir -p bin
-	$(CXX) $(CFLAGS) -o $@ $< $(LIB)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LIB)
 
 $(LIB) : CFLAGS += -fPIC
 $(LIB) : $(OBJ)

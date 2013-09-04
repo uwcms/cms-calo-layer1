@@ -6,6 +6,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "caen.h"
+#include "VMEStream.h"
+
 int main ( int argc, char** argv )
 {
     int fin;
