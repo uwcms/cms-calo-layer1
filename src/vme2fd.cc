@@ -5,16 +5,30 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include "caen.h"
 #include "VMEStream.h"
+
+
+#define VME_RX_SIZE_ADDR 0xDEADBEEF
+#define VME_TX_SIZE_ADDR 0xBEEFCAFE
+
+#define VME_RX_BASE_ADDR 0xDEADBEEF
+#define VME_TX_BASE_ADDR 0xBEEFCAFE
+
+#define DATAWIDTH 4
+
+
+const uint32_t MAXRAM = 1;
+
 
 int main ( int argc, char** argv )
 {
     int fin;
     int fout;
 
-    char buf [100];
+    uint32_t buf [512];
 
     if ( argc != 3 ) {
         printf("Usage: vme2fd [instream] [outstream]\n");
@@ -24,8 +38,52 @@ int main ( int argc, char** argv )
     fin  = open( argv[1], O_RDONLY );
     fout = open( argv[2], O_WRONLY );
 
-    ssize_t bytes_read = read( fin, buf, 100 );
-    write( fout, buf, bytes_read );
+    CircularBuffer *input = cbuffer_new();
+    CircularBuffer *output = cbuffer_new()
+    VMEStream *stream = vmestream_initialize(input, output, MAXRAM);
+
+    uint32_t vme_tx_size;
+    uint32_t vme_rx_size;
+
+    uint32_t vme_tx_data[MAXRAM];
+    uint32_t vme_rx_data[MAXRAM];
+
+    VMEController* vme = VMEController::getVMEController();
+
+    while (1) {
+        uint32_t words_free = cbuffer_freespace(stream->input);
+
+        // read only as much as the cbuffer can handle
+        ssize_t bytes_read = read(fin, buf, words_free);
+        uint32_t words_read = bytes_read/sizeof(uint32_t);
+
+        if (words_read > 0) {
+            cbuffer_append(stream->input, buf, words_read);
+        }
+
+        vmestream_transfer_data(stream);
+
+        vme->read(VME_TX_SIZE_ADDR, DATAWIDTH, &vme_tx_size);
+        if (vme_tx_size == 0 && *(stream->tx_size) > 0) {
+            vme->multiwrite(vme_tx_addresses, DATAWIDTH, stream->tx_data, *(stream->tx_size));
+            vme->write(VME_TX_SIZE_ADDR, DATAWIDTH, stream->tx_size);
+            *(stream->tx_size) = 0;
+        }
+
+        vme->read(VME_RX_SIZE_ADDR, DATAWIDTH, &vme_rx_size);
+        if (vme_rx_size > 0 && *(stream->rx_size) == 0) {
+            vme->multiread(vme_rx_addresses, DATAWIDTH, stream->rx_data, vme_rx_size);
+            *(stream->rx_size) = vme_rx_size;
+            uint32_t zero = 0;
+            vme->write(VME_RX_SIZE_ADDR, DATAWIDTH, &zero);
+        }
+
+        vmestream_transfer_data(stream);
+
+        // if stream->ouput has data, then ouptu it
+
+        write(fout, buf, bytes_read );
+    }
 
     close( fin );
     close( fout );
