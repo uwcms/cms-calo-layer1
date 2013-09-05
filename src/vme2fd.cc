@@ -39,7 +39,7 @@ int main ( int argc, char** argv )
     fout = open( argv[2], O_WRONLY );
 
     CircularBuffer *input = cbuffer_new();
-    CircularBuffer *output = cbuffer_new()
+    CircularBuffer *output = cbuffer_new();
     VMEStream *stream = vmestream_initialize(input, output, MAXRAM);
 
     uint32_t vme_tx_size;
@@ -48,13 +48,16 @@ int main ( int argc, char** argv )
     uint32_t vme_tx_data[MAXRAM];
     uint32_t vme_rx_data[MAXRAM];
 
+    uint32_t vme_tx_addresses[1];
+    uint32_t vme_rx_addresses[1];
+
     VMEController* vme = VMEController::getVMEController();
 
     while (1) {
         uint32_t words_free = cbuffer_freespace(stream->input);
 
         // read only as much as the cbuffer can handle
-        ssize_t bytes_read = read(fin, buf, words_free);
+        ssize_t bytes_read = read(fin, buf, words_free*sizeof(uint32_t));
         uint32_t words_read = bytes_read/sizeof(uint32_t);
 
         if (words_read > 0) {
@@ -80,9 +83,13 @@ int main ( int argc, char** argv )
 
         vmestream_transfer_data(stream);
 
-        // if stream->ouput has data, then ouptu it
-
-        write(fout, buf, bytes_read );
+        // if stream->ouput has data, then output it
+        uint32_t n_words = cbuffer_size(stream->output);
+        if (n_words > 0) {
+            Buffer *outbuf = cbuffer_pop(stream->output, n_words);
+            write(fout, outbuf->data, n_words*sizeof(uint32_t));
+            buffer_free(outbuf);
+        }
     }
 
     close( fin );
