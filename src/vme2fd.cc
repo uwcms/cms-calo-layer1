@@ -7,15 +7,18 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "caen.h"
+#include <log4cplus/logger.h>
+#include <log4cplus/configurator.h>
+
+#include "VMEController.h"
 #include "VMEStream.h"
 
 
 #define VME_RX_SIZE_ADDR 0xDEADBEEF
 #define VME_TX_SIZE_ADDR 0xBEEFCAFE
 
-#define VME_RX_BASE_ADDR 0xDEADBEEF
-#define VME_TX_BASE_ADDR 0xBEEFCAFE
+#define VME_RX_DATA_ADDR 0xDEADBEEF
+#define VME_TX_DATA_ADDR 0xBEEFCAFE
 
 #define DATAWIDTH 4
 
@@ -48,8 +51,8 @@ int main ( int argc, char** argv )
     uint32_t vme_tx_data[MAXRAM];
     uint32_t vme_rx_data[MAXRAM];
 
-    uint32_t vme_tx_addresses[1];
-    uint32_t vme_rx_addresses[1];
+    uint32_t vme_tx_address;
+    uint32_t vme_rx_address;
 
     VMEController* vme = VMEController::getVMEController();
 
@@ -68,14 +71,14 @@ int main ( int argc, char** argv )
 
         vme->read(VME_TX_SIZE_ADDR, DATAWIDTH, &vme_tx_size);
         if (vme_tx_size == 0 && *(stream->tx_size) > 0) {
-            vme->multiwrite(vme_tx_addresses, DATAWIDTH, stream->tx_data, *(stream->tx_size));
+            vme->write(VME_TX_DATA_ADDR, DATAWIDTH, stream->tx_data);
             vme->write(VME_TX_SIZE_ADDR, DATAWIDTH, stream->tx_size);
             *(stream->tx_size) = 0;
         }
 
         vme->read(VME_RX_SIZE_ADDR, DATAWIDTH, &vme_rx_size);
         if (vme_rx_size > 0 && *(stream->rx_size) == 0) {
-            vme->multiread(vme_rx_addresses, DATAWIDTH, stream->rx_data, vme_rx_size);
+            vme->read(VME_RX_DATA_ADDR, DATAWIDTH, stream->rx_data);
             *(stream->rx_size) = vme_rx_size;
             uint32_t zero = 0;
             vme->write(VME_RX_SIZE_ADDR, DATAWIDTH, &zero);
