@@ -17,10 +17,12 @@
 #define VME_RX_SIZE_ADDR 0xDEADBEEF
 #define VME_TX_SIZE_ADDR 0xBEEFCAFE
 
-#define VME_RX_DATA_ADDR 0xDEADBEEF
-#define VME_TX_DATA_ADDR 0xBEEFCAFE
+#define VME_RX_DATA_ADDR 0xFACEFEED
+#define VME_TX_DATA_ADDR 0xCAFEBABE
 
 #define DATAWIDTH 4
+
+#define READ_BUFFER_SIZE 512
 
 
 const uint32_t MAXRAM = 1;
@@ -31,14 +33,13 @@ int main ( int argc, char** argv )
     int fin;
     int fout;
 
-    uint32_t buf [512];
+    uint32_t buf [READ_BUFFER_SIZE];
 
     if ( argc != 3 ) {
         printf("Usage: vme2fd [instream] [outstream]\n");
         exit(0);
     }
-
-    fin  = open( argv[1], O_RDONLY );
+    fin  = open( argv[1], O_RDONLY | O_NONBLOCK);
     fout = open( argv[2], O_WRONLY );
 
     CircularBuffer *input = cbuffer_new();
@@ -48,21 +49,15 @@ int main ( int argc, char** argv )
     uint32_t vme_tx_size;
     uint32_t vme_rx_size;
 
-    /*
-    uint32_t vme_tx_data[MAXRAM];
-    uint32_t vme_rx_data[MAXRAM];
-
-    uint32_t vme_tx_address;
-    uint32_t vme_rx_address;
-    */
-
     VMEController* vme = VMEController::getVMEController();
 
     while (1) {
         uint32_t words_free = cbuffer_freespace(stream->input);
+        int words_to_read = READ_BUFFER_SIZE > words_free ?
+          READ_BUFFER_SIZE : words_free;
 
         // read only as much as the cbuffer can handle
-        ssize_t bytes_read = read(fin, buf, words_free*sizeof(uint32_t));
+        ssize_t bytes_read = read(fin, buf, words_to_read*sizeof(uint32_t));
         uint32_t words_read = bytes_read/sizeof(uint32_t);
 
         if (words_read > 0) {
@@ -95,6 +90,8 @@ int main ( int argc, char** argv )
             write(fout, outbuf->data, n_words*sizeof(uint32_t));
             buffer_free(outbuf);
         }
+        // do any desired emulation. in production, this does nothing.
+        vme->doStuff();
     }
 
     close( fin );

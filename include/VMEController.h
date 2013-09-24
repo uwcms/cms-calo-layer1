@@ -34,6 +34,11 @@ class VMEController
       return write(address, 1, (void*) &value);
     }
 
+  // Do some stuff. This function does no stuff
+  // unless it is overridden by a derived class to do some
+  // emulation or other business.
+  virtual void doStuff() {}
+
  protected:
 
   int type;                  /* Currently used type */
