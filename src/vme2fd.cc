@@ -48,11 +48,13 @@ int main ( int argc, char** argv )
     uint32_t vme_tx_size;
     uint32_t vme_rx_size;
 
+    /*
     uint32_t vme_tx_data[MAXRAM];
     uint32_t vme_rx_data[MAXRAM];
 
     uint32_t vme_tx_address;
     uint32_t vme_rx_address;
+    */
 
     VMEController* vme = VMEController::getVMEController();
 

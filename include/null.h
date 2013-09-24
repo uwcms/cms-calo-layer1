@@ -25,67 +25,72 @@ class null : public VMEController
 	}
       return theInstance;
     }
-    
+
   virtual bool reset() {
 	Logger logger = Logger::getInstance("VMEController::null");
 	static int rst_counter=0;
-	if (rst_counter<10) 
+	if (rst_counter<10)
 	{
 		LOG4CPLUS_WARN(logger, "null::reset() called");
 		//cerr << "null::reset() called" << endl;
 		rst_counter++;
 	}
+        return true;
   }
 
   virtual bool read(unsigned long address, size_t size, void* value)
   {
         Logger logger = Logger::getInstance("VMEController::null");
 
-	static int read_counter=0; 
+	static int read_counter=0;
 	if (read_counter<10)
 	{
 		LOG4CPLUS_WARN(logger, "null::read() called");
 		//cerr << "null::read() called" << endl;
 		read_counter++;
 	}
+        return true;
   }
-  virtual bool write(unsigned long address, size_t size, void* value) 
+  virtual bool write(unsigned long address, size_t size, void* value)
   {
         Logger logger = Logger::getInstance("VMEController::null");
 
-	static int write_counter=0; 
+	static int write_counter=0;
 	if (write_counter<10)
 	{
 		LOG4CPLUS_WARN(logger, "null::write() called");
 		//cerr << "null::write() called" << endl;
 		write_counter++;
 	}
+        return true;
   }
 
   virtual bool multiwrite(unsigned int *addresses, size_t size, unsigned short *data, int dataCounter)
   {
         Logger logger = Logger::getInstance("VMEController::null");
 
-	static int write_counter=0; 
+	static int write_counter=0;
 	if (write_counter<10)
 	{
 		LOG4CPLUS_WARN(logger, "null::write() called");
 		//cerr << "null::write() called" << endl;
 		write_counter++;
 	}
+        return true;
   }
 
   virtual bool multiread(unsigned int *addresses, size_t size, unsigned short *data, int dataCounter)
   {
         Logger logger = Logger::getInstance("VMEController::null");
 
-	static int read_counter=0; 
+	static int read_counter=0;
 	if (read_counter<10)
 	{
 		LOG4CPLUS_WARN(logger, "null::read() called");
 		//cerr << "null::read() called" << endl;
 		read_counter++;
 	}
+        return true;
   }
 
 
@@ -97,9 +102,9 @@ class null : public VMEController
 	LOG4CPLUS_WARN(logger, "null::null() called - no VME activity will happen");
 	LOG4CPLUS_WARN(logger, "*** read/write/reset messages will be printed only 10 times ***");
 }
-  
+
   virtual ~null() {;}
-  
+
   // Copy constructor and equality operator are not implemented
   null(const null&);
   const null& operator=(const null&);
