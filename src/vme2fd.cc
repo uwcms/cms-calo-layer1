@@ -12,6 +12,7 @@
 
 #include "VMEController.h"
 #include "VMEStream.h"
+#include "bytebuffer.h"
 
 
 #define VME_RX_SIZE_ADDR 0xDEADBEEF
@@ -22,10 +23,13 @@
 
 #define DATAWIDTH 4
 
-#define READ_BUFFER_SIZE 512
+// read 2MB at time
+#define READ_BUFFER_SIZE (1024 * 1024 * 2)
+
+#define MIN(x, y) ( (x) < (y) ? (x) : (y) )
 
 
-const uint32_t MAXRAM = 1;
+const uint32_t MAXRAM = 512;
 
 
 int main ( int argc, char** argv )
@@ -33,13 +37,14 @@ int main ( int argc, char** argv )
     int fin;
     int fout;
 
-    uint32_t buf [READ_BUFFER_SIZE];
+    // empty buffer.
+    ByteBuffer buf = bytebuffer_ctor(NULL, 0);
 
     if ( argc != 3 ) {
         printf("Usage: vme2fd [instream] [outstream]\n");
         exit(0);
     }
-    fin  = open( argv[1], O_RDONLY | O_NONBLOCK);
+    fin  = open( argv[1], O_RDONLY);
     fout = open( argv[2], O_WRONLY );
 
     CircularBuffer *input = cbuffer_new();
@@ -52,30 +57,30 @@ int main ( int argc, char** argv )
     VMEController* vme = VMEController::getVMEController();
 
     while (1) {
-        uint32_t words_free = cbuffer_freespace(stream->input);
-        int words_to_read = READ_BUFFER_SIZE > words_free ?
-          READ_BUFFER_SIZE : words_free;
+        // the size of the read buffer will be dynamically resized
+        // as necessary.
+        bytebuffer_read_fd(&buf, fin, READ_BUFFER_SIZE);
 
-        // read only as much as the cbuffer can handle
-        ssize_t bytes_read = read(fin, buf, words_to_read*sizeof(uint32_t));
-        uint32_t words_read = bytes_read/sizeof(uint32_t);
-
-        if (words_read > 0) {
-            cbuffer_append(stream->input, buf, words_read);
+        uint32_t words_to_append = MIN(
+            buf.bufsize/sizeof(uint32_t), cbuffer_freespace(stream->input));
+        if (words_to_append > 0) {
+            cbuffer_append(stream->input, buf.buf, words_to_append);
         }
+        // pop off read words, leaving any fractional words in the input buffer
+        bytebuffer_del_front(&buf, words_to_append * sizeof(uint32_t));
 
         vmestream_transfer_data(stream);
 
         vme->read(VME_TX_SIZE_ADDR, DATAWIDTH, &vme_tx_size);
         if (vme_tx_size == 0 && *(stream->tx_size) > 0) {
-            vme->write(VME_TX_DATA_ADDR, DATAWIDTH, stream->tx_data);
+            vme->write(VME_TX_DATA_ADDR, *(stream->tx_size), stream->tx_data);
             vme->write(VME_TX_SIZE_ADDR, DATAWIDTH, stream->tx_size);
             *(stream->tx_size) = 0;
         }
 
         vme->read(VME_RX_SIZE_ADDR, DATAWIDTH, &vme_rx_size);
         if (vme_rx_size > 0 && *(stream->rx_size) == 0) {
-            vme->read(VME_RX_DATA_ADDR, DATAWIDTH, stream->rx_data);
+            vme->read(VME_RX_DATA_ADDR, vme_rx_size, stream->rx_data);
             *(stream->rx_size) = vme_rx_size;
             uint32_t zero = 0;
             vme->write(VME_RX_SIZE_ADDR, DATAWIDTH, &zero);
@@ -86,9 +91,7 @@ int main ( int argc, char** argv )
         // if stream->ouput has data, then output it
         uint32_t n_words = cbuffer_size(stream->output);
         if (n_words > 0) {
-            Buffer *outbuf = cbuffer_pop(stream->output, n_words);
-            write(fout, outbuf->data, n_words*sizeof(uint32_t));
-            buffer_free(outbuf);
+            cbuffer_write_fd(stream->output, fout, n_words);
         }
         // do any desired emulation. in production, this does nothing.
         vme->doStuff();
