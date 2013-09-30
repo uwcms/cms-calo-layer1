@@ -26,8 +26,7 @@
   tabsize=3
 }
 
-\hypersetup{
-    pdftitle={UW Calo Layer1 Tutorial},    % title
+\hypersetup{pdftitle={UW Calo Layer1 Tutorial},    % title
     pdfauthor={Bucky},     % author
     colorlinks=true,       % false: boxed links; true: colored links
     linkcolor=red,          % color of internal links (change box color with linkbordercolor)
@@ -42,6 +41,14 @@
 
 \begin{frame}
 \titlepage
+\end{frame}
+
+\begin{frame}[fragile]{How To Make This Document}
+\begin{lstlisting}[language=bash]
+git clone git@github.com:uwcms/cms-calo-layer1.git
+cd cms-calo-layer1/docs
+make
+\end{lstlisting}
 \end{frame}
 
 \begin{frame}{Introduction}
@@ -80,7 +87,7 @@
 \item All of our FPGAs have ``Microblaze'' core
 \item This is an (ARM) CPU implemented in HDL
 \item On the CTP6 back end FPGA, Linux is installed, so you can SSH in, run multiple programs, etc
-\item On all other FPGAs are "standalone". This means you write a C program with a single {\tt int main(void) \{...\}} function
+\item On all other FPGAs are "standalone". This means you write a C program with a single {\tt int main(void) \{..\}} function
 with an infinite loop and this runs everything on the chip
 \end{itemize}
 \end{frame}
@@ -128,7 +135,7 @@ with an infinite loop and this runs everything on the chip
 \begin{lstlisting}[language=xml]
   <!-- Optical link capture rams -->
   <node id="MGT0" address="0x60000000" size="1024" mode="incremental" permission="r" description="Capture RAM for link #0"/>
-  <node id="MGT1" ...
+  <node id="MGT1"...
 \end{lstlisting}
 \begin{itemize}
 \item CTP6 FE map in CACTUS SVN: {\tt cactuscore/softipbus/etc/ctp6\_fe.xml}
@@ -242,6 +249,22 @@ Abstract HW interfaces (VME, SPI, UART) into functions which transport bytestrea
 \begin{center}
 todo.
 \end{center}
+\end{frame}
+
+\begin{frame}{Outstanding Tasks}
+\begin{itemize}
+    \item Update oRSC frontend BSP?
+    \item Validate VMEStream with echo test on oRSC backend
+    \item Validate SPIStream with echo test between oRSC BE and FE
+\begin{itemize}
+    \item Code written, needs new BE bitfile(?)
+\end{itemize}
+    \item Validate IPBus to oRSC FE
+    \item Port Tom's bitbanger oRSC backend clock config standalone code
+    \item Define (with Mathias) the memory maps for CTP BE, oRSC BE \& FE
+    \item Determine what functionality is needed in Supervisor and implement
+    \item Write interface for pattern test in oRSC
+\end{itemize}
 \end{frame}
 
 \end{document}
