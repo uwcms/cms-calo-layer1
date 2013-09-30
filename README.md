@@ -23,9 +23,6 @@ IPBus packets back over the serial link.
 Receives IPBus packets over SPI, reads and writes local memories, and returns
 IPBus packets back over the serial link.
 
-Testing and Validation Packages
--------------------------------
-
 ### cp6_fe_uart_echo_test ###
 
 Echoes everything it receives back along the UART. If you run this on the FE,
