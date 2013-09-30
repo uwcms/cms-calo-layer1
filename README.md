@@ -34,11 +34,14 @@ next section for initializing the environment.
 To check out and build the trigger packages, do the following.
 
 ```shell
+cd $HOME/trigger_code/
 # check out the softipbus dependency
 svn co svn+ssh://svn.cern.ch/reps/cactus/trunk/cactuscore/softipbus $HOME/trigger_code/softipbus
 # check out the set of packages
 git clone https://github.com/uwcms/cms-calo-layer1.git
 cd cms-calo-layer1
+# Setup your environment for Xilinx build tools
+source environment.sh
 # compile the Board Support Packages (BSPs)
 make bsps
 # Make one of the subprojects
