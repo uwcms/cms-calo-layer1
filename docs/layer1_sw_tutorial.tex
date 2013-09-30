@@ -26,4 +26,22 @@
 \end{itemize}
 \end{frame}
 
+\begin{frame}{IPBus}
+\begin{itemize}
+\item Common CMS protocol for interacting with Trigger HW
+\item Basically a specification for interpreting a byte stream to:
+\begin{itemize}
+\item READ $n$ words (32-bit) from an address in device memory 
+\item WRITE $n$ words (32-bit) into an address
+\item READ-WRITE-MODIFY at word at an address
+\end{itemize}
+\item Below: the specification for a READ request/response
+\end{itemize}
+\begin{center}
+\includegraphics[width=0.8\textwidth]{images/ipbus_read.pdf}
+\end{center}
+
+\end{frame}
+
+
 \end{document}
