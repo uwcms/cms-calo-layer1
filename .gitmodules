@@ -1,3 +1,0 @@
-[submodule "common/spi-stream"]
-	path = common/spi-stream
-	url = https://github.com/uwcms/spi-stream.git
