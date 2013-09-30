@@ -2,7 +2,7 @@
 *.aux
 *.fls
 *.fdb_latexmk
-docs/*.log
+*.log
 *.nav
 *.snm
 *.toc
