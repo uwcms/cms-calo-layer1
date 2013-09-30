@@ -44,9 +44,11 @@ cd cms-calo-layer1
 source environment.sh
 # compile the Board Support Packages (BSPs)
 make bsps
-# Make one of the subprojects
-cd orsc_fe_spi_echo_test 
+# Make all the projects
 make all
+# Or just make one of them
+cd orsc_fe_spi_echo_test 
+make payload
 ```
 
 More information about which HW and BSP files need to be tracked is available at the [Xilinx git info page.](http://www.xilinx.com/support/documentation/sw_manuals/xilinx14_4/SDK_Doc/reference/sdk_u_cvs.htm)
