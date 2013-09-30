@@ -3,18 +3,12 @@
 HW=../orsc_fe_hw
 BSP=../orsc_fe_bsp
 
-INCLUDES=-I../common/buffer-types \
-	 -I../common/spi-stream
+IPBUS=$(SOFTIPBUS)
 
-include ../Makefile
+INCLUDES=-I$(IPBUS)/include -I../spistream
 
 # Make a single megalibrary of all user code.
-SRCS=$(wildcard src/*.c) $(wildcard ../common/spi-stream/*.c) \
-     $(wildcard ../common/buffer-types/*.c) 
+SRCS=$(wildcard src/*.c) $(wildcard ../spistream/*.c) \
+     $(wildcard $(SOFTIPBUS)/src/*buffer*.c)
 
-orsc_fe_spi_echo_test.elf: $(SRCS)
-	$(COMPILE) -o $@ $^
-
-all: orsc_fe_spi_echo_test.elf \
-  orsc_fe_spi_echo_test.elf.size \
-  orsc_fe_spi_echo_test.elf.check
+include ../Makefile
