@@ -23,6 +23,29 @@ IPBus packets back over the serial link.
 Receives IPBus packets over SPI, reads and writes local memories, and returns
 IPBus packets back over the serial link.
 
+Testing and Validation Packages
+-------------------------------
+
+### cp6_fe_uart_echo_test ###
+
+Echoes everything it receives back along the UART. If you run this on the FE,
+then executing the following on the BE
+```
+# Set TTY into RAW mode
+stty -F /dev/ttyUL1 raw
+# Send data from BE->FE
+echo "Go badgers" > /dev/ttyUL1
+# Print echoed data
+cat /dev/ttyUL1
+```
+should return the original string "Go badgers"
+
+
+### orsc_(fe|be)_spi_echo_test ###
+
+Untested. Should send test data back and forth between the oRSC BE and FE via
+the inter-FPGA SPI.
+
 
 Installation
 ------------
@@ -53,23 +76,6 @@ make payload
 
 More information about which HW and BSP files need to be tracked is available at the [Xilinx git info page.](http://www.xilinx.com/support/documentation/sw_manuals/xilinx14_4/SDK_Doc/reference/sdk_u_cvs.htm)
 
-Environment
------------
-
-To setup your build environment, put this into a file and source it:
-
-```shell
-#!/bin/bash
-
-. /opt/Xilinx/14.4/ISE_DS/settings64.sh
-
-pushd /afs/hep.wisc.edu/home/uwhepfpga/petalinux-v12.12-final-full
-source settings.sh
-popd
-
-# Setup an env var pointing to your softipbus installation
-export SOFTIPBUS=$HOME/trigger_code/softipbus
-```
 
 Miscellany
 ----------
