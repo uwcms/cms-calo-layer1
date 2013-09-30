@@ -34,8 +34,10 @@ next section for initializing the environment.
 To check out and build the trigger packages, do the following.
 
 ```shell
+# check out the softipbus dependency
+svn co svn+ssh://svn.cern.ch/reps/cactus/trunk/cactuscore/softipbus
 # check out the set of packages
-git clone --recursive https://github.com/uwcms/cms-calo-layer1.git
+git clone https://github.com/uwcms/cms-calo-layer1.git
 cd cms-calo-layer1
 # compile the Board Support Packages (BSPs)
 make bsps
