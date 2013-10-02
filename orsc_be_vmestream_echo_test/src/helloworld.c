@@ -1,35 +1,59 @@
 /*
- * Copyright (c) 2009 Xilinx, Inc.  All rights reserved.
+ * Minimal test of VMEStream communication on the oRSC frontend.
  *
- * Xilinx, Inc.
- * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A
- * COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
- * ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR
- * STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
- * IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE
- * FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.
- * XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO
- * THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO
- * ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE
- * FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.
+ * Author: Evan K. Friis, UW Madison
  *
+ * This program sets up the SPI as master, then sends a continuous stream of
+ * increasing words to the slave device, which should echo them back.  If there
+ * are transmission errors, they will be noted on stdout.
+ * 
  */
 
-/*
- * helloworld.c: simple test application
- */
-
-#include <stdio.h>
 #include "platform.h"
 
+#include "xparameters.h"        /* Defined in BSP */
+
+#include "spi_stream.h"
+
+/*  STDOUT functionality  */
 void print(char *str);
 
-int main()
-{
-    init_platform();
+static SPIStream* spi_stream = NULL;
+/* Input and output buffers */
+static CircularBuffer* tx_buffer;
+static CircularBuffer* rx_buffer;
 
-    print("Hello World\n\r");
+int main() {
+  // initialize stdout.
+  init_platform();
 
-    return 0;
+  tx_buffer = cbuffer_new();
+  rx_buffer = cbuffer_new();
+
+  spi_stream = spi_stream_init(
+      tx_buffer, rx_buffer, 
+      DoSpiTransfer, // callback which triggers a SPI transfer
+      0);
+
+  print("Master SPI oRSC echo test\n");
+
+  while (1) {
+    // fill up the transmit buffer
+    while (cbuffer_freespace(tx_buffer)) {
+      cbuffer_push_back(tx_buffer, current_tx++);
+    }
+    // check to make sure the received buffer is what we expect
+    while (cbuffer_size(rx_buffer)) {
+      u32 front = cbuffer_value_at(rx_buffer, 0);
+      if (front != expected_rx) {
+        //print("Error: expected %lx, got %lx!\n", expected_rx, front);
+        print("Error: data value\n");
+      }
+      expected_rx++;
+      cbuffer_deletefront(rx_buffer, 1);
+    }
+  }
+
+  return 0;
 }
+
