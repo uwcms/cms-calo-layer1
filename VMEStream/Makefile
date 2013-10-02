@@ -1,20 +1,18 @@
-SOFTDIR=$(HOME)/trigger_code/softipbus
-
-CFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include -I/opt/xdaq/include/ -std=c99
-CXXFLAGS:=-g -Wall -Iinclude -I$(SOFTDIR)/include -I/opt/xdaq/include/ -DLINUX -DLOG_LEVEL=0x0
+CFLAGS:=-g -Wall -Iinclude -I$(SOFTIPBUS)/include -I/opt/xdaq/include/ -std=c99
+CXXFLAGS:=-g -Wall -Iinclude -I$(SOFTIPBUS)/include -I/opt/xdaq/include/ -DLINUX -DLOG_LEVEL=0x0
 LDFLAGS:=-L/opt/xdaq/lib/ -lCAENVME -llog4cplus
 CC=gcc
 CXX=g++
 
 SRC:=$(wildcard src/vmestream/*.c) \
 	$(wildcard src/vmestream/*.cc) \
-	$(SOFTDIR)/src/circular_buffer.c \
-	$(SOFTDIR)/src/buffer.c \
-	$(SOFTDIR)/src/bytebuffer.c \
-	$(SOFTDIR)/src/transactionhandler.c \
-	$(SOFTDIR)/src/serialization.c \
-	$(SOFTDIR)/src/handlers.c \
-	$(SOFTDIR)/src/testmembase.c
+	$(SOFTIPBUS)/src/circular_buffer.c \
+	$(SOFTIPBUS)/src/buffer.c \
+	$(SOFTIPBUS)/src/bytebuffer.c \
+	$(SOFTIPBUS)/src/transactionhandler.c \
+	$(SOFTIPBUS)/src/serialization.c \
+	$(SOFTIPBUS)/src/handlers.c \
+	$(SOFTIPBUS)/src/testmembase.c
 
 OBJ:=$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(SRC)))
 
@@ -29,8 +27,12 @@ SH_TESTS:=$(wildcard tests/*_tests.sh)
 
 all : $(EXEC)
 
+ifndef SOFTIPBUS
+	$(error ERROR: SOFTIPBUS is not set)
+endif
+
 bin/% : $(LIB)
-bin/% : src/%.cc
+bin/% : src/%.cc $(SRC)
 	@mkdir -p bin
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $< $(SRC)
 
