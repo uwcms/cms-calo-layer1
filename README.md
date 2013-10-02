@@ -18,10 +18,15 @@ various device functionality (UART or SPI, etc).  The production ones are:
 Receives IPBus packets over UART, reads and writes local memories, and returns
 IPBus packets back over the serial link.
 
-### orsc_fe_spi_ipbus ###
+### orsc_fe_ipbus ###
 
 Receives IPBus packets over SPI, reads and writes local memories, and returns
 IPBus packets back over the serial link.
+
+### orsc_be_ipbus ###
+
+(TODO) Receives IPBus packets over VMEStream and forwards them along the SPI to
+the oRSC front end.
 
 ### cp6_fe_uart_echo_test ###
 
@@ -43,6 +48,9 @@ should return the original string "Go badgers"
 Untested. Should send test data back and forth between the oRSC BE and FE via
 the inter-FPGA SPI.
 
+### orsc_be_vmestream_echo_test ###
+
+Untested. Should echo data sent from a "VME PC" via the VMEStream protocol.
 
 Installation
 ------------
