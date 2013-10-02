@@ -28,7 +28,7 @@
 
 #define MIN(x, y) ( (x) < (y) ? (x) : (y) )
 
-
+// VME RAM holds 512 words
 const uint32_t MAXRAM = 512;
 
 
@@ -73,14 +73,14 @@ int main ( int argc, char** argv )
 
         vme->read(VME_TX_SIZE_ADDR, DATAWIDTH, &vme_tx_size);
         if (vme_tx_size == 0 && *(stream->tx_size) > 0) {
-            vme->write(VME_TX_DATA_ADDR, *(stream->tx_size), stream->tx_data);
+            vme->write(VME_TX_DATA_ADDR, DATAWIDTH, stream->tx_data);
             vme->write(VME_TX_SIZE_ADDR, DATAWIDTH, stream->tx_size);
             *(stream->tx_size) = 0;
         }
 
         vme->read(VME_RX_SIZE_ADDR, DATAWIDTH, &vme_rx_size);
         if (vme_rx_size > 0 && *(stream->rx_size) == 0) {
-            vme->read(VME_RX_DATA_ADDR, vme_rx_size, stream->rx_data);
+            vme->read(VME_RX_DATA_ADDR, DATAWIDTH, stream->rx_data);
             *(stream->rx_size) = vme_rx_size;
             uint32_t zero = 0;
             vme->write(VME_RX_SIZE_ADDR, DATAWIDTH, &zero);

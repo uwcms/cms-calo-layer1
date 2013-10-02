@@ -27,6 +27,12 @@ VMEController::getVMEController()
             std::cout << "Emulating oRSC as an IPBus Server" << std::endl;
             return OrscIpbusEmulator::getVMEController();
         }
+        else {
+            std::cerr << "VME_CONTROLLER not set properly!" << std::endl;;
+            std::cerr << 
+                "-> VME_CONTROLLER = [CAEN, TESTECHO, TESTIPBUS]" << std::endl;
+            exit(1);
+        }
     }
 
     return null::getVMEController();
