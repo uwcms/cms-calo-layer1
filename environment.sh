@@ -9,3 +9,9 @@
 
 # Setup an env var pointing to your softipbus installation
 export SOFTIPBUS=$HOME/trigger_code/softipbus
+
+# Include xdaq libraries
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/xdaq/lib
+
+# Run VMEStream in ECHOTEST mode (for now)
+export VME_CONTROLLER=TESTECHO
