@@ -25,3 +25,4 @@ Release/
 *.elf.check
 
 .DS_Store
+*.swp
