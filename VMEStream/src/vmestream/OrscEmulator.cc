@@ -104,6 +104,19 @@ OrscEmulator::multiwrite(unsigned int *addresses, size_t size,
     return 1;
 }
 
+
+bool
+OrscEmulator::block_read(uint32_t address, size_t datawidth, void* buffer, size_t n_bytes)
+{
+    return 1;
+}
+
+bool
+OrscEmulator::block_write(uint32_t address, size_t datawidth, void* buffer, size_t n_bytes)
+{
+    return 1;
+}
+
 bool
 OrscEmulator::reset()
 {
