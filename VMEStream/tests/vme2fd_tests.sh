@@ -3,9 +3,11 @@
 TEST_STRING="Put that in your pipe and smoke it\nNewline"
 
 mkdir -p /tmp/$USER
+rm -f /tmp/$USER/in_stream /tmp/$USER/out_stream
 mkfifo /tmp/$USER/in_stream
 mkfifo /tmp/$USER/out_stream
 
+export LD_LIBRARY_PATH=/opt/xdaq/lib:$LD_LIBRARY_PATH
 ./bin/vme2fd /tmp/$USER/in_stream /tmp/$USER/out_stream &
 
 echo -e $TEST_STRING > test.in
