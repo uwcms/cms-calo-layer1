@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 // we use 512 words a time for the RAMS
-#define VMERAMSIZE (512 * sizeof(uint32_t))
+#define VMERAMSIZE 512
 
 OrscEmulator::OrscEmulator()
 {
@@ -18,10 +18,10 @@ OrscEmulator::OrscEmulator()
     stream = vmestream_initialize_mem(
             input_buffer,
             output_buffer,
-            &register1,
             &register2,
-            ram1,
+            &register1,
             ram2,
+            ram1,
             VMERAMSIZE);
 }
 
