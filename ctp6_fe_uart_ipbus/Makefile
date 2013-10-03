@@ -19,5 +19,5 @@ SRCS=$(wildcard src/*.c) \
 
 include ../Makefile
 
-upload: all
-	echo "connect mb mdm; dow ctp6_fe_uart_ipbus.elf;" | xmd
+upload: payload
+	echo "connect mb mdm; dow payload.elf; run" | xmd
