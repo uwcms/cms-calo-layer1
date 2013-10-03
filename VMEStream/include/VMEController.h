@@ -20,6 +20,8 @@ class VMEController
   virtual bool write(unsigned long address, size_t size, void* value) = 0;
   virtual bool multiread(unsigned int *addresses, size_t size, unsigned short *data, int dataCounter) = 0;
   virtual bool multiwrite(unsigned int *addresses, size_t size, unsigned short *data, int dataCounter) = 0;
+  virtual bool block_read(uint32_t address, size_t datawidth, void* buffer, size_t n_bytes) = 0;
+  virtual bool block_write(uint32_t address, size_t datawidth, void* buffer, size_t n_bytes) = 0;
 
   bool write(unsigned long address, unsigned long value)
     {
