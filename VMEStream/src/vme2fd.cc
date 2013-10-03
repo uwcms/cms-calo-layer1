@@ -12,14 +12,8 @@
 
 #include "VMEController.h"
 #include "VMEStream.h"
+#include "VMEStreamAddress.h"
 #include "bytebuffer.h"
-
-
-#define VME_RX_SIZE_ADDR 0xDEADBEEF
-#define VME_TX_SIZE_ADDR 0xBEEFCAFE
-
-#define VME_RX_DATA_ADDR 0xFACEFEED
-#define VME_TX_DATA_ADDR 0xCAFEBABE
 
 #define DATAWIDTH 4
 
@@ -27,10 +21,6 @@
 #define READ_BUFFER_SIZE (1024 * 1024 * 2)
 
 #define MIN(x, y) ( (x) < (y) ? (x) : (y) )
-
-// VME RAM holds 512 words
-const uint32_t MAXRAM = 512;
-
 
 int main ( int argc, char** argv )
 {
@@ -51,7 +41,7 @@ int main ( int argc, char** argv )
     CircularBuffer *output = cbuffer_new();
     // initialize VMEStream object allocating local memory for the transfer
     // buffers.
-    VMEStream *stream = vmestream_initialize_heap(input, output, MAXRAM);
+    VMEStream *stream = vmestream_initialize_heap(input, output, VMERAMSIZE);
 
     uint32_t vme_tx_size;
     uint32_t vme_rx_size;
@@ -74,24 +64,24 @@ int main ( int argc, char** argv )
         vmestream_transfer_data(stream);
 
 
-        vme->read(VME_TX_SIZE_ADDR, DATAWIDTH, &vme_tx_size);
+        vme->read(PC_2_ORSC_SIZE, DATAWIDTH, &vme_tx_size);
 
         if (vme_tx_size == 0 && *(stream->tx_size) > 0) {
-            vme->block_write(VME_TX_DATA_ADDR, DATAWIDTH, stream->tx_data,
+            vme->block_write(PC_2_ORSC_DATA, DATAWIDTH, stream->tx_data,
                     *(stream->tx_size) * sizeof(uint32_t));
-            vme->write(VME_TX_SIZE_ADDR, DATAWIDTH, stream->tx_size);
+            vme->write(PC_2_ORSC_SIZE, DATAWIDTH, stream->tx_size);
             *(stream->tx_size) = 0;
         }
 
 
-        vme->read(VME_RX_SIZE_ADDR, DATAWIDTH, &vme_rx_size);
+        vme->read(ORSC_2_PC_SIZE, DATAWIDTH, &vme_rx_size);
 
         if (vme_rx_size > 0 && *(stream->rx_size) == 0) {
-            vme->block_read(VME_RX_DATA_ADDR, DATAWIDTH, stream->rx_data,
+            vme->block_read(ORSC_2_PC_DATA, DATAWIDTH, stream->rx_data,
                     vme_rx_size * sizeof(uint32_t));
             *(stream->rx_size) = vme_rx_size;
             uint32_t zero = 0;
-            vme->write(VME_RX_SIZE_ADDR, DATAWIDTH, &zero);
+            vme->write(ORSC_2_PC_SIZE, DATAWIDTH, &zero);
         }
 
         vmestream_transfer_data(stream);
