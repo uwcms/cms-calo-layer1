@@ -12,14 +12,8 @@
 
 #include "VMEController.h"
 #include "VMEStream.h"
+#include "VMEStreamAddress.h"
 #include "bytebuffer.h"
-
-
-#define VME_RX_SIZE_ADDR 0xDEADBEEF
-#define VME_TX_SIZE_ADDR 0xBEEFCAFE
-
-#define VME_RX_DATA_ADDR 0xFACEFEED
-#define VME_TX_DATA_ADDR 0xCAFEBABE
 
 #define DATAWIDTH 4
 
@@ -27,10 +21,6 @@
 #define READ_BUFFER_SIZE (1024 * 1024 * 2)
 
 #define MIN(x, y) ( (x) < (y) ? (x) : (y) )
-
-// VME RAM holds 512 words
-const uint32_t MAXRAM = 512;
-
 
 int main ( int argc, char** argv )
 {
@@ -51,7 +41,7 @@ int main ( int argc, char** argv )
     CircularBuffer *output = cbuffer_new();
     // initialize VMEStream object allocating local memory for the transfer
     // buffers.
-    VMEStream *stream = vmestream_initialize_heap(input, output, MAXRAM);
+    VMEStream *stream = vmestream_initialize_heap(input, output, VMERAMSIZE);
 
     uint32_t vme_tx_size;
     uint32_t vme_rx_size;
