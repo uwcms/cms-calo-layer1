@@ -1,8 +1,8 @@
 #include "OrscEmulator.h"
+
 #include <stdlib.h>
 
-// we use 512 words a time for the RAMS
-#define VMERAMSIZE 512
+#include "VMEStreamAddress.h"
 
 OrscEmulator::OrscEmulator()
 {
@@ -43,11 +43,11 @@ bool
 OrscEmulator::read(unsigned long address, size_t size, void* value)
 {
     switch(address) {
-        case 0xBEEFCAFE:
+        case PC_2_ORSC_SIZE:
             assert(size == 4);
             memcpy(value, &register1, sizeof(uint32_t));
             break;
-        case 0xDEADBEEF:
+        case ORSC_2_PC_SIZE:
             assert(size == 4);
             memcpy(value, &register2, sizeof(uint32_t));
             break;
@@ -65,11 +65,11 @@ bool
 OrscEmulator::write(unsigned long address, size_t size, void* value)
 {
     switch(address) {
-        case 0xBEEFCAFE:
+        case PC_2_ORSC_SIZE:
             assert(size == 4);
             memcpy(&register1, value, sizeof(uint32_t));
             break;
-        case 0xDEADBEEF:
+        case ORSC_2_PC_SIZE:
             assert(size == 4);
             memcpy(&register2, value, sizeof(uint32_t));
             break;
@@ -101,11 +101,11 @@ OrscEmulator::block_read(uint32_t address, size_t datawidth,
         void* buffer, size_t n_bytes)
 {
     switch(address) {
-        case 0xCAFEBABE:
+        case PC_2_ORSC_DATA:
             assert(datawidth == 4);
             memcpy(buffer, ram1, n_bytes);
             break;
-        case 0xFACEFEED:
+        case ORSC_2_PC_DATA:
             assert(datawidth == 4);
             memcpy(buffer, ram2, n_bytes);
             break;
@@ -120,11 +120,11 @@ OrscEmulator::block_write(uint32_t address, size_t datawidth,
         void* buffer, size_t n_bytes)
 {
     switch(address) {
-        case 0xCAFEBABE:
+        case PC_2_ORSC_DATA:
             assert(datawidth == 4);
             memcpy(ram1, buffer, n_bytes);
             break;
-        case 0xFACEFEED:
+        case ORSC_2_PC_DATA:
             assert(datawidth == 4);
             memcpy(ram2, buffer, n_bytes);
             break;
