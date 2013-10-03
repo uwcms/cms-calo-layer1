@@ -93,6 +93,31 @@ class null : public VMEController
         return true;
   }
 
+  virtual bool block_read(uint32_t address, size_t datawidth, void* buffer, size_t n_bytes)
+  {
+      Logger logger = Logger::getInstance("VMEController::null");
+
+      static int read_counter = 0;
+      if (read_counter < 10) {
+          LOG4CPLUS_WARN(logger, "null::block_read() called");
+          read_counter++;
+      }
+      return true;
+  }
+
+  virtual bool block_write(uint32_t address, size_t datawidth, void* buffer, size_t n_bytes)
+  {
+      Logger logger = Logger::getInstance("VMEController::null");
+
+      static int read_counter = 0;
+      if (read_counter < 10) {
+          LOG4CPLUS_WARN(logger, "null::block_write() called");
+          read_counter++;
+      }
+      return true;
+  }
+
+
 
  private:
   // Private to make this a singleton

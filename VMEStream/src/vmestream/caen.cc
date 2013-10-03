@@ -274,3 +274,59 @@ caen::multiwrite(unsigned int *addresses, size_t size, unsigned short *data, int
     }
   return true;
 }
+
+
+bool
+caen::block_write(uint32_t address, size_t datawidth,
+        void* buffer, size_t n_bytes)
+{
+    CVAddressModifier am = cvA32_U_DATA;
+    if(type == 0) am = cvA32_S_DATA;
+    else if(type == 1) am = cvA24_S_DATA;
+    else if (type == 2) am = cvA16_S;
+
+    CVDataWidth dw = cvD32;
+    if(datawidth == 1) dw = cvD8;
+    else if(datawidth == 2) dw = cvD16;
+    else if(datawidth == 4) dw = cvD32;
+    else if(datawidth == 8) dw = cvD64;
+
+    int count = 0; // number of byes transferred
+    int status = CAENVME_BLTWriteCycle(handle, address, buffer, n_bytes,
+            am, dw, &count);
+
+    if (status != cvSuccess) {
+        cerr << "CAEN could not write " << hex << address << endl;
+        return false;
+    }
+
+    return true;
+}
+
+
+bool
+caen::block_read(uint32_t address, size_t datawidth,
+        void* buffer, size_t n_bytes)
+{
+    CVAddressModifier am = cvA32_U_DATA;
+    if(type == 0) am = cvA32_S_DATA;
+    else if(type == 1) am = cvA24_S_DATA;
+    else if (type == 2) am = cvA16_S;
+
+    CVDataWidth dw = cvD32;
+    if(datawidth == 1) dw = cvD8;
+    else if(datawidth == 2) dw = cvD16;
+    else if(datawidth == 4) dw = cvD32;
+    else if(datawidth == 8) dw = cvD64;
+
+    int count = 0; // number of byes transferred
+    int status = CAENVME_BLTReadCycle(handle, address, buffer, n_bytes,
+            am, dw, &count);
+
+    if (status != cvSuccess) {
+        cerr << "CAEN could not read " << hex << address << endl;
+        return false;
+    }
+
+    return true;
+}

@@ -19,6 +19,8 @@ class caen : public VMEController
   virtual bool write(unsigned long address, size_t size, void* value);
   virtual bool multiread(unsigned int *addresses, size_t size, unsigned short *data, int dataCounter);
   virtual bool multiwrite(unsigned int *addresses, size_t size, unsigned short *data, int dataCounter);
+  virtual bool block_read(uint32_t address, size_t datawidth, void* buffer, size_t n_bytes);
+  virtual bool block_write(uint32_t address, size_t datawidth, void* buffer, size_t n_bytes);
 
   //MG 4May07
   //long getHandle() {return handle;}
