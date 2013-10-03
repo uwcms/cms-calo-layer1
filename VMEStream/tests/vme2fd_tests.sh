@@ -2,6 +2,7 @@
 
 TEST_STRING="Put that in your pipe and smoke it\nNewline"
 
+mkdir -p /tmp/$USER
 mkfifo /tmp/$USER/in_stream
 mkfifo /tmp/$USER/out_stream
 
