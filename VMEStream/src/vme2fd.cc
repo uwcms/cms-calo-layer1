@@ -44,12 +44,14 @@ int main ( int argc, char** argv )
         printf("Usage: vme2fd [instream] [outstream]\n");
         exit(0);
     }
-    fin  = open( argv[1], O_RDONLY);
-    fout = open( argv[2], O_WRONLY );
+    fin  = open(argv[1], O_RDONLY);
+    fout = open(argv[2], O_WRONLY);
 
     CircularBuffer *input = cbuffer_new();
     CircularBuffer *output = cbuffer_new();
-    VMEStream *stream = vmestream_initialize(input, output, MAXRAM);
+    // initialize VMEStream object allocating local memory for the transfer
+    // buffers.
+    VMEStream *stream = vmestream_initialize_heap(input, output, MAXRAM);
 
     uint32_t vme_tx_size;
     uint32_t vme_rx_size;
@@ -99,6 +101,7 @@ int main ( int argc, char** argv )
 
     close( fin );
     close( fout );
+    vmestream_destroy_heap(stream);
 
     return 0;
 }

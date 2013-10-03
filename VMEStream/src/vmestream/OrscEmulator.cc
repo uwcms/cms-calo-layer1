@@ -15,14 +15,14 @@ OrscEmulator::OrscEmulator()
     input_buffer = cbuffer_new();
     output_buffer = cbuffer_new();
 
-    stream = (VMEStream*)malloc(sizeof(VMEStream));
-    stream->MAXRAM = VMERAMSIZE;
-    stream->input = input_buffer;
-    stream->output = output_buffer;
-    stream->tx_size = &register2;
-    stream->rx_size = &register1;
-    stream->tx_data = ram2;
-    stream->rx_data = ram1;
+    stream = vmestream_initialize_mem(
+            input_buffer,
+            output_buffer,
+            &register1,
+            &register2,
+            ram1,
+            ram2,
+            VMERAMSIZE);
 }
 
 
@@ -32,7 +32,7 @@ OrscEmulator::~OrscEmulator()
     free(ram2);
     cbuffer_free(input_buffer);
     cbuffer_free(output_buffer);
-    vmestream_destroy(stream);
+    free(stream);
 }
 
 

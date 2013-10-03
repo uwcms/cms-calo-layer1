@@ -5,7 +5,7 @@
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
-VMEStream *vmestream_initialize(
+VMEStream *vmestream_initialize_heap(
         CircularBuffer *input,
         CircularBuffer *output,
         uint32_t MAXRAM)
@@ -28,8 +28,26 @@ VMEStream *vmestream_initialize(
     return stream;
 }
 
+VMEStream *vmestream_initialize_mem(
+        CircularBuffer *input,
+        CircularBuffer *output,
+        uint32_t *tx_size,
+        uint32_t *rx_size,
+        uint32_t *tx_data,
+        uint32_t *rx_data,
+        uint32_t MAXRAM) {
+    VMEStream *stream = (VMEStream*)malloc(sizeof(VMEStream));
+    stream->tx_size = tx_size;
+    stream->tx_data = tx_data;
+    stream->rx_size = rx_size;
+    stream->rx_data = rx_data;
+    stream->MAXRAM = MAXRAM;
+    stream->input = input;
+    stream->output = output;
+    return stream;
+}
 
-void vmestream_destroy(VMEStream *stream)
+void vmestream_destroy_heap(VMEStream *stream)
 {
     free(stream->tx_size);
     free(stream->tx_data);
