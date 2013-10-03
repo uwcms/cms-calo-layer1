@@ -44,12 +44,14 @@ int main ( int argc, char** argv )
         printf("Usage: vme2fd [instream] [outstream]\n");
         exit(0);
     }
-    fin  = open( argv[1], O_RDONLY);
-    fout = open( argv[2], O_WRONLY );
+    fin  = open(argv[1], O_RDONLY);
+    fout = open(argv[2], O_WRONLY);
 
     CircularBuffer *input = cbuffer_new();
     CircularBuffer *output = cbuffer_new();
-    VMEStream *stream = vmestream_initialize(input, output, MAXRAM);
+    // initialize VMEStream object allocating local memory for the transfer
+    // buffers.
+    VMEStream *stream = vmestream_initialize_heap(input, output, MAXRAM);
 
     uint32_t vme_tx_size;
     uint32_t vme_rx_size;
@@ -77,7 +79,6 @@ int main ( int argc, char** argv )
         if (vme_tx_size == 0 && *(stream->tx_size) > 0) {
             vme->block_write(VME_TX_DATA_ADDR, DATAWIDTH, stream->tx_data,
                     *(stream->tx_size) * sizeof(uint32_t));
-
             vme->write(VME_TX_SIZE_ADDR, DATAWIDTH, stream->tx_size);
             *(stream->tx_size) = 0;
         }
@@ -88,7 +89,6 @@ int main ( int argc, char** argv )
         if (vme_rx_size > 0 && *(stream->rx_size) == 0) {
             vme->block_read(VME_RX_DATA_ADDR, DATAWIDTH, stream->rx_data,
                     vme_rx_size * sizeof(uint32_t));
-
             *(stream->rx_size) = vme_rx_size;
             uint32_t zero = 0;
             vme->write(VME_RX_SIZE_ADDR, DATAWIDTH, &zero);
@@ -101,12 +101,13 @@ int main ( int argc, char** argv )
         if (n_words > 0) {
             cbuffer_write_fd(stream->output, fout, n_words);
         }
-        // do any desired emulation. in production, this does nothing.
+        // Do any desired emulation. In production, this does nothing.
         vme->doStuff();
     }
 
     close( fin );
     close( fout );
+    vmestream_destroy_heap(stream);
 
     return 0;
 }

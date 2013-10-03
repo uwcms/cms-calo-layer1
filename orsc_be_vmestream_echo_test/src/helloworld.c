@@ -13,12 +13,20 @@
 
 #include "xparameters.h"        /* Defined in BSP */
 
-#include "spi_stream.h"
+#include "VMEStream.h"
+
+#define PC_2_ORSC_SIZE 0x0000
+#define PC_2_ORSC_DATA 0x0001 // through 0x7ff
+
+#define ORSC_2_PC_SIZE 0x8000
+#define ORSC_2_PC_DATA 0x8001 // through 0x87ff
+
+#define VME_BLOCK_SIZE 0x7ff  // Would be 0x800 but first address is size reg. 
 
 /*  STDOUT functionality  */
 void print(char *str);
 
-static SPIStream* spi_stream = NULL;
+static VMEStream* vme_stream;
 /* Input and output buffers */
 static CircularBuffer* tx_buffer;
 static CircularBuffer* rx_buffer;
@@ -30,10 +38,8 @@ int main() {
   tx_buffer = cbuffer_new();
   rx_buffer = cbuffer_new();
 
-  spi_stream = spi_stream_init(
-      tx_buffer, rx_buffer, 
-      DoSpiTransfer, // callback which triggers a SPI transfer
-      0);
+  vme_stream = vmestream_initialize(
+          rx_buffer, tx_buffer, VME_BLOCK_SIZE);
 
   print("Master SPI oRSC echo test\n");
 

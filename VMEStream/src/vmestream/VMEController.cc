@@ -12,7 +12,7 @@ VMEController*
 VMEController::getVMEController()
 {
     char *environment = getenv("VME_CONTROLLER");
-    std::cout << "VME controller:" << environment << std::endl;
+    std::cerr << "VME controller:" << environment << std::endl;
 
     if(environment != 0)
     {
@@ -20,11 +20,11 @@ VMEController::getVMEController()
             return caen::getVMEController();
         }
         else if (strcmp(environment, "TESTECHO") == 0) {
-            std::cout << "Emulating oRSC with Echo" << std::endl;
+            std::cerr << "Emulating oRSC with Echo" << std::endl;
             return OrscEchoEmulator::getVMEController();
         }
         else if (strcmp(environment, "TESTIPBUS") == 0) {
-            std::cout << "Emulating oRSC as an IPBus Server" << std::endl;
+            std::cerr << "Emulating oRSC as an IPBus Server" << std::endl;
             return OrscIpbusEmulator::getVMEController();
         }
         else {
