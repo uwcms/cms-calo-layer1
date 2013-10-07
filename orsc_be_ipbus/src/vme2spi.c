@@ -63,7 +63,7 @@ int main() {
    * rx_buffer_vme -> ORSC_2_PC_DATA
    */
   vme_stream = vmestream_initialize_mem(
-          rx_buffer_vme, tx_buffer_vme, 
+          tx_buffer_vme, rx_buffer_vme,
           (uint32_t*)ORSC_2_PC_SIZE,
           (uint32_t*)PC_2_ORSC_SIZE,
           (uint32_t*)ORSC_2_PC_DATA,
@@ -130,12 +130,24 @@ int main() {
   u32 expected_rx = 0;
   u32 current_tx = 0;
 
+  /* transfer data between VMEStream and SPIStream */
   while (1) {
-    /* transfer data between VMEStream and SPIStream */
+    /*
+     * Perform vmestream data transfer to populate rx_buffer_vme and to move
+     * data out of tx_buffer_vme.
+     * Then, move data from rx_buffer_vme to tx_buffer_spi
+     * Note: data transfers within SPIStream are handled automatically.
+     */
+    vmestream_transfer_data(vme_stream);
+    cbuffer_transfer_data(rx_buffer_vme, tx_buffer_spi);
+
+    /* Move data from rx_buffer_spi to tx_buffer_vme */
+    cbuffer_transfer_data(rx_buffer_spi, tx_buffer_vme);
   }
 
   return 0;
 }
+
 
 
 /*****************************************************************************/
