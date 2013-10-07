@@ -6,14 +6,27 @@
 
 #include "platform.h"
 
-#include "xparameters.h"        /* Defined in BSP */
+#include "xparameters.h"  /* Defined in BSP */
+#include "xspi.h"		      /* SPI device driver */
+#include "xintc.h"		    /* Interrupt controller device driver */
 
 #include "VMEStream.h"
 #include "VMEStreamAddress.h"
+#include "spi_stream.h"
 
 /*  STDOUT functionality  */
 void print(char *str);
 
+
+/* Setup VME and SPI Stream structs */
+static SPIStream* spi_stream = NULL;
+static VMEStream* vme_stream;
+
+/* Input and output buffers */
+static CircularBuffer* tx_buffer_vme;
+static CircularBuffer* rx_buffer_vme;
+static CircularBuffer* tx_buffer_spi;
+static CircularBuffer* rx_buffer_spi;
 
 
 /*  SPI device driver plumbing  */
@@ -38,16 +51,6 @@ void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
   XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
 }
 
-
-/* Setup VME and SPI Stream structs */
-static SPIStream* spi_stream = NULL;
-static VMEStream* vme_stream;
-
-/* Input and output buffers */
-static CircularBuffer* tx_buffer_vme;
-static CircularBuffer* rx_buffer_vme;
-static CircularBuffer* tx_buffer_spi;
-static CircularBuffer* rx_buffer_spi;
 
 int main() {
   // initialize stdout.
@@ -126,9 +129,6 @@ int main() {
 
   // Note: to disable interrupt, do: XIntc_Disconnect(&IntcInstance,
   // SPI_IRPT_INTR);
-
-  u32 expected_rx = 0;
-  u32 current_tx = 0;
 
   /* transfer data between VMEStream and SPIStream */
   while (1) {
