@@ -32,10 +32,13 @@ PROJECTS=\
 all: bsps force_look
 	-for d in $(PROJECTS); do (cd $$d; $(MAKE) payload ); done
 
-payload: payload.elf payload.elf.size payload.elf.check
+payload: payload.elf payload.elf.size payload.elf.check payload.S
 
 payload.elf: $(SRCS)
 	$(COMPILE) -o $@ $^
+
+%.S: %.elf:
+	mb-objdump -S $< > $@
 
 %.elf.size: %.elf
 	mb-size $< | tee $@
