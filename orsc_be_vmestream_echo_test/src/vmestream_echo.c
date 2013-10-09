@@ -16,8 +16,7 @@
 #include "VMEStream.h"
 #include "VMEStreamAddress.h"
 
-/*  STDOUT functionality  */
-void print(char *str);
+#include "xil_printf.h"
 
 static VMEStream* vme_stream;
 /* Input and output buffers */
@@ -25,6 +24,7 @@ static CircularBuffer* tx_buffer;
 static CircularBuffer* rx_buffer;
 
 int main() {
+  xil_printf("Master SPI oRSC echo test\n");
   // initialize stdout.
   init_platform();
 
@@ -39,7 +39,7 @@ int main() {
           (uint32_t*)PC_2_ORSC_DATA,
           VMERAMSIZE);
 
-  print("Master SPI oRSC echo test\n");
+  //printf("Master SPI oRSC echo test\n");
 
   while (1) {
       // transfer data

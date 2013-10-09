@@ -24,6 +24,7 @@ PROJECTS=\
 	 ctp6_fe_uart_echo_test \
 	 orsc_be_spi_echo_test \
 	 orsc_fe_spi_echo_test \
+	 orsc_be_vmestream_echo_test \
 	 orsc_be_ipbus
 	 #ctp6_fe_spi_echo_test \
 	 #ctp6_fe_uart_blaster \
