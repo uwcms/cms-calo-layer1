@@ -37,7 +37,7 @@ payload: payload.elf payload.elf.size payload.elf.check payload.S
 payload.elf: $(SRCS)
 	$(COMPILE) -o $@ $^
 
-%.S: %.elf:
+%.S: %.elf
 	mb-objdump -S $< > $@
 
 %.elf.size: %.elf
