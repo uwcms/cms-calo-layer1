@@ -7,7 +7,7 @@ COMPILE_OPT=-DLITTLE_ENDIAN -Wall \
 	    -I$(BSP)/microblaze_0/include \
 	    -fmessage-length=0 -std=c99 -Wl,--no-relax \
 	    -mlittle-endian -mxl-pattern-compare -mcpu=v8.40.b \
-	    -mno-xl-soft-mul -DLOG_LEVEL=2
+	    -mno-xl-soft-mul -DLOG_LEVEL=3
 
 LINK_OPT=-Wl,--no-relax -Wl,-T -Wl,src/lscript.ld \
 	 -L$(BSP)/microblaze_0/lib -mlittle-endian \
@@ -19,22 +19,26 @@ OPT=-O2
 DEBUG=-g3
 COMPILE=mb-gcc $(COMPILE_OPT) $(INCLUDES) $(OPT) $(DEBUG) $(LINK_OPT) $(LIBS)
 
+ifndef LAYER1_DIR
+	LAYER1_DIR=$(CURDIR)
+endif
+
 ifndef SOFTIPBUS
 $(error SOFTIPBUS env variable is not set. It should probably be $(HOME)/trigger_code/softipbus)
+
 endif
 
 PROJECTS=\
-	 ctp6_fe_uart_ipbus \
-	 ctp6_fe_uart_echo_test \
-	 orsc_be_spi_echo_test \
-	 orsc_fe_spi_echo_test \
-	 orsc_be_vmestream_echo_test \
-	 orsc_be_ipbus
-	 #ctp6_fe_spi_echo_test \
-	 #ctp6_fe_uart_blaster \
-	 orsc_fe_ipbus
+	 $(LAYER1_DIR)/ctp6_fe_uart_ipbus \
+	 $(LAYER1_DIR)/ctp6_fe_uart_echo_test \
+	 $(LAYER1_DIR)/orsc_be_spi_echo_test \
+	 $(LAYER1_DIR)/orsc_fe_spi_echo_test
+	 #$LAYER1_DIR)/ctp6_fe_spi_echo_test \
+	 #$LAYER1_DIR)/ctp6_fe_uart_blaster \
+	 $(LAYER1_DIR)/orsc_fe_ipbus
 
 all: bsps force_look
+	@echo $(PWD)
 	-for d in $(PROJECTS); do (cd $$d; $(MAKE) payload ); done
 
 payload: payload.elf payload.elf.size payload.elf.check payload.S
@@ -65,9 +69,9 @@ orscbitfiles:
 
 # Compile the BSPs
 bsps:
-	cd orsc_fe_bsp && make
-	cd orsc_be_bsp && make
-	cd ctp6_fe_bsp && make
+	cd $(LAYER1_DIR)/orsc_fe_bsp && make
+	cd $(LAYER1_DIR)/orsc_be_bsp && make
+	cd $(LAYER1_DIR)/ctp6_fe_bsp && make
 
 clean:
 	-for d in $(PROJECTS); do (cd $$d; rm -f *.elf* ); done

@@ -9,6 +9,8 @@ INCLUDES=-I$(IPBUS)/include
 
 OPT=-O0
 
+LAYER1_DIR=..
+
 # In JTAG chain, needed for make upload
 DEVICENR=2
 

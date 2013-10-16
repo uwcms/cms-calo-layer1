@@ -8,6 +8,8 @@ INCLUDES=-I../common/buffer-types \
 
 include ../Makefile
 
+LAYER1_DIR=..
+
 # In JTAG chain, needed for make upload
 DEVICENR=2
 

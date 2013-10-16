@@ -7,6 +7,8 @@ IPBUS=$(SOFTIPBUS)
 
 INCLUDES=-I$(IPBUS)/include
 
+LAYER1_DIR=..
+
 # In JTAG chain, needed for make upload
 DEVICENR=2
 
