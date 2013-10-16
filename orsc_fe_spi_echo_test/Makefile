@@ -10,6 +10,8 @@ DEVICENR=2
 
 INCLUDES=-I$(IPBUS)/include -I../spistream
 
+LAYER1_DIR=..
+
 # Make a single megalibrary of all user code.
 SRCS=$(wildcard src/*.c) $(wildcard ../spistream/*.c) \
      $(wildcard $(SOFTIPBUS)/src/*buffer*.c)
