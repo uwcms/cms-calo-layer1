@@ -8,6 +8,9 @@ INCLUDES=-I../common/buffer-types \
 
 include ../Makefile
 
+# In JTAG chain, needed for make upload
+DEVICENR=2
+
 # Make a single megalibrary of all user code.
 SRCS=$(wildcard src/*.c) $(wildcard ../common/spi-stream/*.c) \
      $(wildcard ../common/buffer-types/*.c) 
