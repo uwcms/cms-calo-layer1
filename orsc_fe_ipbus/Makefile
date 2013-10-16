@@ -8,6 +8,8 @@ INCLUDES=-I../common/buffer-types \
 
 include ../Makefile
 
+LAYER1_DIR=..
+
 # Make a single megalibrary of all user code.
 SRCS=$(wildcard src/*.c) $(wildcard ../common/spi-stream/*.c) \
      $(wildcard ../common/buffer-types/*.c) 

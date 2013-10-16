@@ -7,6 +7,8 @@ IPBUS=$(SOFTIPBUS)
 
 INCLUDES=-I$(IPBUS)/include
 
+LAYER1_DIR=..
+
 # Make a single megalibrary of all user code.
 SRCS=$(wildcard src/*.c) $(wildcard $(IPBUS)/src/*buffer*c)
 

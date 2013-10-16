@@ -9,6 +9,8 @@ INCLUDES=-I$(IPBUS)/include
 
 OPT=-O0
 
+LAYER1_DIR=..
+
 # Make a single megalibrary of all user code.
 SRCS=$(wildcard src/*.c) \
      $(wildcard $(IPBUS)/src/*buffer*c) \
@@ -19,5 +21,5 @@ SRCS=$(wildcard src/*.c) \
 
 include ../Makefile
 
-upload: payload
-	echo "connect mb mdm; dow payload.elf; run" | xmd
+upload: all
+	echo "connect mb mdm -debugdevice deviceNr 2; dow payload.elf;" | xmd
