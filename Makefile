@@ -19,6 +19,10 @@ OPT=-O2
 DEBUG=-g3
 COMPILE=mb-gcc $(COMPILE_OPT) $(INCLUDES) $(OPT) $(DEBUG) $(LINK_OPT) $(LIBS)
 
+ifndef SOFTIPBUS
+$(error SOFTIPBUS env variable is not set. It should probably be $(HOME)/trigger_code/softipbus)
+endif
+
 PROJECTS=\
 	 ctp6_fe_uart_ipbus \
 	 ctp6_fe_uart_echo_test \
