@@ -53,7 +53,7 @@ payload.elf: $(SRCS)
 
 # Upload to the device
 upload: payload.elf payload.elf.check
-	echo "connect mb mdm -debugdevice deviceNr $(DEVICENR); dow payload.elf; run" | xmd
+	echo "connect mb mdm -debugdevice deviceNr $(DEVICENR); rst; connect mb mdm -debugdevice deviceNr $(DEVICENR); dow payload.elf; run" | xmd
 
 # Flash the ORSC bitfiles
 orscbitfiles:
