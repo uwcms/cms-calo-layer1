@@ -15,3 +15,8 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/xdaq/lib
 
 # Run VMEStream in ECHOTEST mode (for now)
 export VME_CONTROLLER=TESTECHO
+
+if [ -f /nfshome0/rctts/cactusprojects/rct/environment.sh ]; then
+    source /nfshome0/rctts/cactusprojects/rct/environment.sh
+fi
+
