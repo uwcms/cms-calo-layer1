@@ -51,6 +51,18 @@ payload.elf: $(SRCS)
 %.elf.check: %.elf
 	elfcheck -hw $(HW)/system.xml -pe microblaze_0 $< | tee $@
 
+# Upload to the device
+upload: payload.elf payload.elf.check
+	echo "connect mb mdm -debugdevice deviceNr $(DEVICENR); dow payload.elf; run" | xmd
+
+# Flash the ORSC bitfiles
+orscbitfiles:
+	$(info Programming back end bitfile)
+	echo "fpga -f bitfiles/orsc/top_be.bit -debugdevice deviceNr 1" | xmd
+	$(info Programming front end bitfile)
+	echo "fpga -f bitfiles/orsc/top_fe.bit -debugdevice deviceNr 2" | xmd
+
+
 # Compile the BSPs
 bsps:
 	cd orsc_fe_bsp && make
@@ -65,4 +77,4 @@ clean:
 force_look:
 	true
 
-.PHONY: all bsps clean payload
+.PHONY: all bsps clean payload upload
