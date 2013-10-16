@@ -8,4 +8,15 @@ source settings.sh
 popd
 
 # Setup an env var pointing to your softipbus installation
-export SOFTIPBUS=/afs/hep.wisc.edu/cms/nwoods/trigger_code/softipbus
+export SOFTIPBUS=$HOME/trigger_code/softipbus
+
+# Include xdaq libraries
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/xdaq/lib
+
+# Run VMEStream in ECHOTEST mode (for now)
+export VME_CONTROLLER=TESTECHO
+
+export RCTSTUFF=/nfshome0/rctts/cactusprojects/rct/
+
+export PATH=$RCTSTUFF/bin:$PATH
+export LD_LIBRARY_PATH=$RCTSTUFF/lib:$LD_LIBRARY_PATH

@@ -5,6 +5,9 @@ BSP=../orsc_be_bsp
 
 IPBUS=$(SOFTIPBUS)
 
+# In JTAG chain, needed for make upload
+DEVICENR=1
+
 INCLUDES=-I$(IPBUS)/include -I../VMEStream/include
 
 LAYER1_DIR=..

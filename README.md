@@ -81,6 +81,10 @@ make payload
 
 More information about which HW and BSP files need to be tracked is available at the [Xilinx git info page.](http://www.xilinx.com/support/documentation/sw_manuals/xilinx14_4/SDK_Doc/reference/sdk_u_cvs.htm)
 
+Notes from August Integration
+-----------------------------
+
+https://twiki.cern.ch/twiki/bin/view/CMS/ORSCCTP6Integration
 
 Miscellany
 ----------
