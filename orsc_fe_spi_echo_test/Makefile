@@ -5,6 +5,9 @@ BSP=../orsc_fe_bsp
 
 IPBUS=$(SOFTIPBUS)
 
+# In JTAG chain, needed for make upload
+DEVICENR=2
+
 INCLUDES=-I$(IPBUS)/include -I../spistream
 
 # Make a single megalibrary of all user code.

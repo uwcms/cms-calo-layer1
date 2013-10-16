@@ -9,6 +9,9 @@ INCLUDES=-I$(IPBUS)/include
 
 OPT=-O0
 
+# In JTAG chain, needed for make upload
+DEVICENR=2
+
 # Make a single megalibrary of all user code.
 SRCS=$(wildcard src/*.c) \
      $(wildcard $(IPBUS)/src/*buffer*c) \
@@ -18,6 +21,3 @@ SRCS=$(wildcard src/*.c) \
      $(IPBUS)/src/nullmembase.c
 
 include ../Makefile
-
-upload: payload
-	echo "connect mb mdm; dow payload.elf; run" | xmd

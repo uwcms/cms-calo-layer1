@@ -7,6 +7,9 @@ IPBUS=$(SOFTIPBUS)
 
 INCLUDES=-I$(IPBUS)/include
 
+# In JTAG chain, needed for make upload
+DEVICENR=2
+
 # Make a single megalibrary of all user code.
 SRCS=$(wildcard src/*.c) $(wildcard $(IPBUS)/src/*buffer*c)
 
