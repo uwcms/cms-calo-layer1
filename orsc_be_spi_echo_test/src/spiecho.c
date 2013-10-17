@@ -16,6 +16,7 @@
 #include "xparameters.h"        /* Defined in BSP */
 #include "xspi.h"		/* SPI device driver */
 #include "xintc.h"		/* Interrupt controller device driver */
+#include "xil_exception.h"
 
 #include "spi_stream.h"
 
@@ -228,5 +229,24 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
    * Enable the interrupt for the SPI device.
    */
   XIntc_Enable(IntcInstancePtr, SpiIntrId);
+
+  /*
+   * Initialize the exception table.
+   */
+  Xil_ExceptionInit();
+
+  /*
+   * Register the interrupt controller handler with the exception table.
+   */
+  Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
+      (Xil_ExceptionHandler)XIntc_InterruptHandler,
+      IntcInstancePtr);
+
+  /*
+   * Enable exceptions.
+   */
+  Xil_ExceptionEnable();
+
+
   return XST_SUCCESS;
 }
