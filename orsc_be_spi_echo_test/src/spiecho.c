@@ -39,13 +39,19 @@ static SPIStream* spi_stream = NULL;
 static CircularBuffer* tx_buffer;
 static CircularBuffer* rx_buffer;
 
-void SpiIntrHandler(void *CallBackRef, u32 StatusEvent, u32 ByteCount) {
+// This function is called by the interrupt service routine at the 
+// conclusion of each SPI transfer.
+void SpiIntrHandler(void *CallBackRef, u32 StatusEvent, 
+        unsigned int ByteCount) {
   u32 error = StatusEvent != XST_SPI_TRANSFER_DONE ? StatusEvent : 0;
   if (spi_stream != NULL) {
     spi_stream_transfer_data(spi_stream, error);
   }
 }
 
+// This is the format for the callback defined by SPIStream.
+// We can't use XSpi_Transfer directly as the callback, since
+// we need to pass in the &SpiInstance pointer.
 void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
   XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
 }
@@ -108,6 +114,12 @@ int main() {
     xil_printf("Error: Could not set as master\n");
     return XST_FAILURE;
   }
+
+  /*
+   * Configure the interrupt service routine
+   */
+  XSpi_SetStatusHandler(&SpiInstance, NULL, SpiIntrHandler);
+
 
   // Go!
   XSpi_Start(&SpiInstance);
