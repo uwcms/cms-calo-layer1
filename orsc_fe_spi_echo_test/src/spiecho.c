@@ -5,7 +5,7 @@
  *
  * Modified from Xilinx xspi_intr_example.c
  *
- * This program sets up the SPI as slave, then echos all received data.   * 
+ * This program sets up the SPI as slave, then echos all received data.   *
  */
 
 #include "platform.h"
@@ -38,7 +38,10 @@ static SPIStream* spi_stream = NULL;
 static CircularBuffer* tx_buffer;
 static CircularBuffer* rx_buffer;
 
-void SpiIntrHandler(void *CallBackRef, u32 StatusEvent, u32 ByteCount) {
+// This function is called by the interrupt service routine at the
+// conclusion of each SPI transfer.
+void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
+        unsigned int ByteCount) {
   u32 error = StatusEvent != XST_SPI_TRANSFER_DONE ? StatusEvent : 0;
   if (spi_stream != NULL) {
     spi_stream_transfer_data(spi_stream, error);
@@ -57,7 +60,7 @@ int main() {
   rx_buffer = cbuffer_new();
 
   spi_stream = spi_stream_init(
-      tx_buffer, rx_buffer, 
+      tx_buffer, rx_buffer,
       DoSpiTransfer, // callback which triggers a SPI transfer
       0);
 
@@ -97,6 +100,11 @@ int main() {
     print("Error: Could not setup interrupt system.\n");
     return XST_FAILURE;
   }
+
+  /*
+   * Configure the interrupt service routine
+   */
+  XSpi_SetStatusHandler(&SpiInstance, NULL, SpiIntrHandler);
 
   // Go!
   XSpi_Start(&SpiInstance);
