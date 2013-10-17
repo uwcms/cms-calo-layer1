@@ -59,16 +59,16 @@ void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
   }
 }
 
+void print(char * msg) {
+    xil_printf(msg);
+    xil_printf("\r\n");
+}
+
 // This is the format for the callback defined by SPIStream.
 // We can't use XSpi_Transfer directly as the callback, since
 // we need to pass in the &SpiInstance pointer.
 void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
   XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
-}
-
-void print(char * msg) {
-    xil_printf(msg);
-    xil_printf("\r\n");
 }
 
 int main() {
@@ -151,6 +151,9 @@ int main() {
   u32 iteration = 0;
   u32 failures = 0;
   u32 successes = 0;
+
+  print("bootstrap");
+  spi_stream_transfer_data(spi_stream, 0);
 
   print("Serving forever");
 
