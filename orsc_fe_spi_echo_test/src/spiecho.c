@@ -16,8 +16,7 @@
 
 #include "spi_stream.h"
 
-/*  STDOUT functionality  */
-void print(char *str);
+#include "xil_printf.h"
 
 /*  SPI device driver plumbing  */
 
@@ -64,7 +63,7 @@ int main() {
       DoSpiTransfer, // callback which triggers a SPI transfer
       0);
 
-  print("Master SPI oRSC echo test\n");
+  xil_printf("Master SPI oRSC echo test\n");
 
   int Status;
   XSpi_Config *ConfigPtr;	/* Pointer to Configuration data */
@@ -74,20 +73,20 @@ int main() {
    */
   ConfigPtr = XSpi_LookupConfig(SPI_DEVICE_ID);
   if (ConfigPtr == NULL) {
-    print ("Error: could not lookup SPI configuration\n");
+    xil_printf ("Error: could not lookup SPI configuration\n");
     return XST_DEVICE_NOT_FOUND;
   }
 
   Status = XSpi_CfgInitialize(&SpiInstance, ConfigPtr,
       ConfigPtr->BaseAddress);
   if (Status != XST_SUCCESS) {
-    print("Error: could not initialize the SPI device\n");
+    xil_printf("Error: could not initialize the SPI device\n");
     return XST_FAILURE;
   }
 
   Status = XSpi_SelfTest(&SpiInstance);
   if (Status != XST_SUCCESS) {
-    print("Error: The SPI self test failed.\n");
+    xil_printf("Error: The SPI self test failed.\n");
     return XST_FAILURE;
   }
 
@@ -97,7 +96,7 @@ int main() {
    */
   Status = SpiSetupIntrSystem(&IntcInstance, &SpiInstance, SPI_IRPT_INTR);
   if (Status != XST_SUCCESS) {
-    print("Error: Could not setup interrupt system.\n");
+    xil_printf("Error: Could not setup interrupt system.\n");
     return XST_FAILURE;
   }
 
@@ -153,7 +152,7 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
    */
   Status = XIntc_Initialize(IntcInstancePtr, INTC_DEVICE_ID);
   if (Status != XST_SUCCESS) {
-    print("Could not initialize interrupt controller.\n");
+    xil_printf("Could not initialize interrupt controller.\n");
     return XST_FAILURE;
   }
 
@@ -166,7 +165,7 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
       (XInterruptHandler) XSpi_InterruptHandler,
       (void *)SpiInstancePtr);
   if (Status != XST_SUCCESS) {
-    print("Could not connect interrupt controller to SPI.\n");
+    xil_printf("Could not connect interrupt controller to SPI.\n");
     return XST_FAILURE;
   }
 
@@ -177,7 +176,7 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
    */
   Status = XIntc_Start(IntcInstancePtr, XIN_REAL_MODE);
   if (Status != XST_SUCCESS) {
-    print("Could not enable interrupts.\n");
+    xil_printf("Could not enable interrupts.\n");
     return XST_FAILURE;
   }
 
