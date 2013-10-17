@@ -40,11 +40,20 @@ static SPIStream* spi_stream = NULL;
 static CircularBuffer* tx_buffer;
 static CircularBuffer* rx_buffer;
 
+// Number of SPI transfers
+static u32 spi_transfers = 0;
+static u32 spi_transfers_in_error = 0;
+
 // This function is called by the interrupt service routine at the
 // conclusion of each SPI transfer.
 void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
         unsigned int ByteCount) {
   u32 error = StatusEvent != XST_SPI_TRANSFER_DONE ? StatusEvent : 0;
+  spi_transfers++;
+  // uncommenting this makes it blow up!
+  /* if (error) { */
+  /*   spi_transfers_in_error++; */
+  /* } */
   if (spi_stream != NULL) {
     spi_stream_transfer_data(spi_stream, error);
   }
@@ -116,6 +125,11 @@ int main() {
   print("Setup intr");
 
   /*
+   * Configure the interrupt service routine
+   */
+  XSpi_SetStatusHandler(&SpiInstance, &SpiInstance, SpiIntrHandler);
+
+  /*
    * Set the Spi device as a master.
    */
   Status = XSpi_SetOptions(&SpiInstance, XSP_MASTER_OPTION);
@@ -124,13 +138,6 @@ int main() {
     return XST_FAILURE;
   }
   print("Conf Mstr");
-
-  /*
-   * Configure the interrupt service routine
-   */
-  XSpi_SetStatusHandler(&SpiInstance, NULL, SpiIntrHandler);
-
-  print("Interrupts configured");
 
   // Go!
   XSpi_Start(&SpiInstance);
@@ -167,9 +174,13 @@ int main() {
     }
     iteration++;
     if (iteration % (1024 * 1024) == 0) {
-      xil_printf("transmitted: %d errors: %d tx: %d rx: %d\r\n",
+       /* xil_printf("trans: %d err: %d tx: %d rx: %d\r\n", */
+       /*    successes, failures, */
+       /*    cbuffer_size(tx_buffer), cbuffer_size(rx_buffer)); */
+      xil_printf("trans: %d err: %d tx: %d rx: %d intr: %d err: %d\r\n",
           successes, failures,
-          cbuffer_size(tx_buffer), cbuffer_size(rx_buffer));
+          cbuffer_size(tx_buffer), cbuffer_size(rx_buffer),
+          spi_transfers, spi_transfers_in_error);
     }
   }
 
