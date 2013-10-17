@@ -37,11 +37,19 @@ static SPIStream* spi_stream = NULL;
 static CircularBuffer* tx_buffer;
 static CircularBuffer* rx_buffer;
 
+// Number of SPI transfers
+u32 transfers = 0;
+u32 transfers_in_error = 0;
+
 // This function is called by the interrupt service routine at the
 // conclusion of each SPI transfer.
 void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
         unsigned int ByteCount) {
   u32 error = StatusEvent != XST_SPI_TRANSFER_DONE ? StatusEvent : 0;
+  transfers++;
+  if (error) {
+    transfers_in_error++;
+  }
   if (spi_stream != NULL) {
     spi_stream_transfer_data(spi_stream, error);
   }
@@ -124,7 +132,8 @@ int main() {
 
   // Note: to disable interrupt, do: XIntc_Disconnect(&IntcInstance,
   // SPI_IRPT_INTR);
-
+  
+  print("Serve forever");
   while (1) {
     // copy things from the RX buffer to the transmit buffer
     while (cbuffer_freespace(tx_buffer) && cbuffer_size(rx_buffer)) {
