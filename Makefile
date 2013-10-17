@@ -15,7 +15,7 @@ LINK_OPT=-Wl,--no-relax -Wl,-T -Wl,src/lscript.ld \
 
 LIBS=-Wl,--start-group,-lxil,-lgcc,-lc,--end-group
 
-OPT=-O2
+OPT=-Os
 DEBUG=-g3
 COMPILE=mb-gcc $(COMPILE_OPT) $(INCLUDES) $(OPT) $(DEBUG) $(LINK_OPT) $(LIBS)
 
