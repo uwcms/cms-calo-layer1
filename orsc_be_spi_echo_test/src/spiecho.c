@@ -141,6 +141,10 @@ int main() {
   u32 expected_rx = 0;
   u32 current_tx = 0;
 
+  u32 iteration = 0;
+  u32 failures = 0;
+  u32 successes = 0;
+
   print("Serving forever");
 
   while (1) {
@@ -154,9 +158,18 @@ int main() {
       if (front != expected_rx) {
         //print("Error: expected %lx, got %lx!");
         print("Error: data value");
+        failures++;
+      } else {
+        successes++;
       }
       expected_rx++;
       cbuffer_deletefront(rx_buffer, 1);
+    }
+    iteration++;
+    if (iteration % (1024 * 1024) == 0) {
+      xil_printf("transmitted: %d errors: %d tx: %d rx: %d\r\n", 
+          successes, failures, 
+          cbuffer_size(tx_buffer), cbuffer_size(rx_buffer));
     }
   }
 
