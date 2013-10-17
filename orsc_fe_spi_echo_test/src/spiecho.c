@@ -13,13 +13,13 @@
 #include "xparameters.h"        /* Defined in BSP */
 #include "xspi.h"		/* SPI device driver */
 #include "xintc.h"		/* Interrupt controller device driver */
+#include "xil_exception.h"
 
 #include "spi_stream.h"
 
 #include "xil_printf.h"
 
 /*  SPI device driver plumbing  */
-
 #define SPI_DEVICE_ID		XPAR_SPI_0_DEVICE_ID
 #define INTC_DEVICE_ID		XPAR_INTC_0_DEVICE_ID
 #define SPI_IRPT_INTR		XPAR_INTC_0_SPI_0_VEC_ID
@@ -47,11 +47,22 @@ void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
   }
 }
 
+// This is the format for the callback defined by SPIStream.
+// We can't use XSpi_Transfer directly as the callback, since
+// we need to pass in the &SpiInstance pointer.
 void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
   XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
 }
 
+void print(char * msg) {
+    xil_printf(msg);
+    xil_printf("\r\n");
+}
+
 int main() {
+
+  print("\n==> main");
+
   // initialize stdout.
   init_platform();
 
@@ -63,8 +74,6 @@ int main() {
       DoSpiTransfer, // callback which triggers a SPI transfer
       0);
 
-  xil_printf("Master SPI oRSC echo test\n");
-
   int Status;
   XSpi_Config *ConfigPtr;	/* Pointer to Configuration data */
 
@@ -73,22 +82,24 @@ int main() {
    */
   ConfigPtr = XSpi_LookupConfig(SPI_DEVICE_ID);
   if (ConfigPtr == NULL) {
-    xil_printf ("Error: could not lookup SPI configuration\n");
+    print("Error: lookup conf");
     return XST_DEVICE_NOT_FOUND;
   }
 
   Status = XSpi_CfgInitialize(&SpiInstance, ConfigPtr,
       ConfigPtr->BaseAddress);
   if (Status != XST_SUCCESS) {
-    xil_printf("Error: could not initialize the SPI device\n");
+    print("Error: init SPI");
     return XST_FAILURE;
   }
+  print("SPI init");
 
   Status = XSpi_SelfTest(&SpiInstance);
   if (Status != XST_SUCCESS) {
-    xil_printf("Error: The SPI self test failed.\n");
+    print("Error: selftest");
     return XST_FAILURE;
   }
+  print("Selftest");
 
   /*
    * Connect the Spi device to the interrupt subsystem such that
@@ -96,14 +107,17 @@ int main() {
    */
   Status = SpiSetupIntrSystem(&IntcInstance, &SpiInstance, SPI_IRPT_INTR);
   if (Status != XST_SUCCESS) {
-    xil_printf("Error: Could not setup interrupt system.\n");
+    print("Error: setup intr");
     return XST_FAILURE;
   }
+  print("Setup intr");
 
   /*
    * Configure the interrupt service routine
    */
   XSpi_SetStatusHandler(&SpiInstance, NULL, SpiIntrHandler);
+
+  print("Interrupts configured");
 
   // Go!
   XSpi_Start(&SpiInstance);
@@ -119,6 +133,7 @@ int main() {
     }
   }
 
+  print("Goodbye");
   return 0;
 }
 
@@ -152,9 +167,10 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
    */
   Status = XIntc_Initialize(IntcInstancePtr, INTC_DEVICE_ID);
   if (Status != XST_SUCCESS) {
-    xil_printf("Could not initialize interrupt controller.\n");
+    print("Could not initialize interrupt controller.");
     return XST_FAILURE;
   }
+  print("Init intr");
 
   /*
    * Connect a device driver handler that will be called when an interrupt
@@ -165,9 +181,10 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
       (XInterruptHandler) XSpi_InterruptHandler,
       (void *)SpiInstancePtr);
   if (Status != XST_SUCCESS) {
-    xil_printf("Could not connect interrupt controller to SPI.\n");
+    print("Could not connect interrupt controller to SPI.");
     return XST_FAILURE;
   }
+  print("Conn intr");
 
   /*
    * Start the interrupt controller such that interrupts are enabled for
@@ -176,13 +193,33 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
    */
   Status = XIntc_Start(IntcInstancePtr, XIN_REAL_MODE);
   if (Status != XST_SUCCESS) {
-    xil_printf("Could not enable interrupts.\n");
+    print("Could not enable interrupts.");
     return XST_FAILURE;
   }
+  print("Enable intr");
 
   /*
    * Enable the interrupt for the SPI device.
    */
   XIntc_Enable(IntcInstancePtr, SpiIntrId);
+
+  /*
+   * Initialize the exception table.
+   */
+  Xil_ExceptionInit();
+
+  /*
+   * Register the interrupt controller handler with the exception table.
+   */
+  Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
+      (Xil_ExceptionHandler)XIntc_InterruptHandler,
+      IntcInstancePtr);
+
+  /*
+   * Enable exceptions.
+   */
+  Xil_ExceptionEnable();
+
+
   return XST_SUCCESS;
 }
