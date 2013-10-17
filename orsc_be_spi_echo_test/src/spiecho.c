@@ -56,9 +56,14 @@ void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
   XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
 }
 
+void print(char * msg) {
+    xil_printf(msg);
+    xil_printf("\r\n");
+}
+
 int main() {
 
-  xil_printf("Master SPI oRSC echo test\n");
+  print("\n==> main");
 
   // initialize stdout.
   init_platform();
@@ -79,22 +84,24 @@ int main() {
    */
   ConfigPtr = XSpi_LookupConfig(SPI_DEVICE_ID);
   if (ConfigPtr == NULL) {
-    xil_printf ("Error: could not lookup SPI configuration\n");
+    print("Error: lookup conf");
     return XST_DEVICE_NOT_FOUND;
   }
 
   Status = XSpi_CfgInitialize(&SpiInstance, ConfigPtr,
       ConfigPtr->BaseAddress);
   if (Status != XST_SUCCESS) {
-    xil_printf("Error: could not initialize the SPI device\n");
+    print("Error: init SPI");
     return XST_FAILURE;
   }
+  print("SPI init");
 
   Status = XSpi_SelfTest(&SpiInstance);
   if (Status != XST_SUCCESS) {
-    xil_printf("Error: The SPI self test failed.\n");
+    print("Error: selftest");
     return XST_FAILURE;
   }
+  print("Selftest");
 
   /*
    * Connect the Spi device to the interrupt subsystem such that
@@ -102,24 +109,27 @@ int main() {
    */
   Status = SpiSetupIntrSystem(&IntcInstance, &SpiInstance, SPI_IRPT_INTR);
   if (Status != XST_SUCCESS) {
-    xil_printf("Error: Could not setup interrupt system.\n");
+    print("Error: setup intr");
     return XST_FAILURE;
   }
+  print("Setup intr");
 
   /*
    * Set the Spi device as a master.
    */
   Status = XSpi_SetOptions(&SpiInstance, XSP_MASTER_OPTION);
   if (Status != XST_SUCCESS) {
-    xil_printf("Error: Could not set as master\n");
+    print("Error: Could not set as master");
     return XST_FAILURE;
   }
+  print("Conf Mstr");
 
   /*
    * Configure the interrupt service routine
    */
   XSpi_SetStatusHandler(&SpiInstance, NULL, SpiIntrHandler);
 
+  print("Interrupts configured");
 
   // Go!
   XSpi_Start(&SpiInstance);
@@ -130,6 +140,8 @@ int main() {
   u32 expected_rx = 0;
   u32 current_tx = 0;
 
+  print("Serving forever");
+
   while (1) {
     // fill up the transmit buffer
     while (cbuffer_freespace(tx_buffer)) {
@@ -139,14 +151,15 @@ int main() {
     while (cbuffer_size(rx_buffer)) {
       u32 front = cbuffer_value_at(rx_buffer, 0);
       if (front != expected_rx) {
-        //xil_printf("Error: expected %lx, got %lx!\n", expected_rx, front);
-        xil_printf("Error: data value\n");
+        //print("Error: expected %lx, got %lx!");
+        print("Error: data value");
       }
       expected_rx++;
       cbuffer_deletefront(rx_buffer, 1);
     }
   }
 
+  print("Goodbye");
   return 0;
 }
 
@@ -180,9 +193,10 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
    */
   Status = XIntc_Initialize(IntcInstancePtr, INTC_DEVICE_ID);
   if (Status != XST_SUCCESS) {
-    xil_printf("Could not initialize interrupt controller.\n");
+    print("Could not initialize interrupt controller.");
     return XST_FAILURE;
   }
+  print("Init intr");
 
   /*
    * Connect a device driver handler that will be called when an interrupt
@@ -193,9 +207,10 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
       (XInterruptHandler) XSpi_InterruptHandler,
       (void *)SpiInstancePtr);
   if (Status != XST_SUCCESS) {
-    xil_printf("Could not connect interrupt controller to SPI.\n");
+    print("Could not connect interrupt controller to SPI.");
     return XST_FAILURE;
   }
+  print("Conn intr");
 
   /*
    * Start the interrupt controller such that interrupts are enabled for
@@ -204,9 +219,10 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
    */
   Status = XIntc_Start(IntcInstancePtr, XIN_REAL_MODE);
   if (Status != XST_SUCCESS) {
-    xil_printf("Could not enable interrupts.\n");
+    print("Could not enable interrupts.");
     return XST_FAILURE;
   }
+  print("Enable intr");
 
   /*
    * Enable the interrupt for the SPI device.
