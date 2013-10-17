@@ -23,9 +23,9 @@
 #include "xil_printf.h"
 
 /*  SPI device driver plumbing  */
-#define SPI_DEVICE_ID		XPAR_SPI_0_DEVICE_ID
+#define SPI_DEVICE_ID		XPAR_SPI_INTERFPGA_DEVICE_ID
 #define INTC_DEVICE_ID		XPAR_INTC_0_DEVICE_ID
-#define SPI_IRPT_INTR		XPAR_INTC_0_SPI_0_VEC_ID
+#define SPI_IRPT_INTR		XPAR_MICROBLAZE_0_INTC_SPI_INTERFPGA_IP2INTC_IRPT_INTR
 
 static XIntc IntcInstance;	 /* The instance of the Interrupt Controller */
 static XSpi  SpiInstance;	 /* The instance of the SPI device */
