@@ -8,7 +8,7 @@
  * This program sets up the SPI as master, then sends a continuous stream of
  * increasing words to the slave device, which should echo them back.  If there
  * are transmission errors, they will be noted on stdout.
- * 
+ *
  */
 
 #include "platform.h"
@@ -40,9 +40,9 @@ static SPIStream* spi_stream = NULL;
 static CircularBuffer* tx_buffer;
 static CircularBuffer* rx_buffer;
 
-// This function is called by the interrupt service routine at the 
+// This function is called by the interrupt service routine at the
 // conclusion of each SPI transfer.
-void SpiIntrHandler(void *CallBackRef, u32 StatusEvent, 
+void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
         unsigned int ByteCount) {
   u32 error = StatusEvent != XST_SPI_TRANSFER_DONE ? StatusEvent : 0;
   if (spi_stream != NULL) {
@@ -73,7 +73,7 @@ int main() {
   rx_buffer = cbuffer_new();
 
   spi_stream = spi_stream_init(
-      tx_buffer, rx_buffer, 
+      tx_buffer, rx_buffer,
       DoSpiTransfer, // callback which triggers a SPI transfer
       0);
 
@@ -167,8 +167,8 @@ int main() {
     }
     iteration++;
     if (iteration % (1024 * 1024) == 0) {
-      xil_printf("transmitted: %d errors: %d tx: %d rx: %d\r\n", 
-          successes, failures, 
+      xil_printf("transmitted: %d errors: %d tx: %d rx: %d\r\n",
+          successes, failures,
           cbuffer_size(tx_buffer), cbuffer_size(rx_buffer));
     }
   }
