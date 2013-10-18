@@ -49,7 +49,6 @@ static u32 spi_transfers_in_error = 0;
 void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
         unsigned int ByteCount) {
   u32 error = StatusEvent != XST_SPI_TRANSFER_DONE ? StatusEvent : 0;
-  spi_transfers++;
   // uncommenting this makes it blow up!
   /* if (error) { */
   /*   spi_transfers_in_error++; */
@@ -68,6 +67,7 @@ void print(char * msg) {
 // We can't use XSpi_Transfer directly as the callback, since
 // we need to pass in the &SpiInstance pointer.
 void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
+  spi_transfers += nbytes;
   XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
 }
 
@@ -152,15 +152,31 @@ int main() {
   u32 failures = 0;
   u32 successes = 0;
 
-  print("bootstrap");
-  spi_stream_transfer_data(spi_stream, 0);
+  int bootstrapped = 0;
 
   print("Serving forever");
 
   while (1) {
+    if (iteration % (1024 * 1024) == 0) {
+       /* xil_printf("trans: %d err: %d tx: %d rx: %d\r\n", */
+       /*    successes, failures, */
+       /*    cbuffer_size(tx_buffer), cbuffer_size(rx_buffer)); */
+      xil_printf("trans: %d err: %d tx: %d rx: %d intr: %d err: %d\r\n",
+          successes, failures,
+          cbuffer_size(tx_buffer), cbuffer_size(rx_buffer),
+          spi_transfers, spi_transfers_in_error);
+    }
+    iteration++;
+
     // fill up the transmit buffer
     while (cbuffer_freespace(tx_buffer)) {
       cbuffer_push_back(tx_buffer, current_tx++);
+    }
+    // we have to manually initiate the first SPI transfer
+    if (!bootstrapped) {
+      print("bootstrap");
+      bootstrapped = 1;
+      spi_stream_transfer_data(spi_stream, 0);
     }
     // check to make sure the received buffer is what we expect
     while (cbuffer_size(rx_buffer)) {
@@ -174,16 +190,6 @@ int main() {
       }
       expected_rx++;
       cbuffer_deletefront(rx_buffer, 1);
-    }
-    iteration++;
-    if (iteration % (1024 * 1024) == 0) {
-       /* xil_printf("trans: %d err: %d tx: %d rx: %d\r\n", */
-       /*    successes, failures, */
-       /*    cbuffer_size(tx_buffer), cbuffer_size(rx_buffer)); */
-      xil_printf("trans: %d err: %d tx: %d rx: %d intr: %d err: %d\r\n",
-          successes, failures,
-          cbuffer_size(tx_buffer), cbuffer_size(rx_buffer),
-          spi_transfers, spi_transfers_in_error);
     }
   }
 
