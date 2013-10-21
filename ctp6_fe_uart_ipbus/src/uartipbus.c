@@ -54,7 +54,7 @@ int SetupInterruptSystem(XUartLite *UartLitePtr);
 
 void SendHandler(void *CallBackRef, unsigned int EventData) {
   // fix me use         XUartLite_DisableInterrup
-  XUartLite_DisableInterrupt(&UartLite);
+  //XUartLite_DisableInterrupt(&UartLite);
   // delete the bytes which were sent previously
   if (EventData % sizeof(uint32_t)) {
     LOG_ERROR("ERROR: sent data not word aligned!!!");
@@ -64,6 +64,7 @@ void SendHandler(void *CallBackRef, unsigned int EventData) {
     unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
     to_send = MIN(to_send, 16);
     XUartLite_Send(&UartLite, (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
+    LOG_DEBUG("SendHandler _Send  %x\n", to_send);
     currently_sending = 1;
   } else {
     currently_sending = 0;
@@ -71,7 +72,7 @@ void SendHandler(void *CallBackRef, unsigned int EventData) {
   uint32_t read = XIo_In32(BYTES_OUT_WORD);
   XIo_Out32(BYTES_OUT_WORD, (EventData >> 2) + read);
   LOG_DEBUG("sent %x", EventData);
-  XUartLite_EnableInterrupt(&UartLite);
+  //XUartLite_EnableInterrupt(&UartLite);
 }
 
 void RecvHandler(void *CallBackRef, unsigned int EventData) {
@@ -159,7 +160,7 @@ int main(void) {
   Client client;
   client.outputstream = tx_buffer;
   client.inputstream = rx_buffer;
-  client.swapbytes = 0;
+  client.swapbytes = 1;
 
   LOG_INFO ("Serving memory.");
 
