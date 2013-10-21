@@ -1,7 +1,39 @@
-rct-upgrade-microblaze
-======================
+cms-calo-layer1
+===============
 
 Xilinx Microblaze Projects for RCT Upgrade 
+
+Installation
+------------
+
+Compilation requires installation of both the Xilinx EDK (for mb-gcc and libgen)
+and a Petalinux installation (for compiling the soft-ipbus server).  See the
+next section for initializing the environment.
+
+To check out and build the trigger packages, do the following.
+
+```shell
+# 904 certificates are not installed correctly :(
+export GIT_SSL_NO_VERIFY=1
+cd $HOME/trigger_code/
+# check out the softipbus dependency
+svn co svn+ssh://svn.cern.ch/reps/cactus/trunk/cactuscore/softipbus $HOME/trigger_code/softipbus
+# check out the set of packages
+git clone https://github.com/uwcms/cms-calo-layer1.git
+cd cms-calo-layer1
+# Setup your environment for Xilinx build tools
+source environment.sh
+# compile the Board Support Packages (BSPs)
+make bsps
+# Make all the projects
+make all
+# Or just make one of them
+cd orsc_fe_spi_echo_test 
+make payload
+```
+
+More information about which HW and BSP files need to be tracked is available at the [Xilinx git info page.](http://www.xilinx.com/support/documentation/sw_manuals/xilinx14_4/SDK_Doc/reference/sdk_u_cvs.htm)
+
 
 Packages
 --------
@@ -51,35 +83,6 @@ the inter-FPGA SPI.
 ### orsc_be_vmestream_echo_test ###
 
 Untested. Should echo data sent from a "VME PC" via the VMEStream protocol.
-
-Installation
-------------
-
-Compilation requires installation of both the Xilinx EDK (for mb-gcc and libgen)
-and a Petalinux installation (for compiling the soft-ipbus server).  See the
-next section for initializing the environment.
-
-To check out and build the trigger packages, do the following.
-
-```shell
-cd $HOME/trigger_code/
-# check out the softipbus dependency
-svn co svn+ssh://svn.cern.ch/reps/cactus/trunk/cactuscore/softipbus $HOME/trigger_code/softipbus
-# check out the set of packages
-git clone https://github.com/uwcms/cms-calo-layer1.git
-cd cms-calo-layer1
-# Setup your environment for Xilinx build tools
-source environment.sh
-# compile the Board Support Packages (BSPs)
-make bsps
-# Make all the projects
-make all
-# Or just make one of them
-cd orsc_fe_spi_echo_test 
-make payload
-```
-
-More information about which HW and BSP files need to be tracked is available at the [Xilinx git info page.](http://www.xilinx.com/support/documentation/sw_manuals/xilinx14_4/SDK_Doc/reference/sdk_u_cvs.htm)
 
 Notes from August Integration
 -----------------------------

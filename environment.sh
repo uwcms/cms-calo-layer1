@@ -3,9 +3,16 @@
 . /opt/Xilinx/14.4/ISE_DS/settings64.sh
 
 # For reference - to setup Petalinux gcc
-pushd /afs/hep.wisc.edu/home/uwhepfpga/petalinux-v12.12-final-full
+if [ -d /afs/hep.wisc.edu/home/uwhepfpga/petalinux-v12.12-final-full ]; then
+    PETALINUXDIR=/afs/hep.wisc.edu/home/uwhepfpga/petalinux-v12.12-final-full 
+else
+    PETALINUXDIR=/opt/Xilinx/petalinux-v12.12-final-full/
+fi
+
+pushd $PETALINUXDIR
 source settings.sh
 popd
+
 
 # Setup an env var pointing to your softipbus installation
 export SOFTIPBUS=$HOME/trigger_code/softipbus
