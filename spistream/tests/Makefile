@@ -38,6 +38,11 @@ test: all
 	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_protocol.exe
 	LD_LIBRARY_PATH="$(PWD)" $(OUT_DIR)/test_spi_stream.exe
 
+valtest : all
+	LD_LIBRARY_PATH="$(PWD)" valgrind --leak-check=full $(OUT_DIR)/test_adler32.exe
+	LD_LIBRARY_PATH="$(PWD)" valgrind --leak-check=full $(OUT_DIR)/test_protocol.exe
+	LD_LIBRARY_PATH="$(PWD)" valgrind --leak-check=full $(OUT_DIR)/test_spi_stream.exe
+
 distclean: clean
 	rm -f .dep/*.dep 
 clean:
