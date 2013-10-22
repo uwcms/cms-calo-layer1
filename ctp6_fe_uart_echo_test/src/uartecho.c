@@ -53,17 +53,17 @@ void SendHandler(void *CallBackRef, unsigned int EventData) {
   if (cbuffer_size(tx_buffer)) {
     unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
     XUartLite_Send(&UartLite, (u8*)&(tx_buffer->data[tx_buffer->pos]), to_send);
-    LOG_DEBUG("SendHandler _Send  %x\n", to_send);
+    //LOG_DEBUG("SendHandler _Send  %x\n", to_send);
     currently_sending = 1;
   } else {
-    LOG_DEBUG("SendHandler Idling\n");
+    //LOG_DEBUG("SendHandler Idling\n");
     currently_sending = 0;
   }
-  LOG_DEBUG("SendHandler SENT INTR %x\n", EventData);
+  //LOG_DEBUG("SendHandler SENT INTR %x\n", EventData);
 }
 
 void RecvHandler(void *CallBackRef, unsigned int EventData) {
-  LOG_DEBUG("RecvHandler %x data %x\n", EventData, rx_tmp_buffer);
+  //LOG_DEBUG("RecvHandler %x data %x\n", EventData, rx_tmp_buffer);
   if (EventData != sizeof(uint32_t)) {
     LOG_DEBUG("ERROR: did not receive a whole word!\n");
   }
@@ -72,16 +72,17 @@ void RecvHandler(void *CallBackRef, unsigned int EventData) {
 }
 
 int main(void) {
-
-  LOG_INFO("UART CTP FE echo test\n");
-
   init_platform();
+  
+  LOG_INFO("UART CTP FE echo test\n");
 
   tx_buffer = cbuffer_new();
   rx_buffer = cbuffer_new();
 
   int Status;
   u16 DeviceId = UARTLITE_DEVICE_ID;     
+
+  LOG_INFO("wtf1\n");
 
   /*
    * Initialize the UartLite driver so that it's ready to use.
@@ -91,6 +92,7 @@ int main(void) {
     LOG_ERROR ("Error: could not initialize UART\n");
       return XST_FAILURE;
   }
+  LOG_INFO("wtf2\n");
 
   XUartLite_ResetFifos(&UartLite);
 
@@ -102,6 +104,7 @@ int main(void) {
     LOG_ERROR ("Error: self test failed\n");
       return XST_FAILURE;
   }
+  LOG_INFO("wtf3 - help\n");
 
   /*
    * Connect the UartLite to the interrupt subsystem such that interrupts can
@@ -112,6 +115,7 @@ int main(void) {
     LOG_ERROR ("Error: could not setup interrupts\n");
       return XST_FAILURE;
   }
+  LOG_INFO("wtf4\n");
 
   /*
    * Setup the handlers for the UartLite that will be called from the
@@ -131,7 +135,6 @@ int main(void) {
   LOG_DEBUG("Bootstrapping READ\n");
   XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
 
-  LOG_INFO("Starting loop\n");
 
   /*  
   LOG_DEBUG("Sending 'wtf!'\n");
@@ -140,6 +143,7 @@ int main(void) {
   unsigned int ret = XUartLite_Send(&UartLite, (u8*)help, 4);
   LOG_DEBUG("WTF send complete return: %x\n", ret);
   */
+  LOG_INFO("Echo forever\n");
 
   /* echo received data forever */
   unsigned int heartbeat = 0;
@@ -183,10 +187,14 @@ int SetupInterruptSystem(XUartLite *UartLitePtr) {
    * Initialize the interrupt controller driver so that it is ready to
    * use.
    */
+  LOG_INFO("shiiit 1\n");
   Status = XIntc_Initialize(&InterruptController, INTC_DEVICE_ID);
   if (Status != XST_SUCCESS) {
+      LOG_INFO("shiiit\n");
     return XST_FAILURE;
   }
+
+  LOG_INFO("wtf5\n");
 
 
   /*
@@ -201,6 +209,8 @@ int SetupInterruptSystem(XUartLite *UartLitePtr) {
     return XST_FAILURE;
   }
 
+  LOG_INFO("wtf6\n");
+
   /*
    * Start the interrupt controller such that interrupts are enabled for
    * all devices that cause interrupts, specific real mode so that
@@ -210,6 +220,7 @@ int SetupInterruptSystem(XUartLite *UartLitePtr) {
   if (Status != XST_SUCCESS) {
     return XST_FAILURE;
   }
+  LOG_INFO("wtf6\n");
 
   /*
    * Enable the interrupt for the UartLite device.
@@ -233,7 +244,7 @@ int SetupInterruptSystem(XUartLite *UartLitePtr) {
    */
   Xil_ExceptionEnable();
 
-  LOG_DEBUG("setup interrupts okay\n");
+  LOG_INFO("setup interrupts okay\n");
 
   return XST_SUCCESS;
 }

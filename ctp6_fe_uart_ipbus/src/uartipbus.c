@@ -95,11 +95,12 @@ void ExceptionHandler(void *Data) {
 
 int main(void) {
 
-  LOG_INFO("UART CTP SPI server");
   XIo_Out32(BYTES_OUT_WORD, 0);
   XIo_Out32(BYTES_IN_WORD, 0);
 
   init_platform();
+
+  LOG_INFO("UART CTP SPI server");
 
   tx_buffer = cbuffer_new();
   rx_buffer = cbuffer_new();
@@ -115,7 +116,6 @@ int main(void) {
     LOG_ERROR("Error: could not initialize UART");
       return XST_FAILURE;
   }
-
 
   /*
    * Perform a self-test to ensure that the hardware was built correctly.
