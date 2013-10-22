@@ -68,11 +68,11 @@ orscbitfiles: orscbebits orscfebits
 
 orscbebits:
 	$(info Programming back end bitfile)
-	echo "fpga -f bitfiles/orsc/top_be.bit -debugdevice deviceNr 1" | xmd
+	cd $(LAYER1_DIR) && echo "fpga -f bitfiles/orsc/top_be.bit -debugdevice deviceNr 1" | xmd
 
 orscfebits:
 	$(info Programming front end bitfile)
-	echo "fpga -f bitfiles/orsc/top_fe.bit -debugdevice deviceNr 2" | xmd
+	cd $(LAYER1_DIR) && echo "fpga -f bitfiles/orsc/top_fe.bit -debugdevice deviceNr 2" | xmd
 
 # Compile the BSPs
 bsps:
