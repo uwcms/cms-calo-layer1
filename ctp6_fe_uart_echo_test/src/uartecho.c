@@ -14,6 +14,7 @@
 #include "xil_exception.h"
 #include "circular_buffer.h"
 #include "macrologger.h"
+#include "tracer.h"
 
 //#include <stdio.h>
 
@@ -73,6 +74,8 @@ void RecvHandler(void *CallBackRef, unsigned int EventData) {
 
 int main(void) {
   init_platform();
+
+  setup_tracer((uint32_t*)0xF0000004, 4); 
   
   LOG_INFO("UART CTP FE echo test\n");
 
@@ -83,6 +86,7 @@ int main(void) {
   u16 DeviceId = UARTLITE_DEVICE_ID;     
 
   LOG_INFO("wtf1\n");
+  set_trace_flag(1);
 
   /*
    * Initialize the UartLite driver so that it's ready to use.
@@ -93,6 +97,7 @@ int main(void) {
       return XST_FAILURE;
   }
   LOG_INFO("wtf2\n");
+  set_trace_flag(2);
 
   XUartLite_ResetFifos(&UartLite);
 
@@ -105,6 +110,7 @@ int main(void) {
       return XST_FAILURE;
   }
   LOG_INFO("wtf3 - help\n");
+  set_trace_flag(3);
 
   /*
    * Connect the UartLite to the interrupt subsystem such that interrupts can
@@ -116,6 +122,7 @@ int main(void) {
       return XST_FAILURE;
   }
   LOG_INFO("wtf4\n");
+  set_trace_flag(4);
 
   /*
    * Setup the handlers for the UartLite that will be called from the
@@ -126,15 +133,19 @@ int main(void) {
   XUartLite_SetSendHandler(&UartLite, SendHandler, &UartLite);
   XUartLite_SetRecvHandler(&UartLite, RecvHandler, &UartLite);
 
+  set_trace_flag(5);
   /*
    * Enable the interrupt of the UartLite so that interrupts will occur.
    */
   XUartLite_EnableInterrupt(&UartLite);
 
+  set_trace_flag(6);
+
   // bootstrap the READ
   LOG_DEBUG("Bootstrapping READ\n");
   XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
 
+  set_trace_flag(7);
 
   /*  
   LOG_DEBUG("Sending 'wtf!'\n");
@@ -151,6 +162,7 @@ int main(void) {
     if (heartbeat++ % (1 << 8)) {
       //LOG_DEBUG("bump %x\n", heartbeat);
     }
+    set_trace_flag(8);
     while (cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)) {
       uint32_t data = cbuffer_pop_front(rx_buffer);
       //LOG_DEBUG("Echoing data word %x\n", data);

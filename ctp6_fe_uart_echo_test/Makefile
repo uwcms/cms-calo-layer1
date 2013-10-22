@@ -5,7 +5,7 @@ BSP=../ctp6_fe_bsp
 
 IPBUS=$(SOFTIPBUS)
 
-INCLUDES=-I$(IPBUS)/include
+INCLUDES=-I$(IPBUS)/include -I../tracer
 
 LAYER1_DIR=..
 
@@ -13,8 +13,10 @@ LAYER1_DIR=..
 DEVICENR=2
 
 # Make a single megalibrary of all user code.
-SRCS=$(wildcard src/*.c) $(wildcard $(IPBUS)/src/*buffer*c)
+SRCS=$(wildcard src/*.c) $(wildcard $(IPBUS)/src/*buffer*c) ../tracer/tracer.c
 
 include ../Makefile
 
 OPT=-O0
+
+LOG_LEVEL=0
