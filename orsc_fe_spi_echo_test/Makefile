@@ -17,3 +17,5 @@ SRCS=$(wildcard src/*.c) $(wildcard ../spistream/*.c) \
      $(wildcard $(SOFTIPBUS)/src/*buffer*.c)
 
 include ../Makefile
+
+LOG_LEVEL=0x0
