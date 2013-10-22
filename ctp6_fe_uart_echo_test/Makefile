@@ -16,3 +16,5 @@ DEVICENR=2
 SRCS=$(wildcard src/*.c) $(wildcard $(IPBUS)/src/*buffer*c)
 
 include ../Makefile
+
+OPT=-O0
