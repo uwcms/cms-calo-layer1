@@ -75,6 +75,8 @@ static char* test_spi_stream_construct_tx_packet(void) {
 
   spi_stream_verify_packet(my_pkt, 10, &checksum_err);
   mu_assert_eq("no cksum actual", checksum_err, 0);
+
+  cbuffer_free(mybuf);
   return 0;
 }
 
@@ -106,6 +108,8 @@ static char* test_spi_stream_construct_empty_tx_packet(void) {
   mu_assert_eq("packet", memcmp(my_pkt_expected, my_pkt, 10 * sizeof(uint32_t)), 0);
   spi_stream_verify_packet(my_pkt, 10, &checksum_err);
   mu_assert_eq("no cksum actual", checksum_err, 0);
+
+  cbuffer_free(mybuf);
   return 0;
 }
 
@@ -138,6 +142,7 @@ static char* test_spi_stream_read_rx_packet(void) {
   mu_assert_eq("overflow err", ret, 0);
   mu_assert_eq("unmodified", cbuffer_freespace(mybuf), 4);
 
+  cbuffer_free(mybuf);
   return 0;
 }
 

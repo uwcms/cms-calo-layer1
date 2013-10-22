@@ -126,6 +126,16 @@ static char * simulate_interaction(
       mu_assert_eq("content", cbuffer_value_at(slave_data, i), cbuffer_value_at(master_rx, i));
     }
   }
+
+  spi_stream_free(master_spi);
+  spi_stream_free(slave_spi);
+  cbuffer_free(master_data);
+  cbuffer_free(slave_data);
+  cbuffer_free(master_tx);
+  cbuffer_free(master_rx);
+  cbuffer_free(slave_tx);
+  cbuffer_free(slave_rx);
+
   return 0;
 }
 
