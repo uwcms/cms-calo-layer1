@@ -18,11 +18,37 @@ dow:
 
 trigger:
 	$(info Triggering capture)
-	echo "connect mb mdm -debugDevice deviceNr 2; mwr 0x100F0034 0x1" | xmd
+	echo "connect mb mdm -debugDevice deviceNr 2; rst; stop; mwr 0x100F0034 0x1" | xmd
 
 readout:
-	$(info Triggering capture)
-	echo "connect mb mdm -debugDevice deviceNr 2; mrd 0x10084000 1024" | xmd | grep -v 00000000
+	$(info Reading out capture RAMS)
+	echo "connect mb mdm -debugDevice deviceNr 2; rst; stop; mrd 0x10084000 1024" | xmd | grep -v 00000000
+
+lightsout:
+	$(info Turning off LEDs)
+	echo "connect mb mdm -debugDevice deviceNr 2; rst; stop; \
+	    mwr 0x10008000 0x0; \
+	    mwr 0x10008004 0x0; \
+	    mwr 0x10008008 0x0; \
+	    mwr 0x1000800C 0x0; \
+	    mwr 0x10008010 0x0; \
+	    mwr 0x10008014 0x0; \
+	    mwr 0x10008018 0x0; \
+	    mwr 0x1000801C 0x0; \
+	    mwr 0x10008020 0x0;" | xmd
+
+lightson:
+	$(info Turning on LEDs)
+	echo "connect mb mdm -debugDevice deviceNr 2; rst; stop; \
+	    mwr 0x10008000 0x1; \
+	    mwr 0x10008004 0x1; \
+	    mwr 0x10008008 0x1; \
+	    mwr 0x1000800C 0x1; \
+	    mwr 0x10008010 0x1; \
+	    mwr 0x10008014 0x1; \
+	    mwr 0x10008018 0x1; \
+	    mwr 0x1000801C 0x1; \
+	    mwr 0x10008020 0x1; " | xmd
 
 inject: 
 	cd ~rctpro/904Tests/ && ./gct_output_all.sh
