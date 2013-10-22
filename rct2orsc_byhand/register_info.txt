@@ -1,0 +1,44 @@
+# From Mathias:
+
+
+Sep 19
+        when x"10008000" => fpled1grnena_b_reg  <= BRAM_WRDATA_A(0)   ;
+        when x"10008004" => fpled1redena_b_reg  <= BRAM_WRDATA_A(0)   ;
+        when x"10008008" => fpled2grnena_b_reg  <= BRAM_WRDATA_A(0)   ;
+        when x"1000800C" => fpled2redena_b_reg  <= BRAM_WRDATA_A(0)   ;
+        when x"10008010" => fpled3grnena_b_reg  <= BRAM_WRDATA_A(0)   ;
+        when x"10008014" => fpled3redena_b_reg  <= BRAM_WRDATA_A(0)   ;
+        when x"10008018" => s6yellowled_reg     <= BRAM_WRDATA_A(0)   ;
+        when x"1000801C" => s6orangeled_reg     <= BRAM_WRDATA_A(0)   ;
+        when x"10008020" => s6greenled_reg      <= BRAM_WRDATA_A(0)   ;
+        when x"10008024" => lvshftregdata_reg   <= BRAM_WRDATA_A(0)   ;
+        when x"10008028" => lvmuxregclk_reg     <= BRAM_WRDATA_A(0)   ;
+        when x"1000802C" => lvdelayregclk_reg   <= BRAM_WRDATA_A(0)   ;
+        when x"10008030" => lvshftregrst_reg    <= BRAM_WRDATA_A(0)   ;
+        when x"10008034" => lv2eclspare1_reg    <= BRAM_WRDATA_A(0)   ;
+        when x"10008038" => lv2eclspare2_reg    <= BRAM_WRDATA_A(0)   ;
+        when x"1000803C" => lvwstb_b_reg        <= BRAM_WRDATA_A(7 downto 0) ;
+        when x"10008040" => avagorst_b_reg      <= BRAM_WRDATA_A(0)   ;
+        when x"10008044" => ckarst_reg          <= BRAM_WRDATA_A(0)   ;
+        when x"10008048" => ckcrst_reg          <= BRAM_WRDATA_A(0)   ;
+        when x"1000804C" => k7_program_b_reg    <= BRAM_WRDATA_A(0)   ;
+
+Oct 22
+
+They are using the same CTP6 FE bitfile that you have.  The latest FE bitfile is not ready for presenting about yet.  I still haven't tested its features.  
+
+Each RAM is 1k words x 32-bit words (2 words per BC, so 512 BCs)
+
+Each RAM holds one cable from the JSC
+
+addresses
+0x100F0034 Start Capture (bit 0)
+0x10080000 ISO
+0x10081000 NISO
+0x10082000 SUMJ3
+0x10083000 SUMJ4
+0x10084000 SUMJ5
+0x10085000 SUMJ6
+
+I am throwing out the top 2-bits of each cable.  In all cables *P32 is unused and *P33 is the BC0
+BC0 will be implied by the capture.  The first word in the capture ram will be BC0.  Hopefully this will work!

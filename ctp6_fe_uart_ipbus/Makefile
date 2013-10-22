@@ -7,7 +7,6 @@ IPBUS=$(SOFTIPBUS)
 
 INCLUDES=-I$(IPBUS)/include
 
-OPT=-O0
 
 LAYER1_DIR=..
 
@@ -23,3 +22,7 @@ SRCS=$(wildcard src/*.c) \
      $(IPBUS)/src/nullmembase.c
 
 include ../Makefile
+
+LOG_LEVEL=3
+OPT=-O0
+

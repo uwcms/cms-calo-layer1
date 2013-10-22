@@ -16,8 +16,8 @@
 #include "xil_exception.h"
 
 #include "spi_stream.h"
-
-#include "xil_printf.h"
+#include "macrologger.h"
+#include "tracer.h"
 
 /*  SPI device driver plumbing  */
 #define SPI_DEVICE_ID		XPAR_SPI_0_DEVICE_ID
@@ -47,6 +47,7 @@ void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
         unsigned int ByteCount) {
   u32 error = StatusEvent != XST_SPI_TRANSFER_DONE ? StatusEvent : 0;
   transfers++;
+  set_trace_flag(9);
   if (error) {
     transfers_in_error++;
   }
@@ -60,16 +61,15 @@ void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
 // we need to pass in the &SpiInstance pointer.
 void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
   XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
-}
-
-void print(char * msg) {
-    xil_printf(msg);
-    xil_printf("\r\n");
+  set_trace_flag(10);
 }
 
 int main() {
 
-  print("\n==> main");
+  LOG_INFO("\n==> main");
+
+  setup_tracer((uint32_t*)0x10008000, 4);
+  set_trace_flag(0);
 
   // initialize stdout.
   init_platform();
@@ -90,24 +90,27 @@ int main() {
    */
   ConfigPtr = XSpi_LookupConfig(SPI_DEVICE_ID);
   if (ConfigPtr == NULL) {
-    print("Error: lookup conf");
+    LOG_INFO("Error: lookup conf");
     return XST_DEVICE_NOT_FOUND;
   }
+  set_trace_flag(1);
 
   Status = XSpi_CfgInitialize(&SpiInstance, ConfigPtr,
       ConfigPtr->BaseAddress);
   if (Status != XST_SUCCESS) {
-    print("Error: init SPI");
+    LOG_INFO("Error: init SPI");
     return XST_FAILURE;
   }
-  print("SPI init");
+  LOG_INFO("SPI init");
+  set_trace_flag(2);
 
   Status = XSpi_SelfTest(&SpiInstance);
   if (Status != XST_SUCCESS) {
-    print("Error: selftest");
+    LOG_INFO("Error: selftest");
     return XST_FAILURE;
   }
-  print("Selftest");
+  LOG_INFO("Selftest");
+  set_trace_flag(3);
 
   /*
    * Connect the Spi device to the interrupt subsystem such that
@@ -115,17 +118,19 @@ int main() {
    */
   Status = SpiSetupIntrSystem(&IntcInstance, &SpiInstance, SPI_IRPT_INTR);
   if (Status != XST_SUCCESS) {
-    print("Error: setup intr");
+    LOG_INFO("Error: setup intr");
     return XST_FAILURE;
   }
-  print("Setup intr");
+  LOG_INFO("Setup intr");
+  set_trace_flag(4);
 
   /*
    * Configure the interrupt service routine
    */
   XSpi_SetStatusHandler(&SpiInstance, NULL, SpiIntrHandler);
 
-  print("Interrupts configured");
+  LOG_INFO("Interrupts configured");
+  set_trace_flag(5);
 
   // Go!
   XSpi_Start(&SpiInstance);
@@ -133,16 +138,19 @@ int main() {
   // Note: to disable interrupt, do: XIntc_Disconnect(&IntcInstance,
   // SPI_IRPT_INTR);
   
-  print("Serve forever");
+  LOG_INFO("Serve forever");
+  set_trace_flag(6);
   while (1) {
     // copy things from the RX buffer to the transmit buffer
     while (cbuffer_freespace(tx_buffer) && cbuffer_size(rx_buffer)) {
       cbuffer_push_back(tx_buffer, cbuffer_value_at(rx_buffer, 0));
       cbuffer_deletefront(rx_buffer, 1);
     }
+    set_trace_flag(7);
   }
 
-  print("Goodbye");
+  LOG_INFO("Goodbye");
+  set_trace_flag(8);
   return 0;
 }
 
@@ -176,10 +184,10 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
    */
   Status = XIntc_Initialize(IntcInstancePtr, INTC_DEVICE_ID);
   if (Status != XST_SUCCESS) {
-    print("Could not initialize interrupt controller.");
+    LOG_INFO("Could not initialize interrupt controller.");
     return XST_FAILURE;
   }
-  print("Init intr");
+  LOG_INFO("Init intr");
 
   /*
    * Connect a device driver handler that will be called when an interrupt
@@ -190,10 +198,10 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
       (XInterruptHandler) XSpi_InterruptHandler,
       (void *)SpiInstancePtr);
   if (Status != XST_SUCCESS) {
-    print("Could not connect interrupt controller to SPI.");
+    LOG_INFO("Could not connect interrupt controller to SPI.");
     return XST_FAILURE;
   }
-  print("Conn intr");
+  LOG_INFO("Conn intr");
 
   /*
    * Start the interrupt controller such that interrupts are enabled for
@@ -202,10 +210,10 @@ static int SpiSetupIntrSystem(XIntc *IntcInstancePtr, XSpi *SpiInstancePtr,
    */
   Status = XIntc_Start(IntcInstancePtr, XIN_REAL_MODE);
   if (Status != XST_SUCCESS) {
-    print("Could not enable interrupts.");
+    LOG_INFO("Could not enable interrupts.");
     return XST_FAILURE;
   }
-  print("Enable intr");
+  LOG_INFO("Enable intr");
 
   /*
    * Enable the interrupt for the SPI device.
