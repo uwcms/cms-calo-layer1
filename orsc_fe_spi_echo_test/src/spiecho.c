@@ -16,8 +16,8 @@
 #include "xil_exception.h"
 
 #include "spi_stream.h"
-
 #include "macrologger.h"
+#include "tracer.h"
 
 /*  SPI device driver plumbing  */
 #define SPI_DEVICE_ID		XPAR_SPI_0_DEVICE_ID
@@ -47,6 +47,7 @@ void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
         unsigned int ByteCount) {
   u32 error = StatusEvent != XST_SPI_TRANSFER_DONE ? StatusEvent : 0;
   transfers++;
+  set_trace_flag(9);
   if (error) {
     transfers_in_error++;
   }
@@ -60,11 +61,15 @@ void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
 // we need to pass in the &SpiInstance pointer.
 void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
   XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
+  set_trace_flag(10);
 }
 
 int main() {
 
   LOG_INFO("\n==> main");
+
+  setup_tracer((uint32_t*)0x10008000, 4);
+  set_trace_flag(0);
 
   // initialize stdout.
   init_platform();
@@ -88,6 +93,7 @@ int main() {
     LOG_INFO("Error: lookup conf");
     return XST_DEVICE_NOT_FOUND;
   }
+  set_trace_flag(1);
 
   Status = XSpi_CfgInitialize(&SpiInstance, ConfigPtr,
       ConfigPtr->BaseAddress);
@@ -96,6 +102,7 @@ int main() {
     return XST_FAILURE;
   }
   LOG_INFO("SPI init");
+  set_trace_flag(2);
 
   Status = XSpi_SelfTest(&SpiInstance);
   if (Status != XST_SUCCESS) {
@@ -103,6 +110,7 @@ int main() {
     return XST_FAILURE;
   }
   LOG_INFO("Selftest");
+  set_trace_flag(3);
 
   /*
    * Connect the Spi device to the interrupt subsystem such that
@@ -114,6 +122,7 @@ int main() {
     return XST_FAILURE;
   }
   LOG_INFO("Setup intr");
+  set_trace_flag(4);
 
   /*
    * Configure the interrupt service routine
@@ -121,6 +130,7 @@ int main() {
   XSpi_SetStatusHandler(&SpiInstance, NULL, SpiIntrHandler);
 
   LOG_INFO("Interrupts configured");
+  set_trace_flag(5);
 
   // Go!
   XSpi_Start(&SpiInstance);
@@ -129,15 +139,18 @@ int main() {
   // SPI_IRPT_INTR);
   
   LOG_INFO("Serve forever");
+  set_trace_flag(6);
   while (1) {
     // copy things from the RX buffer to the transmit buffer
     while (cbuffer_freespace(tx_buffer) && cbuffer_size(rx_buffer)) {
       cbuffer_push_back(tx_buffer, cbuffer_value_at(rx_buffer, 0));
       cbuffer_deletefront(rx_buffer, 1);
     }
+    set_trace_flag(7);
   }
 
   LOG_INFO("Goodbye");
+  set_trace_flag(8);
   return 0;
 }
 
