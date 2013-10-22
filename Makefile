@@ -2,12 +2,16 @@
 ####  Common Makefile fragments ################################################
 ################################################################################
 
+ifndef LOG_LEVEL
+    LOG_LEVEL=2
+endif
+
 # Compiler & linker options - from SDK GUI generated Makefile.
 COMPILE_OPT=-DLITTLE_ENDIAN -Wall \
 	    -I$(BSP)/microblaze_0/include \
 	    -fmessage-length=0 -std=c99 -Wl,--no-relax \
 	    -mlittle-endian -mxl-pattern-compare -mcpu=v8.40.b \
-	    -mno-xl-soft-mul -DLOG_LEVEL=3
+	    -mno-xl-soft-mul -DLOG_LEVEL=$(LOG_LEVEL)
 
 LINK_OPT=-Wl,--no-relax -Wl,-T -Wl,src/lscript.ld \
 	 -L$(BSP)/microblaze_0/lib -mlittle-endian \
@@ -15,7 +19,7 @@ LINK_OPT=-Wl,--no-relax -Wl,-T -Wl,src/lscript.ld \
 
 LIBS=-Wl,--start-group,-lxil,-lgcc,-lc,--end-group
 
-OPT=-Os
+OPT=-O2
 DEBUG=-g3
 COMPILE=mb-gcc $(COMPILE_OPT) $(INCLUDES) $(OPT) $(DEBUG) $(LINK_OPT) $(LIBS)
 
@@ -75,6 +79,9 @@ bsps:
 
 clean:
 	-for d in $(PROJECTS); do (cd $$d; rm -f *.elf* ); done
+
+localclean: 
+	rm -f payload.*
 
 # http://owen.sj.ca.us/~rk/howto/slides/make/slides/makerecurs.html
 # Force all subdirectories to be rechecked.
