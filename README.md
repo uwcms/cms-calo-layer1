@@ -66,7 +66,7 @@ Echoes everything it receives back along the UART. If you run this on the FE,
 then executing the following on the BE
 ```
 # Set TTY into RAW mode
-stty -F /dev/ttyUL1 raw
+stty -F /dev/ttyUL1 raw -echo
 # Send data from BE->FE
 echo "Go badgers" > /dev/ttyUL1
 # Print echoed data
