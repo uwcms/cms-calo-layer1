@@ -5,7 +5,7 @@
 
 # build guts
 DEPOPTS = -MMD -MF .dep/`basename $@`.dep -MP
-CCOPTS = $(DEPOPTS) -std=gnu99 -I"$(PWD)/.." -Wall -Werror  -DUSE_INTTYPES
+CCOPTS = $(DEPOPTS) -std=gnu99 -I"$(PWD)/.." -Wall -g -Werror  -DUSE_INTTYPES -I$(SOFTIPBUS)/include
 SHAREDOPTS = -shared -fPIC
 
 # This is an ugly hack to make sure we put the output into a directory
@@ -13,7 +13,7 @@ SHAREDOPTS = -shared -fPIC
 OUT_DIR=/tmp/spi_test
 
 # These live in a common package.
-BUFFER_SRC=../../buffer-types/
+BUFFER_SRC=$(SOFTIPBUS)/src
 
 SRCS=$(BUFFER_SRC)/circular_buffer.c $(BUFFER_SRC)/buffer.c ../spi_stream.c ../adler32.c ../protocol.c
 

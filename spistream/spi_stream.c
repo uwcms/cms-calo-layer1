@@ -81,3 +81,9 @@ void spi_stream_transfer_data(SPIStream* stream, int error) {
       (void*)stream->spi_rx_buffer,
       SPI_BUFFER_SIZE * sizeof(uint32_t));
 }
+
+
+void spi_stream_free(SPIStream* stream)
+{
+  free(stream);
+}

@@ -51,4 +51,7 @@ void spi_stream_load_tx(SPIStream* stream, uint32_t pkt_id);
 // This should be installed in the SPI interrupt routine.
 void spi_stream_transfer_data(SPIStream* stream, int error_code);
 
+// free memory associated w/ a SPIStream
+void spi_stream_free(SPIStream* stream);
+
 #endif /* end of include guard: SPI_STREAM_C98GET05 */
