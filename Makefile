@@ -64,12 +64,15 @@ upload: payload.elf payload.elf.check
 	echo "connect mb mdm -debugdevice deviceNr $(DEVICENR); rst; connect mb mdm -debugdevice deviceNr $(DEVICENR); dow payload.elf; run" | xmd
 
 # Flash the ORSC bitfiles
-orscbitfiles:
+orscbitfiles: orscbebits orscfebits
+
+orscbebits:
 	$(info Programming back end bitfile)
 	echo "fpga -f bitfiles/orsc/top_be.bit -debugdevice deviceNr 1" | xmd
+
+orscfebits:
 	$(info Programming front end bitfile)
 	echo "fpga -f bitfiles/orsc/top_fe.bit -debugdevice deviceNr 2" | xmd
-
 
 # Compile the BSPs
 bsps:
@@ -88,4 +91,4 @@ localclean:
 force_look:
 	true
 
-.PHONY: all bsps clean payload upload
+.PHONY: all bsps clean localclean payload upload orscbebits orscfebits orscbitfiles
