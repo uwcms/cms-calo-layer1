@@ -18,6 +18,8 @@ export GIT_SSL_NO_VERIFY=1
 cd $HOME/trigger_code/
 # check out the softipbus dependency
 svn co svn+ssh://svn.cern.ch/reps/cactus/trunk/cactuscore/softipbus $HOME/trigger_code/softipbus
+# check out the ctp6commander client program
+git clone https://github.com/uwcms/ctp6commander
 # check out the set of packages
 git clone https://github.com/uwcms/cms-calo-layer1.git
 cd cms-calo-layer1
