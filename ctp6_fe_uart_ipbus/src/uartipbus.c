@@ -19,10 +19,10 @@
 #include "packethandler.h"
 #include "client.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include "macrologger.h"
+#include "tracer.h"
 
 #define UARTLITE_DEVICE_ID      XPAR_UARTLITE_0_DEVICE_ID
 #define INTC_DEVICE_ID          XPAR_INTC_0_DEVICE_ID
@@ -51,6 +51,7 @@ int SetupInterruptSystem(XUartLite *UartLitePtr);
 #define BYTES_IN_WORD   0xF000000C
 #define BYTES_OUT_WORD  0xF0000010
 #define CYCLE_WORD      0xF0000014
+#define TRACER          0xF0000018
 
 void SendHandler(void *CallBackRef, unsigned int EventData) {
   // fix me use         XUartLite_DisableInterrup
@@ -101,6 +102,9 @@ int main(void) {
   init_platform();
 
   LOG_INFO("UART CTP SPI server");
+
+  setup_tracer((uint32_t*)TRACER, 4);
+  set_trace_flag(1);
 
   tx_buffer = cbuffer_new();
   rx_buffer = cbuffer_new();
@@ -165,6 +169,7 @@ int main(void) {
   LOG_INFO ("Serving memory.");
 
   LOG_INFO ("Start size: %"PRIx32, cbuffer_size(rx_buffer));
+  set_trace_flag(2);
 
   size_t i = 0;
   while (1) {

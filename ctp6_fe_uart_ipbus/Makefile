@@ -5,8 +5,7 @@ HW=../ctp6_fe_hw
 
 IPBUS=$(SOFTIPBUS)
 
-INCLUDES=-I$(IPBUS)/include
-
+INCLUDES=-I$(IPBUS)/include -I../tracer
 
 LAYER1_DIR=..
 
@@ -16,6 +15,7 @@ DEVICENR=2
 # Make a single megalibrary of all user code.
 SRCS=$(wildcard src/*.c) \
      $(wildcard $(IPBUS)/src/*buffer*c) \
+     ../tracer/tracer.c \
      $(IPBUS)/src/serialization.c $(IPBUS)/src/packethandler.c \
      $(IPBUS)/src/transactionhandler.c \
      $(IPBUS)/src/handlers.c \
@@ -23,6 +23,5 @@ SRCS=$(wildcard src/*.c) \
 
 include ../Makefile
 
-LOG_LEVEL=3
+LOG_LEVEL=0
 OPT=-O0
-
