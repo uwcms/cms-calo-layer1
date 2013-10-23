@@ -195,7 +195,6 @@ int SetupInterruptSystem(XUartLite *UartLitePtr) {
 
   int Status;
 
-
   /*
    * Initialize the interrupt controller driver so that it is ready to
    * use.
