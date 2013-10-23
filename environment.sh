@@ -3,10 +3,10 @@
 . /opt/Xilinx/14.4/ISE_DS/settings64.sh
 
 # For reference - to setup Petalinux gcc
-if [ -d /afs/hep.wisc.edu/home/uwhepfpga/petalinux-v12.12-final-full ]; then
-    PETALINUXDIR=/afs/hep.wisc.edu/home/uwhepfpga/petalinux-v12.12-final-full 
-else
+if [ -d /opt/Xilinx/petalinux-v12.12-final-full/ ]; then
     PETALINUXDIR=/opt/Xilinx/petalinux-v12.12-final-full/
+else
+    PETALINUXDIR=/afs/hep.wisc.edu/home/uwhepfpga/petalinux-v12.12-final-full 
 fi
 
 pushd $PETALINUXDIR
