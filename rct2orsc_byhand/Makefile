@@ -24,9 +24,12 @@ readout:
 	$(info Reading out capture RAMS)
 	echo "connect mb mdm -debugDevice deviceNr 2; rst; stop; mrd 0x10084000 64" | xmd 
 
-lightsout:
+inject: 
+	cd ~rctpro/904Tests/ && ./gct_output_all.sh
+
+lightson:
 	$(info Turning off LEDs)
-	echo "connect mb mdm -debugDevice deviceNr 2; rst; stop; \
+	echo "connect mb mdm -debugDevice deviceNr 1; rst; stop; \
 	    mwr 0x10008000 0x0; \
 	    mwr 0x10008004 0x0; \
 	    mwr 0x10008008 0x0; \
@@ -37,9 +40,9 @@ lightsout:
 	    mwr 0x1000801C 0x0; \
 	    mwr 0x10008020 0x0;" | xmd
 
-lightson:
+lightsoff:
 	$(info Turning on LEDs)
-	echo "connect mb mdm -debugDevice deviceNr 2; rst; stop; \
+	echo "connect mb mdm -debugDevice deviceNr 1; rst; stop; \
 	    mwr 0x10008000 0x1; \
 	    mwr 0x10008004 0x1; \
 	    mwr 0x10008008 0x1; \
@@ -58,7 +61,3 @@ lightson:
 	    mrd 0x10008018 0x1; \
 	    mrd 0x1000801C 0x1; \
 	    mrd 0x10008020 0x1; " | xmd
-
-inject: 
-	cd ~rctpro/904Tests/ && ./gct_output_all.sh
-
