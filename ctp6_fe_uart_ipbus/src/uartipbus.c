@@ -164,7 +164,7 @@ int main(void) {
   Client client;
   client.outputstream = tx_buffer;
   client.inputstream = rx_buffer;
-  client.swapbytes = 1;
+  client.swapbytes = 0;
 
   LOG_INFO ("Serving memory.");
 
