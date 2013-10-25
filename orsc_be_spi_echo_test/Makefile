@@ -19,3 +19,5 @@ include ../Makefile
 
 # No logging
 LOG_LEVEL=0
+DEBUG=-g3
+OPT=-O2
