@@ -19,8 +19,8 @@
 #include "xil_exception.h"
 
 #include "spi_stream.h"
-
 #include "macrologger.h"
+#include "tracer.h"
 
 /*  SPI device driver plumbing  */
 #define SPI_DEVICE_ID		XPAR_SPI_INTERFPGA_DEVICE_ID
@@ -65,6 +65,9 @@ int main() {
 
   LOG_INFO("\n==> main");
 
+  setup_tracer((uint32_t*)0x7FF0, 4);
+  set_trace_flag(0);
+
   // initialize stdout.
   init_platform();
 
@@ -75,6 +78,7 @@ int main() {
       tx_buffer, rx_buffer,
       DoSpiTransfer, // callback which triggers a SPI transfer
       0);
+  set_trace_flag(1);
 
   int Status;
   XSpi_Config *ConfigPtr;	/* Pointer to Configuration data */
@@ -87,6 +91,7 @@ int main() {
     LOG_INFO("Error: lookup conf");
     return XST_DEVICE_NOT_FOUND;
   }
+  set_trace_flag(0xA);
 
   Status = XSpi_CfgInitialize(&SpiInstance, ConfigPtr,
       ConfigPtr->BaseAddress);
@@ -95,6 +100,7 @@ int main() {
     return XST_FAILURE;
   }
   LOG_INFO("SPI init");
+  set_trace_flag(0xB);
 
   Status = XSpi_SelfTest(&SpiInstance);
   if (Status != XST_SUCCESS) {
@@ -102,6 +108,7 @@ int main() {
     return XST_FAILURE;
   }
   LOG_INFO("Selftest");
+  set_trace_flag(0xC);
 
   /*
    * Connect the Spi device to the interrupt subsystem such that
@@ -113,6 +120,7 @@ int main() {
     return XST_FAILURE;
   }
   LOG_INFO("Setup intr");
+  set_trace_flag(0xD);
 
   /*
    * Configure the interrupt service routine
@@ -128,6 +136,8 @@ int main() {
     return XST_FAILURE;
   }
   LOG_INFO("Conf Mstr");
+
+  set_trace_flag(2);
 
   // Go!
   XSpi_Start(&SpiInstance);
@@ -181,6 +191,7 @@ int main() {
       expected_rx++;
       cbuffer_deletefront(rx_buffer, 1);
     }
+    set_trace_flag(successes);
   }
 
   LOG_INFO("Goodbye");
