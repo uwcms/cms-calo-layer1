@@ -17,8 +17,10 @@ _HEAP_SIZE = DEFINED(_HEAP_SIZE) ? _HEAP_SIZE : 0x1000;
 
 MEMORY
 {
-   microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl : ORIGIN = 0x00000050, LENGTH = 0x00007FB0
+   microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl : ORIGIN = 0x00000050, LENGTH = 0x00007FAC
    axi_bram_ctrl_0_S_AXI_BASEADDR : ORIGIN = 0x10000000, LENGTH = 0x00010000
+   /* memory used for storing flags readout in XMD */
+   tracer_ptr : ORIGIN = 0x00007FFC, LENGTH = 0x3
 }
 
 /* Specify the default entry point to the program */
@@ -207,6 +209,13 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
    _stack = .;
    __stack = _stack;
 } > microblaze_0_i_bram_ctrl_microblaze_0_d_bram_ctrl
+
+.my_tracer_ptr : {
+  __tracer_start = . ;
+    *(.mem_ptr)
+  __tracer_end = . ;
+  } > tracer_ptr
+
 
 _end = .;
 }

@@ -66,7 +66,7 @@ int main() {
   LOG_INFO("\n==> main");
 
   extern void *__tracer_start;
-  setup_tracer((uint32_t*)__tracer_start, 4);
+  setup_tracer((uint32_t*)__tracer_start, 3);
   set_trace_flag(0);
 
   // initialize stdout.
