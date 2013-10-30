@@ -58,6 +58,7 @@ void SpiIntrHandler(void *CallBackRef, u32 StatusEvent,
 // we need to pass in the &SpiInstance pointer.
 void DoSpiTransfer(u8* tx, u8* rx, u16 nbytes) {
   spi_transfers += nbytes;
+  set_trace_flag(0xBEEFCAFE);
   XSpi_Transfer(&SpiInstance, tx, rx, nbytes);
 }
 
@@ -65,9 +66,8 @@ int main() {
 
   LOG_INFO("\n==> main");
 
-  extern void *__tracer_start;
-  setup_tracer((uint32_t*)__tracer_start, 3);
-  set_trace_flag(0);
+  setup_tracer((uint32_t*)0x7FFC, 1);
+  set_trace_flag((uint32_t)0x5);
 
   // initialize stdout.
   init_platform();
@@ -192,7 +192,7 @@ int main() {
       expected_rx++;
       cbuffer_deletefront(rx_buffer, 1);
     }
-    set_trace_flag(successes);
+    //set_trace_flag(0xDEADBEEF + successes);
   }
 
   LOG_INFO("Goodbye");
