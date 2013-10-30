@@ -11,11 +11,11 @@
 
 
 typedef struct {
-    uint32_t *tx_size;
-    uint32_t *tx_data;
-    uint32_t *rx_size;
-    uint32_t *rx_data;
-    uint32_t MAXRAM;
+    uint32_t *tx_size;          // Number of words in transmit buffer
+    uint32_t *tx_data;          // Transmit buffer
+    uint32_t *rx_size;          // Number of words in recieve buffer
+    uint32_t *rx_data;          // Recieve buffer
+    uint32_t MAXRAM;            // The maximum size (in words) of the VME RAM
     CircularBuffer *input;
     CircularBuffer *output;
 } VMEStream;
