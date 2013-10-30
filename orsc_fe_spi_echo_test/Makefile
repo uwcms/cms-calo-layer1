@@ -20,3 +20,5 @@ SRCS=$(wildcard src/*.c) $(wildcard ../spistream/*.c) \
 include ../Makefile
 
 LOG_LEVEL=0x0
+DEBUG=-g3
+OPT=-O2
