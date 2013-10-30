@@ -212,7 +212,7 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
 
 .my_tracer_ptr : {
   __tracer_start = . ;
-    *(.mem_ptr)
+    *(.my_tracer_ptr)
   __tracer_end = . ;
   } > tracer_ptr
 
