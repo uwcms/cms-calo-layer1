@@ -47,8 +47,8 @@ all: bsps force_look
 
 payload: payload.elf payload.elf.size payload.elf.check payload.S
 
-payload.elf: $(SRCS)
-	$(COMPILE) -o $@ $^
+payload.elf: $(SRCS) src/lscript.ld
+	$(COMPILE) -o $@ $(SRCS)
 
 %.S: %.elf
 	mb-objdump -S $< > $@
