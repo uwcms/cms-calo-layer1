@@ -43,12 +43,46 @@ int main ( int argc, char** argv )
     // buffers.
     VMEStream *stream = vmestream_initialize_heap(input, output, VMERAMSIZE);
 
-    uint32_t vme_tx_size;
-    uint32_t vme_rx_size;
-
     VMEController* vme = VMEController::getVMEController();
 
     while (1) {
+        bytebuffer_read_fd(&buf, fin, READ_BUFFER_SIZE);
+
+        uint32_t words2append = MIN(buf.bufsize/sizeof(uint32_t), cbuffer_freespace(stream->input));
+
+        if (words2append > 0) {
+            cbuffer_append(stream->input, buf.buf, words2append);
+        }
+        bytebuffer_del_front(&buf, words2append * sizeof(uint32_t));
+
+        vme->read(ORSC_RECV_SIZE, DATAWIDTH, &stream->remote_recv_size);
+        vme->read(ORSC_SEND_SIZE, DATAWIDTH, &stream->remote_send_size);
+        vme->write(PC_RECV_SIZE, DATAWIDTH, &stream->local_recv_size);
+        vme->write(PC_SEND_SIZE, DATAWIDTH, &stream->local_send_size);
+
+        // send data via VME
+        if (stream->local_send_size > 0 && stream->remote_recv_size == 0) {
+            vme->block_write(PC2ORSC_DATA, DATAWIDTH, stream->send_data, stream->local_send_size * sizeof(uint32_t));
+        }
+
+        // recieve data via VME
+        if (stream->local_recv_size == 0 && stream->remote_send_size > 0) {
+            vme->block_read(ORSC2PC_DATA, DATAWIDTH, stream->recv_data, stream->remote_send_size * sizeof(uint32_t));
+        }
+
+
+        // move data in/out of the buffers and update size values
+        vmestream_transfer_data(stream);
+
+
+        uint32_t recv_words = cbuffer_size(stream->output);
+        if (recv_words > 0) {
+            cbuffer_write_fd(stream->output, fout, recv_words);
+        }
+
+        vme->doStuff();
+
+        /*
         // the size of the read buffer will be dynamically resized
         // as necessary.
         bytebuffer_read_fd(&buf, fin, READ_BUFFER_SIZE);
@@ -93,6 +127,7 @@ int main ( int argc, char** argv )
         }
         // Do any desired emulation. In production, this does nothing.
         vme->doStuff();
+        */
     }
 
     close( fin );
