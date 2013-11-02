@@ -22,20 +22,14 @@
 
 #define MIN(x, y) ( (x) < (y) ? (x) : (y) )
 
-int main ( int argc, char** argv )
-{
-    int fin;
-    int fout;
 
+void pc2orsc_server(char* in_pipe, char* out_pipe)
+{
     // empty buffer.
     ByteBuffer buf = bytebuffer_ctor(NULL, 0);
 
-    if ( argc != 3 ) {
-        printf("Usage: vme2fd [instream] [outstream]\n");
-        exit(0);
-    }
-    fin  = open(argv[1], O_RDONLY);
-    fout = open(argv[2], O_WRONLY);
+    int fin  = open(in_pipe, O_RDONLY);
+    int fout = open(out_pipe, O_WRONLY);
 
     CircularBuffer *input = cbuffer_new();
     CircularBuffer *output = cbuffer_new();
@@ -95,9 +89,20 @@ int main ( int argc, char** argv )
         vme->doStuff();
     }
 
-    close( fin );
-    close( fout );
+    close(fin);
+    close(fout);
     vmestream_destroy_heap(stream);
+}
+
+
+int main (int argc, char** argv)
+{
+    if ( argc != 3 ) {
+        printf("Usage: vme2fd [instream] [outstream]\n");
+        exit(1);
+    }
+
+    pc2orsc_server(argv[1], argv[2]);
 
     return 0;
 }
