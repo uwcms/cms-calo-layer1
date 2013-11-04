@@ -14,6 +14,11 @@ SRC:=$(wildcard src/vmestream/*.c) \
 	$(SOFTIPBUS)/src/handlers.c \
 	$(SOFTIPBUS)/src/testmembase.c
 
+CSRC:=$(wildcard src/vmestream/*.c) \
+	$(SOFTIPBUS)/src/circular_buffer.c \
+	$(SOFTIPBUS)/src/buffer.c \
+	$(SOFTIPBUS)/src/bytebuffer.c
+
 OBJ:=$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(SRC)))
 
 LIB=lib/libvmestream.a
@@ -44,13 +49,13 @@ $(LIB) : $(OBJ)
 
 .PHONY : clean tests
 
-tests : $(LIB)
+tests : $(CSRC)
 tests : $(SH_TESTS)
 tests : $(TESTS)
 	@sh ./tests/runtests.sh
 
 tests/%_tests : tests/%_tests.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< $(LIB)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< $(CSRC)
 
 clean :
 	rm -rf lib bin $(OBJ) $(TESTS)
