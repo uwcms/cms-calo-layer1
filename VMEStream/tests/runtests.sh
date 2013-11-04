@@ -2,7 +2,7 @@ echo "------------------"
 echo "Running Unit Tests"
 echo "------------------"
 
-for i in tests/*_tests tests/*_tests.sh
+for i in tests/*_tests #tests/*_tests.sh
 do
     if [ -f $i ]
     then
