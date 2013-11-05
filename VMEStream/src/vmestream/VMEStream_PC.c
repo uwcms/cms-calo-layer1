@@ -17,8 +17,8 @@ VMEStream *vmestream_initialize_heap(
     stream->remote_send_size = 0;
     stream->remote_recv_size = 0;
 
-    stream->recv_data = (uint32_t*)malloc(sizeof(MAXRAM));
-    stream->send_data = (uint32_t*)malloc(sizeof(MAXRAM));
+    stream->recv_data = (uint32_t*)calloc(MAXRAM, sizeof(uint32_t));
+    stream->send_data = (uint32_t*)calloc(MAXRAM, sizeof(uint32_t));
 
     stream->MAXRAM = MAXRAM;
 
