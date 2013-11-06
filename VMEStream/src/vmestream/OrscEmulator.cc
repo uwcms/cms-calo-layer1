@@ -6,12 +6,12 @@
 
 OrscEmulator::OrscEmulator()
 {
-    register1 = 0;
-    register2 = 0;
-    register3 = 0;
-    register4 = 0;
-    ram1      = (uint32_t*) malloc(VMERAMSIZE * sizeof(uint32_t));
-    ram2      = (uint32_t*) malloc(VMERAMSIZE * sizeof(uint32_t));
+    local_send_size  = 0;
+    local_recv_size  = 0;
+    remote_send_size = 0;
+    remote_recv_size = 0;
+    recv_data = (uint32_t*) calloc(VMERAMSIZE, sizeof(uint32_t));
+    send_data = (uint32_t*) calloc(VMERAMSIZE, sizeof(uint32_t));
 
     // setup the VME stream mechanism
     input_buffer = cbuffer_new();
@@ -20,20 +20,20 @@ OrscEmulator::OrscEmulator()
     stream = vmestream_initialize_mem(
             input_buffer,
             output_buffer,
-            register3,      // local_send_size
-            register4,      // local_recv_size
-            register1,      // remote_send_size
-            register2,      // remote_recv_size
-            ram1,           // recv_data
-            ram2,           // send_data
+            &local_send_size,      // local_send_size
+            &local_recv_size,      // local_recv_size
+            &remote_send_size,     // remote_send_size
+            &remote_recv_size,     // remote_recv_size
+            recv_data,             // recv_data
+            send_data,             // send_data
             VMERAMSIZE);
 }
 
 
 OrscEmulator::~OrscEmulator()
 {
-    free(ram1);
-    free(ram2);
+    free(recv_data);
+    free(send_data);
     cbuffer_free(input_buffer);
     cbuffer_free(output_buffer);
     free(stream);
@@ -49,11 +49,11 @@ OrscEmulator::read(unsigned long address, size_t size, void* value)
     switch(address) {
         case ORSC_RECV_SIZE:
             assert(size == 4);
-            memcpy(value, &register3, sizeof(uint32_t));
+            memcpy(value, &local_recv_size, sizeof(uint32_t));
             break;
         case ORSC_SEND_SIZE:
             assert(size == 4);
-            memcpy(value, &register4, sizeof(uint32_t));
+            memcpy(value, &local_send_size, sizeof(uint32_t));
             break;
         default:
             exit(10);
@@ -72,11 +72,11 @@ OrscEmulator::write(unsigned long address, size_t size, void* value)
     switch(address) {
         case PC_RECV_SIZE:
             assert(size == 4);
-            memcpy(&register1, value, sizeof(uint32_t));
+            memcpy(&remote_recv_size, value, sizeof(uint32_t));
             break;
         case PC_SEND_SIZE:
             assert(size == 4);
-            memcpy(&register2, value, sizeof(uint32_t));
+            memcpy(&remote_send_size, value, sizeof(uint32_t));
             break;
         default:
             exit(11);
@@ -109,7 +109,7 @@ OrscEmulator::block_read(uint32_t address, size_t datawidth,
     switch(address) {
         case ORSC2PC_DATA:
             assert(datawidth == 4);
-            memcpy(buffer, ram2, n_bytes);
+            memcpy(buffer, send_data, n_bytes);
             break;
         default:
             return 0;
@@ -124,7 +124,7 @@ OrscEmulator::block_write(uint32_t address, size_t datawidth,
     switch(address) {
         case PC2ORSC_DATA:
             assert(datawidth == 4);
-            memcpy(ram1, buffer, n_bytes);
+            memcpy(recv_data, buffer, n_bytes);
             break;
         default:
             return 0;

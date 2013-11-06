@@ -16,12 +16,12 @@ class OrscEmulator : public VMEController
 {
     protected:
 
-        uint32_t register1;  // PC_RECV_SIZE
-        uint32_t register2;  // PC_SEND_SIZE
-        uint32_t register3;  // ORSC_RECV_SIZE
-        uint32_t register4;  // ORSC_SEND_SIZE
-        uint32_t* ram1;      // PC2ORSC_DATA
-        uint32_t* ram2;      // ORSC2PC_DATA
+        uint32_t local_recv_size;  // PC_RECV_SIZE
+        uint32_t local_send_size;  // PC_SEND_SIZE
+        uint32_t remote_recv_size;  // ORSC_RECV_SIZE
+        uint32_t remote_send_size;  // ORSC_SEND_SIZE
+        uint32_t* send_data;      // PC2ORSC_DATA
+        uint32_t* recv_data;      // ORSC2PC_DATA
 
         VMEStream* stream;
         CircularBuffer* input_buffer;
