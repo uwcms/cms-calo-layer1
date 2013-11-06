@@ -57,22 +57,14 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
 
         // recieve data via VME
         if (*(stream->remote_send_size) > 0) {
-            printf("  Recieve\n");
             vme->block_read(ORSC2PC_DATA, DATAWIDTH, stream->recv_data, *(stream->remote_send_size) * sizeof(uint32_t));
         }
 
         // move data in/out of the buffers and update size values
         vmestream_transfer_data(stream);
 
-        // printf("vme2fd\n");
-        // printf("  remote_recv_size: %d\n", *(stream->remote_recv_size));
-        // printf("  remote_send_size: %d\n", *(stream->remote_send_size));
-        // printf("  local_recv_size:  %d\n", *(stream->local_recv_size));
-        // printf("  local_send_size:  %d\n", *(stream->local_send_size));
-
         // send data via VME
         if (*(stream->local_send_size) > 0) {
-            printf("  Send\n");
             vme->block_write(PC2ORSC_DATA, DATAWIDTH, stream->send_data, *(stream->local_send_size) * sizeof(uint32_t));
         }
 
@@ -82,7 +74,6 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
         }
 
         vme->doStuff();
-        // printf("\n");
     }
 
     close(fin);
