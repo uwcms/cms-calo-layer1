@@ -11,10 +11,10 @@
 
 
 typedef struct {
-    uint32_t local_send_size;    // How many words are loaded into send_data
-    uint32_t local_recv_size;    // How many words have been read from recv_data
-    uint32_t remote_send_size;   // How many words are loaded into recv_data
-    uint32_t remote_recv_size;   // How many words are read from send_data
+    uint32_t* local_send_size;    // How many words are loaded into send_data
+    uint32_t* local_recv_size;    // How many words have been read from recv_data
+    uint32_t* remote_send_size;   // How many words are loaded into recv_data
+    uint32_t* remote_recv_size;   // How many words are read from send_data
 
     uint32_t* recv_data;         // Recieve buffer (read only)
     uint32_t* send_data;         // Transmit buffer (write only)
@@ -36,10 +36,10 @@ VMEStream *vmestream_initialize_heap(
 VMEStream *vmestream_initialize_mem(
         CircularBuffer *input,
         CircularBuffer *output,
-        uint32_t local_send_size,
-        uint32_t local_recv_size,
-        uint32_t remote_send_size,
-        uint32_t remote_recv_size,
+        uint32_t* local_send_size,
+        uint32_t* local_recv_size,
+        uint32_t* remote_send_size,
+        uint32_t* remote_recv_size,
         uint32_t* recv_data,
         uint32_t* send_data,
         uint32_t MAXRAM);
