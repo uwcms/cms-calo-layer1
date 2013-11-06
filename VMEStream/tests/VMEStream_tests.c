@@ -9,109 +9,99 @@
 int tests_run = 0;
 
 
-static char* test_transfer()
+static char* test_ram1()
 {
-    CircularBuffer *input = cbuffer_new();
-    CircularBuffer *output = cbuffer_new();
+    CircularBuffer* pc_input    = cbuffer_new();
+    CircularBuffer* pc_output   = cbuffer_new();
+    CircularBuffer* orsc_input  = cbuffer_new();
+    CircularBuffer* orsc_output = cbuffer_new();
 
-    VMEStream* stream = vmestream_initialize_heap(input, output, 1);
+    VMEStream *pc_stream = vmestream_initialize_heap(pc_input, pc_output, 1);
 
-    cbuffer_push_back(input, 0xBEEFCAFE);
+    VMEStream *orsc_stream = malloc(sizeof(VMEStream));
+    orsc_stream->input              = orsc_input;
+    orsc_stream->output             = orsc_output;
+    orsc_stream->local_send_size    = pc_stream->remote_send_size;
+    orsc_stream->local_recv_size    = pc_stream->remote_recv_size;
+    orsc_stream->remote_send_size   = pc_stream->local_send_size;
+    orsc_stream->remote_recv_size   = pc_stream->local_recv_size;
+    orsc_stream->recv_data          = pc_stream->send_data;
+    orsc_stream->send_data          = pc_stream->recv_data;
+    orsc_stream->MAXRAM             = pc_stream->MAXRAM;
 
-    vmestream_transfer_data(stream);
-
-    assert(stream->local_send_size == 1);
-    assert(stream->local_recv_size == 0);
-    assert(stream->remote_send_size == 0);
-    assert(stream->remote_recv_size == 0);
-
-    assert(stream->send_data[0] == 0xBEEFCAFE);
-
-    stream->recv_data[0] = 0xDEADBEEF;
-    stream->remote_send_size = 1;
-
-    vmestream_transfer_data(stream);
-
-    assert(stream->local_send_size == 1);
-    assert(stream->local_recv_size == 1);
-    assert(stream->remote_send_size == 1);
-    assert(stream->remote_recv_size == 0);
-
-    assert(cbuffer_pop_front(output) == 0xDEADBEEF);
-
-    // clean up heap
-    cbuffer_free(input);
-    cbuffer_free(output);
-    vmestream_destroy_heap(stream);
-
-    return 0;
-}
-
-
-void vme_transfer(VMEStream* stream1, VMEStream* stream2)
-{
-    stream2->remote_send_size = stream1->local_send_size;
-    if (stream1->local_send_size > 0) {
-        memcpy(stream2->recv_data, stream1->send_data,
-                stream1->local_send_size * sizeof(uint32_t));
+    for (uint32_t i = 0; i < 20; ++i) {
+        cbuffer_push_back(pc_input, 0xDEADBEEF + i);
+        cbuffer_push_back(orsc_input, 0xBEEFCAFE + i);
     }
 
-    stream1->remote_send_size = stream2->local_send_size;
-    if (stream2->local_send_size > 0) {
-        memcpy(stream1->recv_data, stream2->send_data,
-                stream2->local_send_size * sizeof(uint32_t));
-    }
-
-    stream1->remote_recv_size = stream2->local_recv_size;
-    stream2->remote_recv_size = stream1->local_recv_size;
-}
-
-
-static char* test_echo()
-{
-    CircularBuffer *pc_input = cbuffer_new();
-    CircularBuffer *pc_output = cbuffer_new();
-    CircularBuffer *orsc_input = cbuffer_new();
-    CircularBuffer *orsc_output = cbuffer_new();
-
-    VMEStream* pc_stream = vmestream_initialize_heap(pc_input, pc_output, 512);
-    VMEStream* orsc_stream = vmestream_initialize_heap(orsc_input, orsc_output, 512);
-
-    cbuffer_push_back(pc_input, 0xDEADBEEF);
-    cbuffer_push_back(pc_input, 0xCAFEBABE);
-    cbuffer_push_back(orsc_input, 0xBEEFCAFE);
-    cbuffer_push_back(orsc_input, 0xBEEFBEEF);
-
-    vmestream_transfer_data(pc_stream);
-    vmestream_transfer_data(orsc_stream);
-
-    assert(cbuffer_size(pc_input) == 0);
-    assert(cbuffer_size(orsc_input) == 0);
-
-    vme_transfer(pc_stream, orsc_stream);
+    // initial transfer
     vmestream_transfer_data(pc_stream);
 
-    vme_transfer(pc_stream, orsc_stream);
+    // transfer data
     vmestream_transfer_data(orsc_stream);
+    vmestream_transfer_data(pc_stream);
 
-    assert(cbuffer_pop_front(pc_output) == 0xBEEFCAFE);
-    assert(cbuffer_pop_front(pc_output) == 0xBEEFBEEF);
-    assert(cbuffer_pop_front(orsc_output) == 0xDEADBEEF);
-    assert(cbuffer_pop_front(orsc_output) == 0xCAFEBABE);
+    mu_assert("Error: orsc_output.pop != DEADBEEF", cbuffer_pop_front(orsc_output) == 0xDEADBEEF);
+    mu_assert("Error: pc_output.pop != BEEFCAFE", cbuffer_pop_front(pc_output) == 0xBEEFCAFE);
 
+    // extra transfer is needed to reset the size registers
+    // to zero to prepare for another transfer
+    vmestream_transfer_data(orsc_stream);
+    vmestream_transfer_data(pc_stream);
 
-    // Clean up the heap
+    // transfer data
+    vmestream_transfer_data(orsc_stream);
+    vmestream_transfer_data(pc_stream);
+
+    mu_assert("Error: orsc_output.pop != DEADBEEF + 1", cbuffer_pop_front(orsc_output) == 0xDEADBEEF + 1);
+    mu_assert("Error: pc_output.pop != BEEFCAFE + 1", cbuffer_pop_front(pc_output) == 0xBEEFCAFE + 1);
+
+    /*
+    printf("pc_output.size: %d\n", cbuffer_size(pc_output));
+    printf("orsc_output.size: %d\n", cbuffer_size(orsc_output));
+    printf("pc_input.size: %d\n", cbuffer_size(pc_input));
+    printf("orsc_input.size: %d\n", cbuffer_size(orsc_input));
+    */
+
+    mu_assert("Error: pc_output.size != 0", cbuffer_size(pc_output) == 0);
+    mu_assert("Error: orsc_output.size != 0", cbuffer_size(orsc_output) == 0);
+    mu_assert("Error: pc_input.size != 18", cbuffer_size(pc_input) == 18);
+    mu_assert("Error: orsc_input.size != 18", cbuffer_size(orsc_input) == 18);
+
+    // transfer on pc_stream 2x in a row. Nothing should happen.
+    vmestream_transfer_data(pc_stream);
+    mu_assert("Error: pc_output.size != 0", cbuffer_size(pc_output) == 0);
+    mu_assert("Error: orsc_output.size != 0", cbuffer_size(orsc_output) == 0);
+    mu_assert("Error: pc_input.size != 18", cbuffer_size(pc_input) == 18);
+    mu_assert("Error: orsc_input.size != 18", cbuffer_size(orsc_input) == 18);
+
+    // reset
+    vmestream_transfer_data(orsc_stream);
+    vmestream_transfer_data(pc_stream);
+
+    vmestream_transfer_data(orsc_stream);
+    mu_assert("Error: pc_output.size != 0", cbuffer_size(pc_output) == 0);
+    mu_assert("Error: orsc_output.size != 1", cbuffer_size(orsc_output) == 1);
+    mu_assert("Error: pc_input.size != 17", cbuffer_size(pc_input) == 17);
+    mu_assert("Error: orsc_input.size != 17", cbuffer_size(orsc_input) == 17);
+
+    vmestream_destroy_heap(pc_stream);
+    free(orsc_stream);
     cbuffer_free(pc_input);
     cbuffer_free(orsc_input);
     cbuffer_free(pc_output);
     cbuffer_free(orsc_output);
 
-    vmestream_destroy_heap(pc_stream);
-    vmestream_destroy_heap(orsc_stream);
-
     return 0;
 }
 
+
+static char* all_tests()
+{
+    mu_run_test(test_ram1);
+
+    return 0;
+}
     
 
 /*
@@ -345,15 +335,6 @@ static char *all_tests()
 */
 
 
-static char* all_tests()
-{
-    mu_run_test(test_transfer);
-    mu_run_test(test_echo);
-
-    return 0;
-}
-
-
 int main(int argc, char *argv[])
 {
     char *result = all_tests();
@@ -361,6 +342,7 @@ int main(int argc, char *argv[])
         printf("%s\n", result);
     }
     else {
+        printf("Tests run: %d\n", tests_run);
         printf("ALL TESTS PASSED\n");
     }
 
