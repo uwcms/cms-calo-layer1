@@ -39,23 +39,24 @@ int main(void) {
   // initialize delays from table
   for (i1=0; i1<8; i1++)
     ecl_set_delay(delay_tbl[i1].delayval, delay_tbl[i1].fieldID);
-    ecl_set_mux_field(CLK, 2);
-    ecl_set_mux_field(RST, 2);
-    ecl_set_mux_field(BX0, 2);
-    ecl_set_mux_field(L1A, 2);
-
-
-    reset_clk_synths();
-    init_SI5324A();
-    check_SI5324A();
-    init_SI5324C();
-    check_SI5324C();
-
-
-
+  
+  ecl_set_mux_field(CLK, 2);
+  ecl_set_mux_field(RST, 2);
+  ecl_set_mux_field(BX0, 2);
+  ecl_set_mux_field(L1A, 2);
+  
+  
+  reset_clk_synths();
+  init_SI5324A();
+  check_SI5324A();
+  init_SI5324C();
+  check_SI5324C();
+  
+  
+  
   while(1) {
-
-	for (i1=0; i1<1000; i1++);
+    
+    for (i1=0; i1<1000; i1++);
   }
 
   return 0;

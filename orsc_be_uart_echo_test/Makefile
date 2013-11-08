@@ -1,19 +1,21 @@
 # oRSC backend SPI test
 
-HW=../orsc_be_hw_spi
-BSP=../orsc_be_bsp_spi
+HW=../orsc_be_hw
+BSP=../orsc_be_bsp
 
 IPBUS=$(SOFTIPBUS)
+BB=$(BITBANGER)
 
 # In JTAG chain, needed for make upload
 DEVICENR=1
 
-INCLUDES=-I$(IPBUS)/include -I../spistream -I../tracer
+INCLUDES=-I$(IPBUS)/include -I../tracer -I../bitbanger2
 
 # Make a single megalibrary of all user code.
-SRCS=$(wildcard src/*.c) $(wildcard ../spistream/*.c) \
+SRCS=$(wildcard src/*.c) \
      $(wildcard $(SOFTIPBUS)/src/*buffer*.c) \
-     ../tracer/tracer.c
+     $(wildcard $(BITBANGER)/*utils.c) \
+     ../tracer/tracer.c 
 
 include ../Makefile
 

@@ -1,7 +1,7 @@
 # oRSC front SPI test
 
-HW=../orsc_fe_hw
-BSP=../orsc_fe_bsp
+HW=../orsc_fe_hw_spi
+BSP=../orsc_fe_bsp_spi
 
 IPBUS=$(SOFTIPBUS)
 

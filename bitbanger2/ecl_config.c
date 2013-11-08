@@ -6,7 +6,6 @@
  */
 
 #include <xparameters.h>
-#include <xgpio.h>
 #include <stdio.h>
 #include <xstatus.h>
 #include "ecl_config.h"

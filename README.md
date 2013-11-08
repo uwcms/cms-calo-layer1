@@ -26,6 +26,7 @@ cd cms-calo-layer1
 # Setup your environment for Xilinx build tools
 source environment.sh
 # compile the Board Support Packages (BSPs)
+make cleanbsps
 make bsps
 # Make all the projects
 make all
@@ -75,7 +76,6 @@ echo "Go badgers" > /dev/ttyUL1
 cat /dev/ttyUL1
 ```
 should return the original string "Go badgers"
-
 
 ### orsc_(fe|be)_spi_echo_test ###
 
