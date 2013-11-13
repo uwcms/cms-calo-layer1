@@ -11,45 +11,38 @@
 
 
 typedef struct {
-    uint32_t* local_send_size;    // How many words are loaded into send_data
-    uint32_t* local_recv_size;    // How many words have been read from recv_data
-    uint32_t* remote_send_size;   // How many words are loaded into recv_data
-    uint32_t* remote_recv_size;   // How many words are read from send_data
-
-    uint32_t* recv_data;         // Recieve buffer (read only)
-    uint32_t* send_data;         // Transmit buffer (write only)
-    uint32_t MAXRAM;             // The maximum size (in words) of the VME RAM
-
+    uint32_t *tx_size;          // Number of words in transmit buffer
+    uint32_t *tx_data;          // Transmit buffer
+    uint32_t *rx_size;          // Number of words in recieve buffer
+    uint32_t *rx_data;          // Recieve buffer
+    uint32_t MAXRAM;            // The maximum size (in words) of the VME RAM
     CircularBuffer *input;
     CircularBuffer *output;
 } VMEStream;
 
-
 // Initialize a VMEStream object, allocating transfer/size buffers on the heap
 VMEStream *vmestream_initialize_heap(
-        CircularBuffer *input,
+        CircularBuffer *intput,
         CircularBuffer *output,
         uint32_t MAXRAM);
 
-
-// Initialize a VMEStream object pointing to existing buffers
+// Initialize a VMEStream object pointing to existing buffers 
 VMEStream *vmestream_initialize_mem(
         CircularBuffer *input,
         CircularBuffer *output,
-        uint32_t* local_send_size,
-        uint32_t* local_recv_size,
-        uint32_t* remote_send_size,
-        uint32_t* remote_recv_size,
-        uint32_t* recv_data,
-        uint32_t* send_data,
+        uint32_t *tx_size,
+        uint32_t *rx_size,
+        uint32_t *tx_data,
+        uint32_t *rx_data,
         uint32_t MAXRAM);
-        
 
 // Free memory allocated by the vmestream_initialize_heap function.
 void vmestream_destroy_heap(VMEStream *stream);
 
-/** Perform a VMEStream datatransfer
- */
+// Swap data from the circular buffers to the VME transfer RAMs, according to
+// the VMEStream protocol. Calling this will move (if possible) data from
+// stream->input into stream->tx_data, and (if possible) from stream->rx_data
+// to stream->output.
 int vmestream_transfer_data(VMEStream *stream);
 
 void do_vme_transfer(VMEStream *stream);

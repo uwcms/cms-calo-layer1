@@ -8,7 +8,6 @@ void
 OrscEchoEmulator::doStuff() {
   // move from local memory into buffers
   vmestream_transfer_data(stream);
-
   // now echo the data
   while (cbuffer_size(output_buffer) && cbuffer_freespace(input_buffer)) {
     cbuffer_push_back(input_buffer, cbuffer_pop_front(output_buffer));
