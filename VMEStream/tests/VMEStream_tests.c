@@ -17,7 +17,7 @@ static char *test_ram1()
     CircularBuffer *tx2 = cbuffer_new();
     CircularBuffer *rx2 = cbuffer_new();
 
-    VMEStream *test1 = vmestream_initialize(tx1, rx1, 1);
+    VMEStream *test1 = vmestream_initialize_heap(tx1, rx1, 1);
     VMEStream *test2 = malloc(sizeof(VMEStream));
     test2->input = tx2;
     test2->output = rx2;
@@ -78,7 +78,7 @@ static char *test_ram1()
 
 
     // free memory
-    vmestream_destroy(test1);
+    vmestream_destroy_heap(test1);
     free(test2);
     cbuffer_free(tx1);
     cbuffer_free(rx1);
@@ -100,8 +100,8 @@ static char *test_ram2()
     CircularBuffer *tx2 = cbuffer_new();
     CircularBuffer *rx2 = cbuffer_new();
 
-    VMEStream *test1 = vmestream_initialize(tx1, rx1, 2);
-    VMEStream *test2 = malloc(sizeof(VMEStream));
+    VMEStream *test1 = vmestream_initialize_heap(tx1, rx1, 2);
+    VMEStream *test2 = (VMEStream*) malloc(sizeof(VMEStream));
     test2->input = tx2;
     test2->output = rx2;
 
@@ -131,7 +131,7 @@ static char *test_ram2()
 
 
     // free memory
-    vmestream_destroy(test1);
+    vmestream_destroy_heap(test1);
     free(test2);
     cbuffer_free(tx1);
     cbuffer_free(rx1);
@@ -153,7 +153,7 @@ static char *test_buf()
     CircularBuffer *tx2 = cbuffer_new();
     CircularBuffer *rx2 = cbuffer_new();
 
-    VMEStream *test1 = vmestream_initialize(tx1, rx1, 32);
+    VMEStream *test1 = vmestream_initialize_heap(tx1, rx1, 32);
     VMEStream *test2 = malloc(sizeof(VMEStream));
     test2->input = tx2;
     test2->output = rx2;
@@ -213,7 +213,7 @@ static char *test_buf()
 
 
     // free memory
-    vmestream_destroy(test1);
+    vmestream_destroy_heap(test1);
     free(test2);
     cbuffer_free(tx1);
     cbuffer_free(rx1);
@@ -240,6 +240,7 @@ int main(int argc, char *argv[])
         printf("%s\n", result);
     }
     else {
+        printf("Tests run: %d\n", tests_run);
         printf("ALL TESTS PASSED\n");
     }
 
