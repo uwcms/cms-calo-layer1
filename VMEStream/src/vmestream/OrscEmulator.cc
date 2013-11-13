@@ -44,11 +44,11 @@ OrscEmulator::read(unsigned long address, size_t size, void* value)
 {
     switch(address) {
         case PC_2_ORSC_SIZE:
-            assert(size == 4);
+            assert(size == 2);
             memcpy(value, &register1, sizeof(uint32_t));
             break;
         case ORSC_2_PC_SIZE:
-            assert(size == 4);
+            assert(size == 2);
             memcpy(value, &register2, sizeof(uint32_t));
             break;
         default:
@@ -66,11 +66,11 @@ OrscEmulator::write(unsigned long address, size_t size, void* value)
 {
     switch(address) {
         case PC_2_ORSC_SIZE:
-            assert(size == 4);
+            assert(size == 2);
             memcpy(&register1, value, sizeof(uint32_t));
             break;
         case ORSC_2_PC_SIZE:
-            assert(size == 4);
+            assert(size == 2);
             memcpy(&register2, value, sizeof(uint32_t));
             break;
         default:
@@ -102,11 +102,11 @@ OrscEmulator::block_read(uint32_t address, size_t datawidth,
 {
     switch(address) {
         case PC_2_ORSC_DATA:
-            assert(datawidth == 4);
+            assert(datawidth == 2);
             memcpy(buffer, ram1, n_bytes);
             break;
         case ORSC_2_PC_DATA:
-            assert(datawidth == 4);
+            assert(datawidth == 2);
             memcpy(buffer, ram2, n_bytes);
             break;
         default:
@@ -121,11 +121,11 @@ OrscEmulator::block_write(uint32_t address, size_t datawidth,
 {
     switch(address) {
         case PC_2_ORSC_DATA:
-            assert(datawidth == 4);
+            assert(datawidth == 2);
             memcpy(ram1, buffer, n_bytes);
             break;
         case ORSC_2_PC_DATA:
-            assert(datawidth == 4);
+            assert(datawidth == 2);
             memcpy(ram2, buffer, n_bytes);
             break;
         default:

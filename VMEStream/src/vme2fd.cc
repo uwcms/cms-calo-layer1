@@ -15,7 +15,7 @@
 #include "VMEStreamAddress.h"
 #include "bytebuffer.h"
 
-#define DATAWIDTH 4
+#define DATAWIDTH 2
 
 // read 2MB at time
 #define READ_BUFFER_SIZE (1024 * 1024 * 2)
