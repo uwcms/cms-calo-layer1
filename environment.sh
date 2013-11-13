@@ -18,7 +18,7 @@ popd
 if [ -d $HOME/trigger_code/softipbus ]; then
     export SOFTIPBUS=$HOME/trigger_code/softipbus
 else
-    export SOFTIPBUS=${PWD}/softipbus
+    export SOFTIPBUS=${PWD}/../softipbus
 fi
 export BITBANGER=${PWD}/bitbanger2
 
