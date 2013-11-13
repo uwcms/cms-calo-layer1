@@ -80,6 +80,7 @@ orscfebits:
 bsps:
 	cd $(LAYER1_DIR)/orsc_fe_bsp && make
 	cd $(LAYER1_DIR)/orsc_fe_bsp_spi && make
+	cd $(LAYER1_DIR)/orsc_be_bsp_spi && make
 	cd $(LAYER1_DIR)/orsc_be_bsp && make
 	cd $(LAYER1_DIR)/ctp6_fe_bsp && make
 
@@ -91,6 +92,7 @@ cleanbsps:
 	cd $(LAYER1_DIR)/orsc_fe_bsp_spi && make clean
 	cd $(LAYER1_DIR)/orsc_be_bsp && make clean
 	cd $(LAYER1_DIR)/ctp6_fe_bsp && make clean
+	cd $(LAYER1_DIR)/orsc_be_bsp_spi && make clean
 
 localclean: 
 	rm -f payload.*
