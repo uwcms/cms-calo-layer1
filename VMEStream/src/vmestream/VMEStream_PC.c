@@ -10,15 +10,13 @@ VMEStream *vmestream_initialize_heap(
         CircularBuffer *output,
         uint32_t MAXRAM)
 {
-    VMEStream *stream = (VMEStream*)malloc(sizeof(VMEStream));
+    VMEStream *stream = (VMEStream*) malloc(sizeof(VMEStream));
 
-    stream->tx_size = (uint32_t*)malloc(sizeof(uint32_t));
-    stream->rx_size = (uint32_t*)malloc(sizeof(uint32_t));
-    *(stream->tx_size) = 0;
-    *(stream->rx_size) = 0;
+    stream->tx_size = (uint32_t*) calloc(1, sizeof(uint32_t));
+    stream->rx_size = (uint32_t*) calloc(1, sizeof(uint32_t));
 
-    stream->tx_data = (uint32_t*)malloc(sizeof(uint32_t) * MAXRAM);
-    stream->rx_data = (uint32_t*)malloc(sizeof(uint32_t) * MAXRAM);
+    stream->tx_data = (uint32_t*) calloc(MAXRAM, sizeof(uint32_t));
+    stream->rx_data = (uint32_t*) calloc(MAXRAM, sizeof(uint32_t));
 
     stream->MAXRAM = MAXRAM;
 
