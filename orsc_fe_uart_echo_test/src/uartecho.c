@@ -1,7 +1,7 @@
 /*
  * Minimal test of inter-FPGA UART communication on the oRSC frontend.
  *
- * Author: Tapas R. Sarangi UW Madison
+ * Author: Evan K. Friis UW Madison
  *
  * Modified from Xilinx xuartlite_intr_example.c
  *
@@ -168,6 +168,9 @@ int main(void) {
       //LOG_DEBUG("Echoing data word %x\n", data);
       cbuffer_push_back(tx_buffer, data);
     }
+    set_trace_flag(9);
+    //xil_printf("Hello... I am here");
+
     if (!currently_sending && cbuffer_size(tx_buffer)) {
       LOG_DEBUG("\nREINT SEND\n");
       currently_sending = 1;
