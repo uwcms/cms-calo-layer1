@@ -15,7 +15,7 @@
 #include "VMEStreamAddress.h"
 #include "bytebuffer.h"
 
-#define DATAWIDTH 2
+#define DATAWIDTH 4
 
 // read 2MB at time
 #define READ_BUFFER_SIZE (1024 * 1024 * 2)
@@ -50,10 +50,10 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
         bytebuffer_del_front(&buf, words2append * sizeof(uint32_t));
 
         // update flags w/ VME
-	//         vme->read(ORSC_RECV_SIZE, DATAWIDTH, stream->remote_recv_size);
-	//         vme->read(ORSC_SEND_SIZE, DATAWIDTH, stream->remote_send_size);
-	//         vme->write(PC_RECV_SIZE, DATAWIDTH, stream->local_recv_size);
-	//         vme->write(PC_SEND_SIZE, DATAWIDTH, stream->local_send_size);
+        vme->read(ORSC_RECV_SIZE, DATAWIDTH, stream->remote_recv_size);
+        vme->read(ORSC_SEND_SIZE, DATAWIDTH, stream->remote_send_size);
+        vme->write(PC_RECV_SIZE, DATAWIDTH, stream->local_recv_size);
+        vme->write(PC_SEND_SIZE, DATAWIDTH, stream->local_send_size);
 
         // recieve data via VME
         if (*(stream->remote_send_size) > 0) {
