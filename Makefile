@@ -36,6 +36,7 @@ PROJECTS=\
 	 $(LAYER1_DIR)/ctp6_fe_uart_ipbus \
 	 $(LAYER1_DIR)/ctp6_fe_uart_echo_test \
 	 $(LAYER1_DIR)/orsc_be_uart_echo_test \
+	 $(LAYER1_DIR)/orsc_be_clk_cfg \
 	 $(LAYER1_DIR)/orsc_fe_uart_echo_test \
 	 $(LAYER1_DIR)/orsc_be_spi_echo_test \
 	 $(LAYER1_DIR)/orsc_fe_spi_echo_test \
@@ -91,8 +92,8 @@ cleanbsps:
 	cd $(LAYER1_DIR)/orsc_fe_bsp && make clean
 	cd $(LAYER1_DIR)/orsc_fe_bsp_spi && make clean
 	cd $(LAYER1_DIR)/orsc_be_bsp && make clean
-	cd $(LAYER1_DIR)/ctp6_fe_bsp && make clean
 	cd $(LAYER1_DIR)/orsc_be_bsp_spi && make clean
+	cd $(LAYER1_DIR)/ctp6_fe_bsp && make clean
 
 localclean: 
 	rm -f payload.*
