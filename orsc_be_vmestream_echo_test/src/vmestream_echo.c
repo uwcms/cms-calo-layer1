@@ -20,12 +20,57 @@
 
 #include "xil_printf.h"
 
-static VMEStream* stream;
 /* Input and output buffers */
 static CircularBuffer* input;
 static CircularBuffer* output;
 
 #define MEMSTEP 4
+
+#define MIN(x, y) ( (x) < (y) ? (x) : (y) )
+
+
+uint32_t vme_read(CircularBuffer* cbuf)
+{
+    uint16_t rx_size = XIo_In16(PC_2_ORSC_SIZE);
+
+    uint32_t rx_data [VMERAMSIZE];
+
+    if (rx_size > 0 && rx_size <= cbuffer_freespace(cbuf)) {
+        for (uint32_t i = 0; i < VMERAMSIZE * 2; ++i) {
+            ((uint16_t)rx_data)[i] = XIo_In16(PC_2_ORSC_DATA + i*MEMSTEP);
+        }
+        cbuffer_append(cbuf, rx_data, (uint32_t)rx_size);
+
+        XIo_In16(PC_2_ORSC_SIZE, (uint16_t)0);
+
+        return (uint32_t)rx_size;
+    }
+    return 0;
+}
+
+
+uint32_t vme_write(CircularBuffer* cbuf)
+{
+    uint16_t tx_size = XIo_In16(ORSC_2_PC_SIZE);
+
+    uint32_t tx_data [VMERAMSIZE];
+
+    if (tx_size == 0 && cbuffer_size(cbuf) > 0) {
+        uint32_t data2transfer = MIN(VMERAMSIZE, cbuffer_size(cbuf));
+        Buffer *buf = cbuffer_pop(cbuf, data2transfer);
+        memcpy(tx_data, buf->data, data2transfer * sizeof(uint32_t));
+
+        for (uint32_t i = 0; i < VMERAMSIZE * 2; ++i) {
+            XIo_Out16(ORSC_2_PC_DATA + i*MEMSTEP, ((uint16_t)tx_data)[i]);
+        }
+
+        tx_size = (uint16_t)data2transfer;
+        XIo_Out16(ORSC_2_PC_SIZE, tx_size);
+
+        return data2transfer;
+    }
+    return 0;
+}
 
 
 int main() {
@@ -36,48 +81,10 @@ int main() {
   input = cbuffer_new();
   output = cbuffer_new();
 
-  stream = vmestream_initialize_heap(input, output, VMERAMSIZE);
-
-  uint16_t tx_size;
-  uint16_t rx_size;
-  uint16_t* tx_data = (uint16_t*) calloc(VMERAMSIZE, sizeof(uint32_t));
-  uint16_t* rx_data = (uint16_t*) calloc(VMERAMSIZE, sizeof(uint32_t));
-
   xil_printf("Start Server\r\n");
   while (1) {
-    rx_size = XIo_In16(PC_2_ORSC_SIZE);
-    tx_size = XIo_In16(ORSC_2_PC_SIZE);
-
-    for (uint32_t i = 0; i < VMERAMSIZE * 2; ++i) {
-      rx_data[i] = XIo_In16(PC_2_ORSC_DATA + i*MEMSTEP);
-    }
-    memcpy(stream->rx_data, rx_data, VMERAMSIZE * sizeof(uint32_t));
-
-    *(stream->rx_size) = (uint32_t) rx_size;
-    *(stream->tx_size) = (uint32_t) tx_size;
-
-
-    vmestream_transfer_data(stream);
-
-
-    memcpy(tx_data, stream->tx_data, VMERAMSIZE * sizeof(uint32_t));
-
-    rx_size = (uint16_t) *(stream->rx_size);
-    tx_size = (uint16_t) *(stream->tx_size);
-
-    for (uint32_t i = 0; i < VMERAMSIZE * 2; ++i) {
-      XIo_Out16(ORSC_2_PC_DATA + i*MEMSTEP, tx_data[i]);
-    }
-
-    if (stream->write_rx) {
-        XIo_Out16(PC_2_ORSC_SIZE, rx_size);
-        stream->write_rx = 0;
-    }
-    if (stream->write_tx) {
-        XIo_Out16(ORSC_2_PC_SIZE, tx_size);
-        stream->write_tx = 0;
-    }
-
+    uint32_t words_read = vme_read(output);
+    uint32_t words_write = vme_write(input);
 
     while (cbuffer_size(output) && cbuffer_freespace(input)) {
       uint32_t word = cbuffer_pop_front(output);

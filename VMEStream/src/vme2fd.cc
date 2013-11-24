@@ -23,6 +23,51 @@
 #define MIN(x, y) ( (x) < (y) ? (x) : (y) )
 
 
+uint32_t vme_read(VMEController* vme, CircularBuffer* cbuf)
+{
+    uint32_t rx_size;
+    vme->read(ORSC_2_PC_SIZE, DATAWIDTH, &rx_size);
+
+    uint32_t rx_data [VMERAMSIZE];
+
+    if (rx_size > 0 && rx_size <= cbuffer_freespace(cbuf)) {
+        vme->block_read(ORSC_2_PC_DATA, rx_data, rx_size * sizeof(uint32_t));
+        cbuffer_append(cbuf, rx_data, rx_size);
+
+        uint32_t zero = 0;
+        vme->write(ORSC_2_PC_SIZE, DATAWIDTH, &zero);
+
+        return rx_size;
+    }
+
+    return 0;
+}
+
+
+uint32_t vme_write(VMEController* vme, CircularBuffer* cbuf)
+{
+    uint32_t tx_size;
+    vme->read(PC_2_ORSC_SIZE, DATAWIDTH, &tx_size);
+
+    uint32_t tx_data [VMERAMSIZE];
+
+    if (tx_size == 0 && cbuffer_size(cbuf) > 0) {
+        uint32_t data2transfer = MIN(VMERAMSIZE, cbuffer_size(cbuf));
+        Buffer *buf = cbuffer_pop(cbuf, data2transfer);
+        memcpy(tx_data, buf->data, data2transfer * sizeof(uint32_t));
+
+        vme->block_write(PC_2_ORSC_DATA, tx_data, data2transfer * sizeof(uint32_t));
+
+        tx_size = data2transfer;
+        vme->write(PC_2_ORSC_SIZE, tx_size);
+
+        return data2transfer;
+    }
+
+    return 0;
+}
+
+
 void pc2orsc_server(char* in_pipe, char* out_pipe)
 {
     // empty buffer.
@@ -35,7 +80,6 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
     CircularBuffer *output = cbuffer_new();
     // initialize VMEStream object allocating local memory for the transfer
     // buffers.
-    VMEStream *stream = vmestream_initialize_heap(input, output, VMERAMSIZE);
 
     VMEController* vme = VMEController::getVMEController();
 
@@ -59,29 +103,9 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
         // pop off read words, leaving any fractional words in the input buffer
         bytebuffer_del_front(&buf, words_to_append * sizeof(uint32_t));
 
-        vme->read(PC_2_ORSC_SIZE, DATAWIDTH, stream->tx_size);
-        vme->read(ORSC_2_PC_SIZE, DATAWIDTH, stream->rx_size);
-
-        if (*(stream->rx_size) > 0) {
-            vme->block_read(ORSC_2_PC_DATA, DATAWIDTH, stream->rx_data,
-                    *(stream->rx_size) * sizeof(uint32_t));
-        }
-
-        vmestream_transfer_data(stream);
-
-        if (*(stream->tx_size) > 0) {
-            vme->block_write(PC_2_ORSC_DATA, DATAWIDTH, stream->tx_data,
-                    *(stream->tx_size) * sizeof(uint32_t));
-        }
-
-        if (stream->write_tx) {
-            vme->write(PC_2_ORSC_SIZE, DATAWIDTH, stream->tx_size);
-            stream->write_tx = 0;
-        }
-        if (stream->write_rx) {
-            vme->write(ORSC_2_PC_SIZE, DATAWIDTH, stream->rx_size);
-            stream->write_rx = 0;
-        }
+        // perform read/write operations to VME
+        uint32_t words_read = vme_read(vme, output);
+        uint32_t words_write = vme_write(vme, input);
 
         // if stream->ouput has data, then output it
         uint32_t n_words = cbuffer_size(stream->output);
@@ -94,7 +118,6 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
 
     close(fin);
     close(fout);
-    vmestream_destroy_heap(stream);
 }
 
 
