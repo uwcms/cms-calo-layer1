@@ -16,6 +16,8 @@ typedef struct {
     uint32_t *rx_size;          // Number of words in recieve buffer
     uint32_t *rx_data;          // Recieve buffer
     uint32_t MAXRAM;            // The maximum size (in words) of the VME RAM
+    char     write_rx;          // Flag to write rx_size to VME
+    char     write_tx;          // Flag to write tx_size to VME
     CircularBuffer *input;
     CircularBuffer *output;
 } VMEStream;
@@ -34,6 +36,8 @@ VMEStream *vmestream_initialize_mem(
         uint32_t *rx_size,
         uint32_t *tx_data,
         uint32_t *rx_data,
+        char     write_tx,
+        char     write_rx,
         uint32_t MAXRAM);
 
 // Free memory allocated by the vmestream_initialize_heap function.

@@ -18,6 +18,9 @@ VMEStream *vmestream_initialize_heap(
     stream->tx_data = (uint32_t*) calloc(MAXRAM, sizeof(uint32_t));
     stream->rx_data = (uint32_t*) calloc(MAXRAM, sizeof(uint32_t));
 
+    stream->write_tx = 0;
+    stream->write_rx = 0;
+
     stream->MAXRAM = MAXRAM;
 
     stream->input = input;
@@ -33,6 +36,8 @@ VMEStream *vmestream_initialize_mem(
         uint32_t *rx_size,
         uint32_t *tx_data,
         uint32_t *rx_data,
+        char write_tx,
+        char write_rx,
         uint32_t MAXRAM) {
     VMEStream *stream = (VMEStream*)malloc(sizeof(VMEStream));
     stream->tx_size = tx_size;
@@ -42,6 +47,8 @@ VMEStream *vmestream_initialize_mem(
     stream->MAXRAM = MAXRAM;
     stream->input = input;
     stream->output = output;
+    stream->write_rx = write_rx;
+    stream->write_tx = write_tx;
     return stream;
 }
 
@@ -81,6 +88,8 @@ int vmestream_transfer_data(VMEStream *stream)
           data2transfer*sizeof(uint32_t));
       *(stream->tx_size) = data2transfer;
 
+      stream->write_tx = 1;
+
       buffer_free(read_data);
     }
 
@@ -96,6 +105,8 @@ int vmestream_transfer_data(VMEStream *stream)
         cbuffer_append(stream->output, stream->rx_data, rx_size);
         // indicate successful receipt.
         *(stream->rx_size) = 0;
+
+        stream->write_rx = 1;
     }
 
     return 0;

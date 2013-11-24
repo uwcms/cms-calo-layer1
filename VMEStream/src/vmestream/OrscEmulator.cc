@@ -22,6 +22,8 @@ OrscEmulator::OrscEmulator()
             &register1,
             ram2,
             ram1,
+            0,
+            0,
             VMERAMSIZE);
 }
 

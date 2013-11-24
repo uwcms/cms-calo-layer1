@@ -18,4 +18,4 @@
 #define PC_2_ORSC_DATA 0x0000
 #define ORSC_2_PC_DATA 0x1000
 
-#define VMERAMSIZE 512
+#define VMERAMSIZE 256

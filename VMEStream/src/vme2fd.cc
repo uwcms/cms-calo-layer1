@@ -74,8 +74,14 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
                     *(stream->tx_size) * sizeof(uint32_t));
         }
 
-        vme->write(PC_2_ORSC_SIZE, DATAWIDTH, stream->tx_size);
-        vme->write(ORSC_2_PC_SIZE, DATAWIDTH, stream->rx_size);
+        if (stream->write_tx) {
+            vme->write(PC_2_ORSC_SIZE, DATAWIDTH, stream->tx_size);
+            stream->write_tx = 0;
+        }
+        if (stream->write_rx) {
+            vme->write(ORSC_2_PC_SIZE, DATAWIDTH, stream->rx_size);
+            stream->write_rx = 0;
+        }
 
         // if stream->ouput has data, then output it
         uint32_t n_words = cbuffer_size(stream->output);
