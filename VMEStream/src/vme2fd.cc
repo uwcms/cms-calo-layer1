@@ -99,10 +99,10 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
         bytebuffer_read_fd(&buf, fin, READ_BUFFER_SIZE);
 
         uint32_t words_to_append = MIN(
-            buf.bufsize/sizeof(uint32_t), cbuffer_freespace(stream->input));
+            buf.bufsize/sizeof(uint32_t), cbuffer_freespace(input));
 
         if (words_to_append > 0) {
-            cbuffer_append(stream->input, buf.buf, words_to_append);
+            cbuffer_append(input, buf.buf, words_to_append);
         }
 
         // pop off read words, leaving any fractional words in the input buffer
@@ -112,10 +112,10 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
         uint32_t words_read = vme_read(vme, output);
         uint32_t words_write = vme_write(vme, input);
 
-        // if stream->ouput has data, then output it
-        uint32_t n_words = cbuffer_size(stream->output);
+        // if ouput has data, then output it
+        uint32_t n_words = cbuffer_size(output);
         if (n_words > 0) {
-            cbuffer_write_fd(stream->output, fout, n_words);
+            cbuffer_write_fd(output, fout, n_words);
         }
         // Do any desired emulation. In production, this does nothing.
         vme->doStuff();
