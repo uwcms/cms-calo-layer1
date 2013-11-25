@@ -59,10 +59,10 @@ uint32_t vme_read(VMEController* vme, CircularBuffer* cbuf)
         vme->write(ORSC_2_PC_SIZE, DATAWIDTH, &zero);
 
         free(rx_data);
-
         return rx_size;
     }
 
+    free(rx_data);
     return 0;
 }
 
@@ -95,10 +95,10 @@ uint32_t vme_write(VMEController* vme, CircularBuffer* cbuf)
 
         buffer_free(buf);
         free(tx_data);
-
         return data2transfer;
     }
 
+    free(tx_data);
     return 0;
 }
 
@@ -155,6 +155,11 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
         // Do any desired emulation. In production, this does nothing.
         vme->doStuff();
     }
+
+    cbuffer_free(input);
+    cbuffer_free(output);
+
+    delete vme;
 
     close(fin);
     close(fout);
