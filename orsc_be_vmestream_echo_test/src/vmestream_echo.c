@@ -37,11 +37,11 @@ uint32_t vme_read(CircularBuffer* cbuf)
 
     if (rx_size > 0 && rx_size <= cbuffer_freespace(cbuf)) {
         for (uint32_t i = 0; i < VMERAMSIZE * 2; ++i) {
-            ((uint16_t)rx_data)[i] = XIo_In16(PC_2_ORSC_DATA + i*MEMSTEP);
+            ((uint16_t*)rx_data)[i] = XIo_In16(PC_2_ORSC_DATA + i*MEMSTEP);
         }
         cbuffer_append(cbuf, rx_data, (uint32_t)rx_size);
 
-        XIo_In16(PC_2_ORSC_SIZE, (uint16_t)0);
+        XIo_Out16(PC_2_ORSC_SIZE, (uint16_t)0);
 
         return (uint32_t)rx_size;
     }
@@ -61,7 +61,7 @@ uint32_t vme_write(CircularBuffer* cbuf)
         memcpy(tx_data, buf->data, data2transfer * sizeof(uint32_t));
 
         for (uint32_t i = 0; i < VMERAMSIZE * 2; ++i) {
-            XIo_Out16(ORSC_2_PC_DATA + i*MEMSTEP, ((uint16_t)tx_data)[i]);
+            XIo_Out16(ORSC_2_PC_DATA + i*MEMSTEP, ((uint16_t*)tx_data)[i]);
         }
 
         tx_size = (uint16_t)data2transfer;
