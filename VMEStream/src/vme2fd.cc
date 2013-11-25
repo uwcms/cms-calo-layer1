@@ -28,14 +28,16 @@ uint32_t vme_read(VMEController* vme, CircularBuffer* cbuf)
     uint32_t rx_size;
     vme->read(ORSC_2_PC_SIZE, DATAWIDTH, &rx_size);
 
-    uint32_t rx_data [VMERAMSIZE];
+    uint32_t* rx_data = (uint32_t*) malloc(VMERAMSIZE * sizeof(uint32_t));
 
     if (rx_size > 0 && rx_size <= cbuffer_freespace(cbuf)) {
-        vme->block_read(ORSC_2_PC_DATA, rx_data, rx_size * sizeof(uint32_t));
+        vme->block_read(ORSC_2_PC_DATA, DATAWIDTH, rx_data, rx_size * sizeof(uint32_t));
         cbuffer_append(cbuf, rx_data, rx_size);
 
         uint32_t zero = 0;
         vme->write(ORSC_2_PC_SIZE, DATAWIDTH, &zero);
+
+        free(rx_data);
 
         return rx_size;
     }
@@ -49,17 +51,20 @@ uint32_t vme_write(VMEController* vme, CircularBuffer* cbuf)
     uint32_t tx_size;
     vme->read(PC_2_ORSC_SIZE, DATAWIDTH, &tx_size);
 
-    uint32_t tx_data [VMERAMSIZE];
+    uint32_t* tx_data = (uint32_t*) malloc(VMERAMSIZE * sizeof(uint32_t));
 
     if (tx_size == 0 && cbuffer_size(cbuf) > 0) {
         uint32_t data2transfer = MIN(VMERAMSIZE, cbuffer_size(cbuf));
         Buffer *buf = cbuffer_pop(cbuf, data2transfer);
         memcpy(tx_data, buf->data, data2transfer * sizeof(uint32_t));
 
-        vme->block_write(PC_2_ORSC_DATA, tx_data, data2transfer * sizeof(uint32_t));
+        vme->block_write(PC_2_ORSC_DATA, DATAWIDTH, tx_data, data2transfer * sizeof(uint32_t));
 
         tx_size = data2transfer;
-        vme->write(PC_2_ORSC_SIZE, tx_size);
+        vme->write(PC_2_ORSC_SIZE, DATAWIDTH, &tx_size);
+
+        buffer_free(buf);
+        free(tx_data);
 
         return data2transfer;
     }
