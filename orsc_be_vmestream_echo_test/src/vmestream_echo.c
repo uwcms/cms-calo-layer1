@@ -4,10 +4,8 @@
  * Authors: Evan K. Friis, UW Madison
  *          D. Austin Belknap, UW Madison
  *
- * This program sets up the SPI as master, then sends a continuous stream of
- * increasing words to the slave device, which should echo them back.  If there
- * are transmission errors, they will be noted on stdout.
- * 
+ * Accepts data from VME and reflects it back to VME to be read
+ * by vme2fd running on the VME PC.
  */
 
 #include "platform.h"
@@ -15,8 +13,9 @@
 #include "xparameters.h"        /* Defined in BSP */
 #include "xio.h"
 
-#include "VMEStream.h"
 #include "VMEStreamAddress_ORSC.h"
+#include "circular_buffer.h"
+#include "string.h"
 
 #include "xil_printf.h"
 
@@ -31,6 +30,7 @@ static CircularBuffer* output;
 
 uint32_t vme_read(CircularBuffer* cbuf)
 {
+    // check if there is data in VME RAM to read
     uint16_t rx_size = XIo_In16(PC_2_ORSC_SIZE);
 
     uint32_t rx_data [VMERAMSIZE];
@@ -51,6 +51,7 @@ uint32_t vme_read(CircularBuffer* cbuf)
 
 uint32_t vme_write(CircularBuffer* cbuf)
 {
+    // check if VME PC is ready to accept more data
     uint16_t tx_size = XIo_In16(ORSC_2_PC_SIZE);
 
     uint32_t tx_data [VMERAMSIZE];
@@ -67,42 +68,44 @@ uint32_t vme_write(CircularBuffer* cbuf)
         tx_size = (uint16_t)data2transfer;
         XIo_Out16(ORSC_2_PC_SIZE, tx_size);
 
+        buffer_free(buf);
+
         return data2transfer;
     }
     return 0;
 }
 
 
-int main() {
-  // initialize stdout.
-  init_platform();
-  xil_printf("VMEStream - oRSC echo test\r\n");
+void orsc2pc_server()
+{
+    input = cbuffer_new();
+    output = cbuffer_new();
 
-  input = cbuffer_new();
-  output = cbuffer_new();
+    while (1) {
+        uint32_t words_read = vme_read(output);
+        uint32_t words_write = vme_write(input);
 
-  xil_printf("Start Server\r\n");
-  while (1) {
-    uint32_t words_read = vme_read(output);
-    uint32_t words_write = vme_write(input);
-
-    while (cbuffer_size(output) && cbuffer_freespace(input)) {
-      uint32_t word = cbuffer_pop_front(output);
-      xil_printf("%s", (char*)(&word));
-      cbuffer_push_back(input, word);
+        // move data from 'output' to 'input' so it will be sent
+        // back to vme2fd across VME.
+        while (cbuffer_size(output) && cbuffer_freespace(input)) {
+            uint32_t word = cbuffer_pop_front(output);
+            xil_printf("%s", (char*)(&word));
+            cbuffer_push_back(input, word);
+        }
     }
+}
 
 
-    //// transfer data
-    //vmestream_transfer_data(stream);
-    //// now echo the data
-    //while (cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)) {
-    //    uint32_t word = cbuffer_pop_front(rx_buffer);
-    //    xil_printf("word: %x\r\n", word);
-    //    cbuffer_push_back(tx_buffer, cbuffer_pop_front(rx_buffer));
-    //}
-  }
+int main()
+{
+    // initialize stdout.
+    init_platform();
+    xil_printf("VMEStream - oRSC echo test\r\n");
 
-  return 0;
+    xil_printf("Start Server\r\n");
+
+    orsc2pc_server();
+
+    return 0;
 }
 
