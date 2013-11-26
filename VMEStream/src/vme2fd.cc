@@ -114,7 +114,7 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
     // empty buffer.
     ByteBuffer buf = bytebuffer_ctor(NULL, 0);
 
-    int fin  = open(in_pipe, O_RDONLY);
+    int fin  = open(in_pipe, O_RDONLY | O_NONBLOCK);
     int fout = open(out_pipe, O_WRONLY);
 
     CircularBuffer *input = cbuffer_new();
@@ -159,7 +159,7 @@ void pc2orsc_server(char* in_pipe, char* out_pipe)
     cbuffer_free(input);
     cbuffer_free(output);
 
-    delete vme;
+    //delete vme;
 
     close(fin);
     close(fout);
