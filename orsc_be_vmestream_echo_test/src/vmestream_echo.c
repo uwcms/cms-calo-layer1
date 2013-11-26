@@ -89,7 +89,17 @@ void orsc2pc_server()
         // back to vme2fd across VME.
         while (cbuffer_size(output) && cbuffer_freespace(input)) {
             uint32_t word = cbuffer_pop_front(output);
-            xil_printf("%s", (char*)(&word));
+
+            // print words to UART for inspection
+            for (int i = 0; i < 4; ++i) {
+                char c = ((char*)(&word))[i];
+                if (c == '\n') {
+                    xil_printf("%c\r", c);
+                }
+                else {
+                    xil_printf("%c", c);
+                }
+            }
             cbuffer_push_back(input, word);
         }
     }
