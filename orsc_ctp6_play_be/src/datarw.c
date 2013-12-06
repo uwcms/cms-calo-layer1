@@ -18,10 +18,7 @@
 #include "i2cutils.h"
 #include "xio.h"
 #include "addr.h"
-#include "bytebuffer.h"
-
-#define printf xil_printf
-#define print xil_printf
+#include "flashled.h"
 
 #define UARTLITE_DEVICE_ID      XPAR_UARTLITE_0_DEVICE_ID
 #define INTC_DEVICE_ID          XPAR_INTC_0_DEVICE_ID
@@ -64,6 +61,61 @@ static volatile int TotalSentCount;
 static volatile int xst_succ=0;
 
 
+inline void playback(int cbytes, int btidx)
+{
+
+  int Index;
+  uint16_t tsize = (XIo_In16(REG4_ADDR)+2)*sizeof(uint32_t);
+  xil_printf("\n\rSize: %d\n\r", tsize);
+  xil_printf("Sending VME Patterns: ");
+  
+  while(cbytes<tsize){
+    
+    if(cbytes==0)
+      for (Index=0; Index<4; Index+=2) {
+	u8 *v1=(u8 *)&XIo_In16(REG2_ADDR);
+	if(Index>=2)
+	  v1=(u8 *)&XIo_In16(REG3_ADDR);
+	SendBuffer[Index] =  v1[0];
+	SendBuffer[Index+1] =  v1[1];
+	xil_printf("\n\r StartAddress:%x%x", SendBuffer[Index], SendBuffer[Index+1]);
+      }
+    else if(cbytes==sizeof(uint32_t))
+      for (Index=0; Index<4; Index+=4) {
+	u8 *v1=(u8 *)&XIo_In16(REG4_ADDR);
+	SendBuffer[Index] =  v1[0];
+	SendBuffer[Index+1] =  v1[1];
+	SendBuffer[Index+2] =  0x0;
+	SendBuffer[Index+3] =  0x0;
+	xil_printf("Size:%x%x", SendBuffer[Index], SendBuffer[Index+1]);
+      }
+    else
+      for (Index=0; Index<4; Index+=2) {
+	int sbit=btidx*sizeof(uint32_t);
+	u8 *v1=(u8 *)&XIo_In16(RAM1_ADDR+sbit);
+	SendBuffer[Index] =  v1[0];
+	SendBuffer[Index+1] =  v1[1];
+	xil_printf("%x%x", SendBuffer[Index], SendBuffer[Index+1]); /*Need this printf for delay*/
+
+	/* +++ Write to RAM3 on Spartan in order to cross-check via VME */
+	XIo_Out16(RAM3_ADDR+sbit, XIo_In16(RAM1_ADDR+sbit));
+	/* ------- */
+
+	btidx++;
+      }
+    
+    xil_printf("\n\r");
+    XUartLite_Send(&UartLite, SendBuffer, sizeof(uint32_t));
+    cbytes+=sizeof(uint32_t);
+    
+  }
+  
+  xil_printf("XST_SUCCESS...\n\r");
+  XIo_Out32(REG1_ADDR, 0x0);
+
+}
+
+
 int SetupInterruptSystem(XUartLite *UartLitePtr);
 
 void SendHandler(void *CallBackRef, unsigned int EventData) 
@@ -80,6 +132,8 @@ void RecvHandler(void *CallBackRef, unsigned int EventData)
 
 int main(void) {
 
+  /* setvbuf(stdout, NULL, _IONBF, 0);  */
+
   XIo_Out32(0x10008044,0x1);  // UnReset Clock A
   XIo_Out32(0x10008048,0x1);  // UnReset Clock C
 
@@ -95,13 +149,10 @@ int main(void) {
   init_SI5324C();
   check_SI5324C();  
 
-  setup_tracer((uint32_t*)0x7FF0, 3); 
   int Status;
   u16 DeviceId = UARTLITE_DEVICE_ID;     
   SBuf=cbuffer_new();
   RBuf=cbuffer_new();
-
-  set_trace_flag(1);
 
   /*
    * Initialize the UartLite driver so that it's ready to use.
@@ -111,7 +162,6 @@ int main(void) {
     LOG_ERROR ("Error: could not initialize UART\n");
       return XST_FAILURE;
   }
-  set_trace_flag(2);
 
   XUartLite_ResetFifos(&UartLite);
 
@@ -123,7 +173,6 @@ int main(void) {
     LOG_ERROR ("Error: self test failed\n");
       return XST_FAILURE;
   }
-  set_trace_flag(3);
 
   /*
    * Connect the UartLite to the interrupt subsystem such that interrupts can
@@ -134,7 +183,6 @@ int main(void) {
     LOG_ERROR ("Error: could not setup interrupts\n");
       return XST_FAILURE;
   }
-  set_trace_flag(4);
 
   /*
    * Setup the handlers for the UartLite that will be called from the
@@ -145,40 +193,29 @@ int main(void) {
   XUartLite_SetSendHandler(&UartLite, SendHandler, &UartLite);
   XUartLite_SetRecvHandler(&UartLite, RecvHandler, &UartLite);
 
-  set_trace_flag(5);
   /*
    * Enable the interrupt of the UartLite so that interrupts will occur.
    */
   XUartLite_EnableInterrupt(&UartLite);
 
-  set_trace_flag(6);
 
   XUartLite_Recv(&UartLite, (u8*)&tmpRBuf, sizeof(u8));
 
   while(1){ 
-    int Index;
-    int cbytes=0;
-    int btidx=0;
-    while(XIo_In32(REG1_ADDR) >0){  
-      uint16_t tsize=(XIo_In16(RAM1_ADDR+8)+2)*sizeof(uint32_t);
-      xil_printf("Size: %d\n\r", tsize);
-      xil_printf("Sending VME Patterns: ");
-      while(cbytes<tsize){
-	for (Index = 0; Index <4; Index+=2) {
-	  int sbit=btidx*sizeof(uint32_t);
-	  u8 *v1=(u8 *)&XIo_In16(RAM1_ADDR+sbit);
-	  SendBuffer[Index] =  v1[0];
-	  SendBuffer[Index+1] =  v1[1];
-	  xil_printf("%x%x", SendBuffer[Index], SendBuffer[Index+1]); /*Need this printf for delay*/
-	  btidx++;
-	}
-	xil_printf("\n\r");
-	XUartLite_Send(&UartLite, SendBuffer, sizeof(uint32_t));
-	cbytes+=sizeof(uint32_t);
-      }
-      set_trace_flag(7);
-      xil_printf("XST_SUCCESS...\n\r");
-      XIo_Out32(REG1_ADDR, 0x0);
+
+    /* Keep Flashing when on */
+    red_turnon();
+    for(i1=0; i1<64; i1++)
+      xil_printf("...");
+    green_turnon();
+    for(i1=0; i1<64; i1++)
+      xil_printf("...");
+    /* --------------------- */
+    
+    int cbt=0;
+    int btx=0;
+    while(XIo_In32(REG1_ADDR) == 0x0001){  
+      playback(cbt, btx);
     }
   }
 

@@ -150,12 +150,12 @@ int main(void) {
       cnt++;
     }
     while(cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)
-	  && badr < 0x10016FFc && cnt==1) {
+	  && badr <= 0x10016FFc && cnt==1) {
       data = cbuffer_pop_front(rx_buffer);
       cnt=data;
     }
     while(cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)
-	  && badr < 0x10016FFc && cnt >1 && plen<cnt){
+	  && badr <= 0x10016FFc && cnt >1 && plen<cnt){
       data = cbuffer_pop_front(rx_buffer);
       cbuffer_push_back(tx_buffer, data);
       XIo_Out32(badr, data);
