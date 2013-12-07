@@ -10,15 +10,16 @@ VMEStream *vmestream_initialize_heap(
         CircularBuffer *output,
         uint32_t MAXRAM)
 {
-    VMEStream *stream = (VMEStream*)malloc(sizeof(VMEStream));
+    VMEStream *stream = (VMEStream*) malloc(sizeof(VMEStream));
 
-    stream->local_send_size  = (uint32_t*)calloc(1, sizeof(uint32_t));
-    stream->local_recv_size  = (uint32_t*)calloc(1, sizeof(uint32_t));
-    stream->remote_send_size = (uint32_t*)calloc(1, sizeof(uint32_t));
-    stream->remote_recv_size = (uint32_t*)calloc(1, sizeof(uint32_t));
+    stream->tx_size = (uint32_t*) calloc(1, sizeof(uint32_t));
+    stream->rx_size = (uint32_t*) calloc(1, sizeof(uint32_t));
 
-    stream->recv_data = (uint32_t*)calloc(MAXRAM, sizeof(uint32_t));
-    stream->send_data = (uint32_t*)calloc(MAXRAM, sizeof(uint32_t));
+    stream->tx_data = (uint32_t*) calloc(MAXRAM, sizeof(uint32_t));
+    stream->rx_data = (uint32_t*) calloc(MAXRAM, sizeof(uint32_t));
+
+    stream->write_tx = 0;
+    stream->write_rx = 0;
 
     stream->MAXRAM = MAXRAM;
 
@@ -27,46 +28,36 @@ VMEStream *vmestream_initialize_heap(
 
     return stream;
 }
-
 
 VMEStream *vmestream_initialize_mem(
-        CircularBuffer* input,
-        CircularBuffer* output,
-        uint32_t* local_send_size,
-        uint32_t* local_recv_size,
-        uint32_t* remote_send_size,
-        uint32_t* remote_recv_size,
-        uint32_t* recv_data,
-        uint32_t* send_data,
+        CircularBuffer *input,
+        CircularBuffer *output,
+        uint32_t *tx_size,
+        uint32_t *rx_size,
+        uint32_t *tx_data,
+        uint32_t *rx_data,
+        char write_tx,
+        char write_rx,
         uint32_t MAXRAM) {
     VMEStream *stream = (VMEStream*)malloc(sizeof(VMEStream));
-
+    stream->tx_size = tx_size;
+    stream->tx_data = tx_data;
+    stream->rx_size = rx_size;
+    stream->rx_data = rx_data;
+    stream->MAXRAM = MAXRAM;
     stream->input = input;
     stream->output = output;
-
-    stream->local_send_size = local_send_size;
-    stream->local_recv_size = local_recv_size;
-    stream->remote_send_size = remote_send_size;
-    stream->remote_recv_size = remote_recv_size;
-
-    stream->recv_data = recv_data;
-    stream->send_data = send_data;
-
-    stream->MAXRAM = MAXRAM;
-
+    stream->write_rx = write_rx;
+    stream->write_tx = write_tx;
     return stream;
 }
-
 
 void vmestream_destroy_heap(VMEStream *stream)
 {
-    free(stream->recv_data);
-    free(stream->send_data);
-
-    free(stream->local_send_size);
-    free(stream->local_recv_size);
-    free(stream->remote_send_size);
-    free(stream->remote_recv_size);
+    free(stream->tx_size);
+    free(stream->tx_data);
+    free(stream->rx_size);
+    free(stream->rx_data);
 
     free(stream);
 }
@@ -74,47 +65,48 @@ void vmestream_destroy_heap(VMEStream *stream)
 
 int vmestream_transfer_data(VMEStream *stream)
 {
-    if (!stream) exit(20);
-    if (!stream->output) exit(22);
-    if (!stream->input) exit(21);
+    if (!stream) return -1;
 
-    // -------------------------------------
-    // Transfer data from input to send_data
-    // -------------------------------------
+    if (!stream->input) return -1;
+    if (!stream->output) return -1;
+
+    // -----------------------------------
+    // Transfer data from input to tx_data
+    // -----------------------------------
 
     uint32_t input_size = cbuffer_size(stream->input);
+    uint32_t tx_size    = *(stream->tx_size);
+    uint32_t MAXSIZE    = stream->MAXRAM;
 
-    uint32_t data2transfer = min(input_size, stream->MAXRAM);
+    // number of words to transmit to tx_data
+    uint32_t data2transfer = min(input_size, MAXSIZE);
 
-    // check if the remote has read all data sent
-    if (*(stream->local_send_size) == *(stream->remote_recv_size)) {
-        // if the RAM is empty, we are ready to send more data
-        if (*(stream->local_send_size) == 0) {
-            Buffer* buffer = cbuffer_pop(stream->input, data2transfer);
-            memcpy(stream->send_data, buffer->data, data2transfer * sizeof(uint32_t));
-            *(stream->local_send_size) = data2transfer;
-        }
-        // reset the size counter 0 to prepare for another transfer
-        else {
-            *(stream->local_send_size) = 0;
-        }
+    // check if any previously sent data has been received.
+    if (tx_size == 0 && data2transfer > 0) {
+      Buffer *read_data = cbuffer_pop(stream->input, data2transfer);
+      memcpy(stream->tx_data, read_data->data,
+          data2transfer*sizeof(uint32_t));
+      *(stream->tx_size) = data2transfer;
+
+      stream->write_tx = 1;
+
+      buffer_free(read_data);
     }
 
-    // -------------------------------------
-    // Transfer data from input to recv_data
-    // -------------------------------------
+    // ------------------------------------
+    // Transfer data from rx_data to output
+    // ------------------------------------
 
-    // reset size counter to 0 to prepare for another transfer
-    if (*(stream->remote_send_size) == 0) {
-        *(stream->local_recv_size) = 0;
-    }
-    // check if there is data to recieve
-    else if (*(stream->remote_send_size) > 0 && *(stream->local_recv_size) == 0) {
-        // check if there is room in output to recieve the data
-        if (cbuffer_freespace(stream->output) >= *(stream->remote_send_size)) {
-            cbuffer_append(stream->output, stream->recv_data, *(stream->remote_send_size));
-            *(stream->local_recv_size) = *(stream->remote_send_size);
-        }
+    uint32_t output_space = cbuffer_freespace(stream->output);
+    uint32_t rx_size      = *(stream->rx_size);
+
+    // just leave the data in limbo until we have room for it.
+    if (rx_size && output_space >= rx_size) {
+        cbuffer_append(stream->output, stream->rx_data, rx_size);
+        // indicate successful receipt.
+        *(stream->rx_size) = 0;
+
+        stream->write_rx = 1;
     }
 
     return 0;
