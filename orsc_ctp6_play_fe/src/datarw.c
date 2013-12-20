@@ -14,7 +14,6 @@
 #include "xil_exception.h"
 #include "circular_buffer.h"
 #include "macrologger.h"
-#include "tracer.h"
 #include "xio.h"
 
 #define printf xil_printf
@@ -68,8 +67,6 @@ int main(void) {
 
   init_platform();
 
-  setup_tracer((uint32_t*)0x7FF0, 3); 
-  
   LOG_INFO("UART oRSC FE echo test\n\r");
 
   tx_buffer = cbuffer_new();
@@ -78,7 +75,6 @@ int main(void) {
   int Status;
   u16 DeviceId = UARTLITE_DEVICE_ID;     
 
-  set_trace_flag(1);
 
   /*
    * Initialize the UartLite driver so that it's ready to use.
@@ -88,7 +84,6 @@ int main(void) {
     LOG_ERROR ("Error: could not initialize UART\n");
       return XST_FAILURE;
   }
-  set_trace_flag(2);
 
   XUartLite_ResetFifos(&UartLite);
 
@@ -100,7 +95,6 @@ int main(void) {
     LOG_ERROR ("Error: self test failed\n");
       return XST_FAILURE;
   }
-  set_trace_flag(3);
 
   /*
    * Connect the UartLite to the interrupt subsystem such that interrupts can
@@ -111,7 +105,6 @@ int main(void) {
     LOG_ERROR ("Error: could not setup interrupts\n");
       return XST_FAILURE;
   }
-  //set_trace_flag(4);
 
   /*
    * Setup the handlers for the UartLite that will be called from the
@@ -122,61 +115,67 @@ int main(void) {
   XUartLite_SetSendHandler(&UartLite, SendHandler, &UartLite);
   XUartLite_SetRecvHandler(&UartLite, RecvHandler, &UartLite);
 
-  set_trace_flag(5);
   /*
    * Enable the interrupt of the UartLite so that interrupts will occur.
    */
   XUartLite_EnableInterrupt(&UartLite);
 
-  set_trace_flag(6);
 
   // bootstrap the READ
   LOG_DEBUG("Bootstrapping READ\n");
   XUartLite_Recv(&UartLite, (u8*)&rx_tmp_buffer, sizeof(uint32_t));
 
-  set_trace_flag(7);
 
   /* echo received data forever */
-  unsigned int badr=0x10000000;
-  unsigned int cnt=0;
-  unsigned int plen=0;
-  uint32_t data;
+  uint32_t badr=0x10000000;
+  uint16_t cnt=0;
+  uint16_t ctl=0;
+  uint16_t plen=0;
+  uint32_t gdata=0;
   while (1) {
-    set_trace_flag(8);
     while(cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer) 
 	  && cnt==0) {
-      data = cbuffer_pop_front(rx_buffer);
-      badr=data;
+      gdata = cbuffer_pop_front(rx_buffer);
+      badr=gdata;
       cnt++;
     }
     while(cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)
 	  && badr <= 0x10016FFc && cnt==1) {
-      data = cbuffer_pop_front(rx_buffer);
-      cnt=data;
+      gdata = cbuffer_pop_front(rx_buffer);
+      cnt = (uint16_t)(gdata&0x0000ffff);
+      ctl = (uint16_t)((gdata&0xffff0000)>>16); 
     }
     while(cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)
-	  && badr <= 0x10016FFc && cnt >1 && plen<cnt){
-      data = cbuffer_pop_front(rx_buffer);
-      cbuffer_push_back(tx_buffer, data);
-      XIo_Out32(badr, data);
+	  && badr <= 0x10016FFc && cnt >1 && plen<cnt && ctl==0x1){
+      gdata = cbuffer_pop_front(rx_buffer);
+      /*       cbuffer_push_back(tx_buffer, gdata); */
+      XIo_Out32(badr, gdata);
       badr+=4;
+      plen++;
+    }
+    int bt=0;
+    while(cbuffer_freespace(tx_buffer)
+	  && cnt >1 && plen<cnt && ctl==0x2){
+      uint32_t dt = XIo_In32(badr+bt);
+      XUartLite_Send(&UartLite, (u8 *)&dt, sizeof(uint32_t));
+      while(XUartLite_IsSending(&UartLite)){}
+      /*       cbuffer_push_back(tx_buffer, dt); */
+      bt+=sizeof(uint32_t);
       plen++;
     }
     if(plen==cnt){
       plen=0;
       cnt=0;
     }
-    
-    set_trace_flag(9);
-    
     if (!currently_sending && cbuffer_size(tx_buffer)) {
       LOG_DEBUG("\nREINT SEND\n");
       currently_sending = 1;
-
+      
       unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
       u8* output_ptr = (u8*)&(tx_buffer->data[tx_buffer->pos]);
       XUartLite_Send(&UartLite, output_ptr, to_send);
-    }
+      while(XUartLite_IsSending(&UartLite)){};/* xil_printf("%x\n\r",tx_buffer->data[tx_buffer->pos]);} */
+    } 
   }
 
 }
