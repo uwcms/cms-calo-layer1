@@ -49,8 +49,7 @@ u8 SendBuffer[TEST_BUFFER_SIZE]={0};
 
 static CircularBuffer* SBuf;
 static CircularBuffer* RBuf;
-static u8 tmpRBuf;
-static volatile int currently_sending=0;
+static volatile uint32_t tmpRBuf;
 
 /*
  * The following counters are used to determine when the entire buffer has
@@ -85,8 +84,10 @@ inline void playback(int cbytes, int btidx)
 	u8 *v1=(u8 *)&XIo_In16(REG4_ADDR);
 	SendBuffer[Index] =  v1[0];
 	SendBuffer[Index+1] =  v1[1];
-	SendBuffer[Index+2] =  0x0;
-	SendBuffer[Index+3] =  0x0;
+
+	u8 *v2=(u8 *)&XIo_In16(REG1_ADDR);
+        SendBuffer[Index+2] =  v2[0];  /* CTRL values for READ/WRITE */
+        SendBuffer[Index+3] =  v2[1];
 	xil_printf("Size:%x%x", SendBuffer[Index], SendBuffer[Index+1]);
       }
     else
@@ -127,7 +128,7 @@ void RecvHandler(void *CallBackRef, unsigned int EventData)
 {
  /*  TotalReceivedCount = EventData; */
   cbuffer_push_back(RBuf, tmpRBuf);
-  XUartLite_Recv(&UartLite, (u8*)&tmpRBuf, sizeof(u8));
+  XUartLite_Recv(&UartLite, (u8*)&tmpRBuf, sizeof(uint32_t));
 }
 
 int main(void) {
@@ -197,9 +198,7 @@ int main(void) {
    * Enable the interrupt of the UartLite so that interrupts will occur.
    */
   XUartLite_EnableInterrupt(&UartLite);
-
-
-  XUartLite_Recv(&UartLite, (u8*)&tmpRBuf, sizeof(u8));
+  XUartLite_Recv(&UartLite, (u8*)&tmpRBuf, sizeof(uint32_t));
 
   while(1){ 
 
@@ -209,7 +208,7 @@ int main(void) {
       xil_printf("...");
     green_turnon();
     for(i1=0; i1<64; i1++)
-      xil_printf("...");
+      xil_printf("..."); 
     /* --------------------- */
     
     int cbt=0;
@@ -217,8 +216,44 @@ int main(void) {
     while(XIo_In32(REG1_ADDR) == 0x0001){  
       playback(cbt, btx);
     }
-  }
+    
+    while(XIo_In32(REG1_ADDR) == 0x0002){
+      int Index;
+      for (Index=0; Index<4; Index+=2) {
+	u8 *v1=(u8 *)&XIo_In16(REG2_ADDR);
+	if(Index>=2)
+	  v1=(u8 *)&XIo_In16(REG3_ADDR);
+	SendBuffer[Index] =  v1[0];
+	SendBuffer[Index+1] =  v1[1];
+	xil_printf("\n\r StartAddress:%x%x", SendBuffer[Index], SendBuffer[Index+1]);
+      }
+      XUartLite_Send(&UartLite, SendBuffer, sizeof(uint32_t));
+      for (Index=0; Index<4; Index+=4) {
+	u8 *v1=(u8 *)&XIo_In16(REG4_ADDR);
+	SendBuffer[Index] =  v1[0];
+	SendBuffer[Index+1] =  v1[1];
+	
+	u8 *v2=(u8 *)&XIo_In16(REG1_ADDR);
+	SendBuffer[Index+2] =  v2[0];  /* CTRL values for READ/WRITE */
+	SendBuffer[Index+3] =  v2[1];
+	xil_printf("Size:%x%x , CTRL:%x%x", SendBuffer[Index], SendBuffer[Index+1],
+		   SendBuffer[Index+2], SendBuffer[Index+3]);
+      }
+      XUartLite_Send(&UartLite, SendBuffer, sizeof(uint32_t));
+      xil_printf("XST_SUCCESS...\n\r");
+      XIo_Out32(REG1_ADDR, 0x0);
+    }
+    
+    int b=0;
+    while(cbuffer_size(RBuf)){ 
+      uint32_t recv = cbuffer_pop_front(RBuf);
+      xil_printf("data: %x\n\r",recv);
+      XIo_Out16(RAM4_ADDR+b,(uint16_t)recv&0x0000ffff);
+      XIo_Out16(RAM4_ADDR+b+2,(uint16_t)(recv&0xffff0000>>16));
+      b+=sizeof(uint32_t);
+    }
 
+  }
 }
 
 int SetupInterruptSystem(XUartLite *UartLitePtr) {
