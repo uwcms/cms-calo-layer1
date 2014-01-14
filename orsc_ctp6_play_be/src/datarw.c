@@ -202,14 +202,14 @@ int main(void) {
 
   while(1){ 
 
-    /*     /\* Keep Flashing when on *\/ */
-    /*     red_turnon(); */
-    /*     for(i1=0; i1<64; i1++) */
-    /*       xil_printf("..."); */
-    /*     green_turnon(); */
-    /*     for(i1=0; i1<64; i1++) */
-    /*       xil_printf("...");  */
-    /*     /\* --------------------- *\/ */
+    /* LEDs Keep Flashing when transaction is happening */
+    red_turnon();
+    for(i1=0; i1<64; i1++)
+      xil_printf("...");
+    green_turnon();
+    for(i1=0; i1<64; i1++)
+      xil_printf("...");
+    /* --------------------- */
     
     int cbt=0;
     int btx=0;
