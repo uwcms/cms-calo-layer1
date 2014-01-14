@@ -88,7 +88,7 @@ inline void playback(int cbytes, int btidx)
 	u8 *v2=(u8 *)&XIo_In16(REG1_ADDR);
         SendBuffer[Index+2] =  v2[0];  /* CTRL values for READ/WRITE */
         SendBuffer[Index+3] =  v2[1];
-	xil_printf("Size:%x%x", SendBuffer[Index], SendBuffer[Index+1]);
+	xil_printf("Size:%x%x%x%x", SendBuffer[Index], SendBuffer[Index+1], SendBuffer[Index+2], SendBuffer[Index+3]);
       }
     else
       for (Index=0; Index<4; Index+=2) {
@@ -202,14 +202,14 @@ int main(void) {
 
   while(1){ 
 
-    /* Keep Flashing when on */
-    red_turnon();
-    for(i1=0; i1<64; i1++)
-      xil_printf("...");
-    green_turnon();
-    for(i1=0; i1<64; i1++)
-      xil_printf("..."); 
-    /* --------------------- */
+    /*     /\* Keep Flashing when on *\/ */
+    /*     red_turnon(); */
+    /*     for(i1=0; i1<64; i1++) */
+    /*       xil_printf("..."); */
+    /*     green_turnon(); */
+    /*     for(i1=0; i1<64; i1++) */
+    /*       xil_printf("...");  */
+    /*     /\* --------------------- *\/ */
     
     int cbt=0;
     int btx=0;
@@ -240,18 +240,36 @@ int main(void) {
 		   SendBuffer[Index+2], SendBuffer[Index+3]);
       }
       XUartLite_Send(&UartLite, SendBuffer, sizeof(uint32_t));
-      xil_printf("XST_SUCCESS...\n\r");
+
+      while(XUartLite_IsSending(&UartLite)){}
+      xil_printf("DONE SENDING... Now Receiving...\n\r");
+
+      int b=0;
+      while(cbuffer_size(RBuf)){ 
+	uint32_t recv = cbuffer_pop_front(RBuf);
+	xil_printf("data: %x\n\r",recv);
+	uint16_t w1 = (uint16_t)(recv&0x0000ffff);
+	uint16_t w2 = (uint16_t)((recv&0xffff0000)>>16);
+	XIo_Out16(RAM4_ADDR+b,w1);
+	XIo_Out16(RAM4_ADDR+b+4,w2);
+	b+=(2*sizeof(uint32_t));
+      }
+      xil_printf("XST_SUCCESS \n\r");
       XIo_Out32(REG1_ADDR, 0x0);
     }
     
-    int b=0;
-    while(cbuffer_size(RBuf)){ 
-      uint32_t recv = cbuffer_pop_front(RBuf);
-      xil_printf("data: %x\n\r",recv);
-      XIo_Out16(RAM4_ADDR+b,(uint16_t)recv&0x0000ffff);
-      XIo_Out16(RAM4_ADDR+b+2,(uint16_t)(recv&0xffff0000>>16));
-      b+=sizeof(uint32_t);
+
+
+    while(XIo_In32(REG1_ADDR) == 0x0003) {  /* Local Write */
+      uint32_t startaddr_write = ((uint32_t)((XIo_In16(REG2_ADDR)&0x0000ffff)<<16) | (XIo_In16(REG3_ADDR)));
+      uint32_t startvalue = XIo_In16(REG4_ADDR);
+      XIo_Out32(startaddr_write, startvalue);
+      xil_printf("\n\r StartAddressForLocalWrite:%x%x\n\r", startaddr_write, startvalue);
+      
+      xil_printf("XST_SUCCESS \n\r");
+      XIo_Out32(REG1_ADDR, 0x0);
     }
+      
 
   }
 }

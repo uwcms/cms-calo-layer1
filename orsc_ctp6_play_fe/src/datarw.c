@@ -127,55 +127,54 @@ int main(void) {
 
 
   /* echo received data forever */
-  uint32_t badr=0x10000000;
+  uint32_t badr=0;
   uint16_t cnt=0;
-  uint16_t ctl=0;
+  uint16_t ctl=0xFFFF;
   uint16_t plen=0;
   uint32_t gdata=0;
   while (1) {
-    while(cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer) 
-	  && cnt==0) {
-      gdata = cbuffer_pop_front(rx_buffer);
-      badr=gdata;
-      cnt++;
+    if(ctl == 0xFFFF) {
+      while(cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)) {
+	gdata = cbuffer_pop_front(rx_buffer);
+	if(cnt == 0) {
+	  badr=gdata;
+	  cnt++;
+	}
+	else {
+	  cnt = (uint16_t)(gdata&0x0000ffff);
+	  ctl = (uint16_t)((gdata&0xffff0000)>>16); 
+	}
+      }
     }
-    while(cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)
-	  && badr <= 0x10016FFc && cnt==1) {
-      gdata = cbuffer_pop_front(rx_buffer);
-      cnt = (uint16_t)(gdata&0x0000ffff);
-      ctl = (uint16_t)((gdata&0xffff0000)>>16); 
+    else if(ctl == 0x0001) {
+      while(cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer) && cnt >=1 && plen<cnt) {
+	gdata = cbuffer_pop_front(rx_buffer);
+	XIo_Out32(badr, gdata);
+	badr+=4;
+	plen++;
+      }
     }
-    while(cbuffer_size(rx_buffer) && cbuffer_freespace(tx_buffer)
-	  && badr <= 0x10016FFc && cnt >1 && plen<cnt && ctl==0x1){
-      gdata = cbuffer_pop_front(rx_buffer);
-      /*       cbuffer_push_back(tx_buffer, gdata); */
-      XIo_Out32(badr, gdata);
-      badr+=4;
-      plen++;
+    else if(ctl == 0x0002) {
+      int bt=0;
+      while(cbuffer_freespace(tx_buffer) && cnt >=1 && plen<cnt){
+	uint32_t dt = XIo_In32(badr+bt);
+	XUartLite_Send(&UartLite, (u8 *)&dt, sizeof(uint32_t));
+	while(XUartLite_IsSending(&UartLite)){}
+	bt+=sizeof(uint32_t);
+	plen++;
+      }
     }
-    int bt=0;
-    while(cbuffer_freespace(tx_buffer)
-	  && cnt >1 && plen<cnt && ctl==0x2){
-      uint32_t dt = XIo_In32(badr+bt);
-      XUartLite_Send(&UartLite, (u8 *)&dt, sizeof(uint32_t));
-      while(XUartLite_IsSending(&UartLite)){}
-      /*       cbuffer_push_back(tx_buffer, dt); */
-      bt+=sizeof(uint32_t);
-      plen++;
+    else {
+      LOG_DEBUG("ERROR: invalid control!\n");
     }
+    /* When one full transaction is done reset to the starting configuration */
     if(plen==cnt){
+      badr=0;
       plen=0;
       cnt=0;
+      ctl=0xFFFF;
+      gdata=0;
     }
-    if (!currently_sending && cbuffer_size(tx_buffer)) {
-      LOG_DEBUG("\nREINT SEND\n");
-      currently_sending = 1;
-      
-      unsigned int to_send = cbuffer_contiguous_data_size(tx_buffer) * sizeof(uint32_t);
-      u8* output_ptr = (u8*)&(tx_buffer->data[tx_buffer->pos]);
-      XUartLite_Send(&UartLite, output_ptr, to_send);
-      while(XUartLite_IsSending(&UartLite)){};/* xil_printf("%x\n\r",tx_buffer->data[tx_buffer->pos]);} */
-    } 
   }
 
 }
