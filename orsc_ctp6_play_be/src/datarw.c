@@ -143,7 +143,8 @@ int main(void) {
 
   /// Delay the signals to sync them later
   int i1;
-  for(i1=0; i1<1000000; i1++);
+  for(i1=0; i1<100; i1++)
+    xil_printf("Delaying the Signal to Sync Later\n\r");
 
   init_SI5324A();
   check_SI5324A();

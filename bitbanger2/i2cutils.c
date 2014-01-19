@@ -20,7 +20,7 @@ typedef struct {
 #define ENDOFTBL			(-1)
 
 i2c_dev_init_entry_t DS25CP104A_init_record[] = {
-		{0, 0x5F},					// Synth A/C <-120MHz TTC, Out B/D<-100 MHz Osc
+		{0, 0x5F},					// Synth A <- 100, FanoutB <- 100, Synth C <- 160, FanoutD <- 160
 		{1, 0x00}, 					// no pre-emphasis on outputs
 		{2, 0x00}, 					// no equalization on inputs
 		{3, 0x8f},					// no power-down,
