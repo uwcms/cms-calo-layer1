@@ -1,48 +1,49 @@
 ### ### ### ### ### ### ### ### ### 
 #  oRSC BE and FE code explanation \
-#  This code is responsible for: \
 #
-#  Write patterns to Kintex RAMs on oRSC \
-#  patterns generated at VME pc are \
-#  transferred and written to BE RAMs \
-#  This code transfers and writes the pattern \
-#  to FE (Kintex) RAMs on oRSC
-#
+#  Read/Write data From/To Kintex \
+#  Addresses (RAM and REG)
 ### ### ### ### ### ### ### ### ### 
 
 
-## Configure and Connect to BE via JTAG
+# Program BE and FE FPGAs via VME pc 
+# Eventually this next 3 lines will \
+# be implemented as a default in \
+# the Firmware image
 
-fpga -f bitfiles/orsc/top_be.bit -debugdevice deviceNr 1
-connect mb mdm -debugdevice deviceNr 1
-dow orsc_ctp6_play_be/payload.elf 
+# Set up below need to be done just ONCE \
+# Unless there is a firmware/software change 
 
-## Configure, Connect and RUN FE via JTAG
+echo "fpga -f bitfiles/orsc/top_be.bit -debugdevice deviceNr 1 && fpga -f bitfiles/orsc/top_fe.bit -debugdevice deviceNr 2" | xmd
+echo "connect mb mdm -debugdevice deviceNr 1; rst; stop; dow orsc_ctp6_play_be/payload.elf && run" | xmd
+echo "connect mb mdm -debugdevice deviceNr 2; rst; stop; dow orsc_ctp6_play_fe/payload.elf && run" | xmd
 
-fpga -f bitfiles/orsc/top_fe.bit -debugdevice deviceNr 2
+####
+# After this point, you can use VME pc to read, write and play data to CTP6/CTP7/MP7
+#
+#
+# oRSCPokeKintexAddress <Address> <value>
+# oRSCDumpKintexAddress <Address> <Length>
+# oRSCPlayback -v --ones --do
+#
+####
+
+
+###
+# For the capture on the CTP6 side \
+# Setup these registers using xmd
+
 connect mb mdm -debugdevice deviceNr 2
-dow orsc_ctp6_play_fe/payload.elf 
-run
+mwr 0x600F0034 0x7c  ## Sets up the Orbit Char
+mwr 0x600F0038 0x1   ## MB capture trigger
+mwr 0x600F0038 0x0   ## MB capture trigger
 
-# Then run the BE code on xmd prompt
-run
+mrd 0x600F005c 48  # You should see the links locked
 
-# This enables the uart on BE and FE to start \
-# listening to VME PC.
-# Now run the VME code that will generate \
-# patterns and send to BE RAMs
-# In about 3-3.5 mins. all 23 links on oRSC FE 
-# should be filled
+# To READ the RAMs on CTP6 and display data,
+# USE xmd
+mrd 0x60000000 1024
+mrd 0x60001000 1024
+mrd 0x60002000 1024
+....
 
-# After the entire data is played by VME code \
-# execute stop on the BE and FE xmd prompt
-
-stop
-
-# Then you can read the memories written on oRSC FE
-# e.g. 
-
-mrd 0x10000000 256
-
-# We will add more information how to play these data \
-# to CTP6 soon...
