@@ -10,4 +10,4 @@
 
 /* Configure the clock and set this register to 1*/
 /* FE will read this register value before configure */
-#define REG_DONECFG    0x10008050 
+#define CLOCK_READY    0x10008050 
