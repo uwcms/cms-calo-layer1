@@ -137,6 +137,7 @@ int main(void) {
 
   XIo_Out32(0x10008044,0x1);  // UnReset Clock A
   XIo_Out32(0x10008048,0x1);  // UnReset Clock C
+  XIo_Out32(CLOCK_READY, 0x0); /* Turn-off Clock READY signal */
 
   init_platform();
   init_DS25CP104();
@@ -149,7 +150,9 @@ int main(void) {
   init_SI5324A();
   check_SI5324A();
   init_SI5324C();
-  check_SI5324C();  
+  check_SI5324C(); 
+
+  XIo_Out32(CLOCK_READY, 0x1); /* Turn-on Clock READY signal to THE FE */
 
   int Status;
   u16 DeviceId = UARTLITE_DEVICE_ID;     

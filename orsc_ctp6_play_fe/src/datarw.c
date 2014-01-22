@@ -15,6 +15,7 @@
 #include "circular_buffer.h"
 #include "macrologger.h"
 #include "xio.h"
+#include "addr.h"
 
 #define printf xil_printf
 #define print xil_printf
@@ -67,6 +68,10 @@ int main(void) {
 
   init_platform();
 
+  uint32_t GET_CLOCK_FROM_BE = 0x0;
+  while(GET_CLOCK_FROM_BE != 0x1)
+    GET_CLOCK_FROM_BE = XIo_In32(CLOCK_CHIP_READY);
+  
   LOG_INFO("UART oRSC FE echo test\n\r");
 
   tx_buffer = cbuffer_new();
@@ -74,8 +79,20 @@ int main(void) {
 
   int Status;
   u16 DeviceId = UARTLITE_DEVICE_ID;     
+  
+  /*  Setup Registers for the Playback */
+  XIo_Out32(PRBS_GEN, 0x0); /* Turn-off PRBS_GEN, ON by default */
+  XIo_Out32(TX_USER_READY, 0x0); /* Turn-off TX_USER_READY to toggle RESET */
+  XIo_Out32(TX_RESET, 0xFFFFFF); /* Toggle RESET */
+  XIo_Out32(TX_RESET, 0x0); /* Toggle RESET */
+  XIo_Out32(TX_USER_READY, 0xFFFFFF); /* Turn-on TX_USER_READY */
+  XIo_Out32(PATTERN_BX_LENGTH, 0xFF); /* Set BX LENGTH TO TRANSMIT */
+  XIo_Out32(QPLL_RESET, 0x3F); /* Toggle QPLL-RESET */
+  XIo_Out32(QPLL_RESET, 0x0); /* Toggle QPLL-RESET */
 
-
+  if( XIo_In32(QPLL_LOCK_STATUS) == 0x3F )
+    LOG_DEBUG("QPLL is LOCKED\n\r");
+  
   /*
    * Initialize the UartLite driver so that it's ready to use.
    */
