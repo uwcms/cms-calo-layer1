@@ -35,10 +35,8 @@ endif
 PROJECTS=\
 	 $(LAYER1_DIR)/ctp6_fe_uart_ipbus \
 	 $(LAYER1_DIR)/ctp6_fe_uart_echo_test \
-	 $(LAYER1_DIR)/orsc_ctp6_play_be \
-	 $(LAYER1_DIR)/orsc_ctp6_play_fe \
-	 $(LAYER1_DIR)/orsc_be_uart_echo_test \
-	 $(LAYER1_DIR)/orsc_fe_uart_echo_test \
+	 $(LAYER1_DIR)/orsc_be_sw \
+	 $(LAYER1_DIR)/orsc_fe_sw 
 
 all: bsps force_look
 	@echo $(PWD)
