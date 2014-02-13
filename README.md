@@ -77,14 +77,54 @@ cat /dev/ttyUL1
 ```
 should return the original string "Go badgers"
 
-### orsc_(fe|be)_spi_echo_test ###
 
-Untested. Should send test data back and forth between the oRSC BE and FE via
-the inter-FPGA SPI.
+####################################
+####  O R S C
+####################################
+### orsc_fe_sw ###
 
-### orsc_be_vmestream_echo_test ###
+SW runs on Front End a.k.a Kintex in the oRSC board. Receives packets from the 
+Back End a.k.a Spartan via UART. 
+Packets are designed such a way to either fill the RAM on Kintex or 
+Capture data from the JCC cables connected to the FE.
 
-Untested. Should echo data sent from a "VME PC" via the VMEStream protocol.
+```shell
+# Run using JTAG
+
+fpga -f bitfiles/orsc/top_be.bit -debugdevice deviceNr 1
+connect mb mdm -debugdevice deviceNr 1
+rst
+stop
+dow orsc_be_sw/payload.elf
+run
+
+```
+
+### orsc_be_sw ###
+
+SW runs on the Back End. It waits to receive packets from the VME and
+then forward it to the Front End. 
+It also receives packets back from Front End and write it to RAM so that
+VME can read it back...
+
+```shell
+# Run using JTAG
+
+fpga -f bitfiles/orsc/top_fe.bit -debugdevice deviceNr 2
+connect mb mdm -debugdevice deviceNr 2
+rst
+stop
+dow orsc_fe_sw/payload.elf
+run
+
+```
+
+Later,JTAG won't be used to load firmware into oRSC
+The payload files will be merged into the firmware image file
+and the card will activate the code and run on boot...
+
+#### 
+
 
 Notes from August Integration
 -----------------------------
